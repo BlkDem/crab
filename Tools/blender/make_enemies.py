@@ -1038,10 +1038,141 @@ def build_envious():
     parent(ge, head)
     L.export_tree("envious", body)
 
+
+# ---------------------------------------------------------------------- V. the circle of Despondency
+def mat_smoke(name, base="#1a1c24", light="#3a3e4c"):
+    """Dark smoke-cloth: soft streaks, no shine."""
+    t = NT(name)
+    n = t.noise(t.vec(scale=(1, 1, 3)), 4, detail=6, distortion=1.0)
+    col = t.ramp(n, [(0.3, C(base)), (0.7, C(light))])
+    return t.finish(col, rough=0.9)
+
+
+def build_wraith():
+    """A Wraith of despondency (about 1.9 m): a hunched hooded shape of smoke, no legs — the hem
+    trails into wisps; very long thin arms; two pale eyes. Body > Head > GlowEyes, ArmL, ArmR."""
+    m = mat_smoke("wraith_smoke")
+    mh = mat_smoke("wraith_hand", base="#2a2e38", light="#4a4e5a")
+    robe = lathe("robe", [(0.0, 0.0), (0.12, 0.05), (0.4, 0.4), (0.42, 0.9), (0.32, 1.4), (0.2, 1.6), (0.0, 1.62)], steps=20)
+    for v in robe.data.vertices:
+        if v.co.z < 0.5:
+            v.co.z += 0.2 * abs(math.sin(math.atan2(v.co.y, v.co.x) * 6))
+        v.co.y += 0.15 * (v.co.z / 1.6) ** 2   # hunched
+    robe.data.materials.append(m)
+    body = join("Body", [robe])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    hood = lathe("hood", [(0.0, 1.95), (0.18, 1.9), (0.24, 1.72), (0.22, 1.55), (0.15, 1.5)], steps=16)
+    for v in hood.data.vertices:
+        if v.co.y < -0.06 and v.co.z < 1.85:
+            v.co.y *= 0.35
+        v.co.y += 0.12
+    hood.data.materials.append(m)
+    head = join("Head", [hood])
+    set_origin(head, (0, 0.1, 1.55))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 0.28, 0.12, 1.42))
+        arm = tube("arm", [(sh, 0.06), (sh + Vector((sx * 0.12, -0.3, -0.45)), 0.04), (sh + Vector((sx * 0.1, -0.55, -0.95)), 0.03)], seg=8, sub=2)
+        arm.data.materials.append(mh)
+        fingers = []
+        tip = sh + Vector((sx * 0.1, -0.55, -0.95))
+        for k in range(4):
+            d = Vector((sx * 0.04 * (k - 1.5), -0.5, -1)).normalized()
+            f = tube("finger", [(tip, 0.012), (tip + d * 0.22, 0.003)], seg=5, sub=1)
+            f.data.materials.append(mh)
+            fingers.append(f)
+        a = join("Arm" + side, [arm] + fingers)
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+    for o in parts:
+        L.shade_smooth(o, 50)
+    L.bake_group(parts, "wraith", size=512, ao_dist=0.08)
+    eyes = [uv_sphere("e", 0.03, (sx * 0.07, -0.02, 1.72), scale=(1.4, 0.5, 0.6), seg=10, rings=8) for sx in (-1, 1)]
+    for e in eyes:
+        e.data.materials.append(glow("wraith_eyes", "#c8dcff", 10.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, head)
+    L.export_tree("wraith", body)
+
+
+def build_devourer():
+    """The Devourer of Light (about 11 m): a heaving mass of darkness, a maw of pale teeth that
+    opens (Maw), six long arms (Arm0..5) and, deep inside, a violet heart (Heart).
+    Body > Maw, Heart, Arm0..5."""
+    m = mat_smoke("devourer_dark", base="#0c0c12", light="#24222e")
+    mt = L.mat_plain("devourer_teeth", "#d8d0c0", rough=0.4)
+    mass = []
+    for k in range(9):
+        b = L.blob("mass", random.uniform(2.2, 3.4), seed=600 + k, squash=(1, 0.9, 1.1), rough=0.15, sub=4)
+        off = Vector((random.uniform(-2.5, 2.5), random.uniform(0, 2.5), 3 + k * 0.7 + random.uniform(-1, 1)))
+        for v in b.data.vertices:
+            v.co += off
+        b.data.materials.append(m)
+        mass.append(b)
+    body = join("Body", mass)
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    # the maw: a lower jaw ring of teeth that swings open
+    jaw = lathe("jaw", [(1.8, 0), (2.0, 0.3), (1.7, 0.5), (0.0, 0.3)], steps=24)
+    for v in jaw.data.vertices:
+        v.co.y *= 0.6
+    jaw.data.materials.append(m)
+    teeth = []
+    for k in range(14):
+        a = math.pi * (0.1 + 0.8 * k / 13)
+        p = Vector((math.cos(a) * 1.7, -math.sin(a) * 1.0, 0.45))
+        t_ = tube("tooth", [(p, 0.14), (p + Vector((0, 0, 0.7)), 0.01)], seg=6, sub=1)
+        t_.data.materials.append(mt)
+        teeth.append(t_)
+    maw = join("Maw", [jaw] + teeth)
+    for v in maw.data.vertices:
+        v.co += Vector((0, -2.6, 6.2))
+    set_origin(maw, (0, -1.6, 6.6))
+    parent(maw, body)
+    parts.append(maw)
+    upper = []
+    for k in range(14):
+        a = math.pi * (0.1 + 0.8 * k / 13)
+        p = Vector((math.cos(a) * 1.7, -2.6 - math.sin(a) * 1.0, 7.4))
+        t_ = tube("tooth", [(p, 0.14), (p + Vector((0, 0, -0.7)), 0.01)], seg=6, sub=1)
+        t_.data.materials.append(mt)
+        upper.append(t_)
+    ut = join("UpperTeeth", upper)
+    parent(ut, body)
+    parts.append(ut)
+    for i in range(6):
+        sx = 1 if i % 2 == 0 else -1
+        base = Vector((sx * (2.4 + (i // 2) * 0.4), -0.5, 9 - (i // 2) * 2.2))
+        pts = [(base, 0.45)]
+        for j in range(1, 6):
+            pts.append((base + Vector((sx * j * 0.9, -j * 0.8, -j * 0.9 + math.sin(j) * 0.4)), 0.45 - j * 0.07))
+        arm = tube(f"arm{i}", pts, seg=8, sub=3)
+        arm.data.materials.append(m)
+        a = join(f"Arm{i}", [arm])
+        set_origin(a, base)
+        parent(a, body)
+        parts.append(a)
+    for o in parts:
+        L.shade_smooth(o, 50)
+    L.bake_group(parts, "devourer", size=1024, ao_dist=0.8)
+    heart = uv_sphere("Heart", 1.0, (0, -1.4, 6.8), scale=(1, 0.8, 1.1), seg=16, rings=12)
+    heart.data.materials.append(glow("devourer_heart", "#b07aff", 10.0))
+    set_origin(heart, (0, -1.4, 6.8))
+    parent(heart, body)
+    eyes = [uv_sphere("e", 0.22, (sx * 1.2, -2.5, 8.6), scale=(1.5, 0.5, 0.6), seg=10, rings=8) for sx in (-1, -0.4, 0.4, 1)]
+    for e in eyes:
+        e.data.materials.append(glow("devourer_eyes", "#d8c8ff", 8.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, body)
+    L.export_tree("devourer", body)
+
 ASSETS = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian,
           "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus,
           "collector": build_collector, "goldguard": build_goldguard, "usurer": build_usurer,
-          "dweller": build_dweller, "envious": build_envious}
+          "dweller": build_dweller, "envious": build_envious, "wraith": build_wraith, "devourer": build_devourer}
 
 
 def main():

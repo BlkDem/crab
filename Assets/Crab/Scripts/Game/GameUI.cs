@@ -18,7 +18,9 @@ namespace Crab.Game
         readonly Dictionary<Matter, Label> matterLabels = new Dictionary<Matter, Label>();
         readonly Dictionary<Matter, VisualElement> matterChips = new Dictionary<Matter, VisualElement>();
         Label shieldText;
-        IVisualElementScheduledItem thoughtTimer, hintTimer, titleTimer;
+        IVisualElementScheduledItem thoughtTimer, hintTimer, titleTimer, whisperTimer, aiTimer;
+        VisualElement whisper, ai, willRow, willFill;
+        Label whisperText, aiText;
         float flashA, flashFade = 1, hurtA;
         Color flashColor = Color.white;
         Hero hero;
@@ -67,6 +69,11 @@ namespace Crab.Game
             hpFill = E("hp-fill", bar);
             hpText = L("", "hp-text", hpRow);
             levelText = L("", "level", status);
+            willRow = E("will-row", status);
+            L("воля", "will-name", willRow);
+            var wb = E("will-bar", willRow);
+            willFill = E("will-fill", wb);
+            willRow.style.display = DisplayStyle.None;
             var mrow = E("matter-row", status);
             foreach (var m in MatterStore.Kinds)
             {
@@ -90,6 +97,11 @@ namespace Crab.Game
             // texts
             thought = E("thought", root);
             thoughtText = L("", null, thought);
+            whisper = E("whisper", root);
+            whisperText = L("", null, whisper);
+            ai = E("ai", root);
+            L("ИИ", "ai-head", ai);
+            aiText = L("", "ai-text", ai);
             hint = E("hint", root);
             hintText = L("", null, hint);
             prompt = E("prompt", root);
@@ -119,7 +131,9 @@ namespace Crab.Game
             fadeEl = E("overlay", root);
             fadeEl.style.backgroundColor = Color.black;
             fadeEl.pickingMode = PickingMode.Ignore;
-            foreach (var el in new[] { vignette, status, objective, weapon, thought, hint, prompt, crosshair, boss, titleCard }) el.pickingMode = PickingMode.Ignore;
+            foreach (var el in new[] { vignette, status, objective, weapon, thought, hint, prompt, crosshair, boss, titleCard, whisper, ai }) el.pickingMode = PickingMode.Ignore;
+            Story.OnWhisper += Whisper;
+            Story.OnAI += Ai;
 
             Story.OnThought += Thought;
             Story.OnObjective += Objective;
@@ -132,6 +146,8 @@ namespace Crab.Game
         void OnDisable()
         {
             Story.OnThought -= Thought;
+            Story.OnWhisper -= Whisper;
+            Story.OnAI -= Ai;
             Story.OnObjective -= Objective;
             Story.OnHint -= Hint;
             Story.OnTitle -= Title;
@@ -150,6 +166,24 @@ namespace Crab.Game
         }
 
         // ------------------------------------------------------------------ messages
+        void Whisper(string text)
+        {
+            whisperText.text = text;
+            whisper.style.left = Length.Percent(UnityEngine.Random.Range(10f, 55f));
+            whisper.style.top = Length.Percent(UnityEngine.Random.Range(18f, 40f));
+            whisper.AddToClassList("show");
+            whisperTimer?.Pause();
+            whisperTimer = whisper.schedule.Execute(() => whisper.RemoveFromClassList("show")).StartingIn(2600);
+        }
+
+        void Ai(string text, float seconds)
+        {
+            aiText.text = text;
+            ai.AddToClassList("show");
+            aiTimer?.Pause();
+            aiTimer = ai.schedule.Execute(() => ai.RemoveFromClassList("show")).StartingIn((long)(seconds * 1000));
+        }
+
         void Thought(string text, float seconds)
         {
             thoughtText.text = text;
@@ -208,6 +242,9 @@ namespace Crab.Game
                 hpText.text = $"{Mathf.CeilToInt(hp)}";
             }
             foreach (var kv in matterLabels) kv.Value.text = st.Matter[kv.Key].ToString();
+            var despair = Despair.Instance;
+            willRow.style.display = despair ? DisplayStyle.Flex : DisplayStyle.None;
+            if (despair) willFill.style.width = Length.Percent(despair.Will);
             foreach (var kv in matterChips) kv.Value.style.display = Shown(st, kv.Key) ? DisplayStyle.Flex : DisplayStyle.None;
             var sh = hero.Shield;
             shieldText.text = !sh ? "" : sh.Active ? "ЩИТ АКТИВЕН" : sh.Cooldown > 0 ? $"щит [Q]: {Mathf.CeilToInt(sh.Cooldown)} с" : "щит [Q]: готов";

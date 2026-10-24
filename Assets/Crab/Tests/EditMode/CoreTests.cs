@@ -133,6 +133,26 @@ namespace Crab.Tests
         }
 
         [Test]
+        public void TheMageMakesMatterOutOfEnergy()
+        {
+            var s = new GameState();
+            s.Learn(ItemId.SparkCore);
+            s.Learn(ItemId.GravityGun);
+            s.Matter.Set(0, 0, 0, 0, 20, 30);
+            Assert.That(s.Create(ItemId.SparkCore), Is.EqualTo(GameState.CreateResult.Done));
+            Assert.That(s.Level, Is.EqualTo(4));
+            // the gun wants mineral 2 and metal 6 the crab has not: energy pays 8 for them, plus its own 4
+            Assert.That(s.Create(ItemId.GravityGun), Is.EqualTo(GameState.CreateResult.Done));
+            Assert.That(s.Matter[Matter.Energy], Is.EqualTo(30 - 8 - 12));
+            s.Learn(ItemId.CyberFrame);
+            s.AtWorkshop = true;
+            s.Matter.Set(0, 10, 20, 10, 20, 20);
+            Assert.That(s.Create(ItemId.CyberFrame), Is.EqualTo(GameState.CreateResult.Done));
+            Assert.That(s.Level, Is.EqualTo(5));
+            Assert.That(GameState.LevelTitle(5), Is.EqualTo("Киберкраб"));
+        }
+
+        [Test]
         public void HealthDiesOnce()
         {
             var h = new Health(20);

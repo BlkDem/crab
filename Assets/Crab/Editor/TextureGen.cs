@@ -171,6 +171,19 @@ namespace Crab.EditorTools
             return (c, blades * 0.6f + n * 0.4f);
         }, 1.4f);
 
+        public static (Texture2D albedo, Texture2D normal) Cave() => Make("cavefloor", 1024, (u, v) =>
+        {
+            // a wet cave floor: dark stone in slabs, pale mineral crust in the cracks, puddles
+            float n = Fbm(u, v, 6, 131, 5);
+            float edge = Cells(u, v, 8, 133, out float id);
+            float crack = 1 - Smooth(0.0f, 0.05f, edge);
+            float wet = Smooth(0.58f, 0.7f, Fbm(u, v, 3, 137, 2));
+            var c = Color.Lerp(new Color(0.07f, 0.075f, 0.09f), new Color(0.2f, 0.2f, 0.23f), n * 0.7f + id * 0.3f);
+            c = Color.Lerp(c, new Color(0.42f, 0.44f, 0.5f), crack * 0.5f);
+            c = Color.Lerp(c, new Color(0.03f, 0.035f, 0.05f), wet * 0.7f);
+            return (c, n * 0.6f + (1 - crack) * 0.4f - wet * 0.3f);
+        }, 1.8f);
+
         static (Texture2D, Texture2D) Make(string name, int size, System.Func<float, float, (Color, float)> f, float bump)
         {
             Directory.CreateDirectory(Dir);

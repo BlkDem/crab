@@ -41,8 +41,9 @@ namespace Crab.EditorTools
             BuildWrath();
             BuildGreed();
             BuildEnvy();
+            BuildGloom();
             BuildMenu();
-            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
+            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy", "Gloom" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log("Crab scenes built");
         }
@@ -121,6 +122,9 @@ namespace Crab.EditorTools
             l.king = Glb("Enemies/usurer");
             l.sparkCore = Glb("Items/spark_core");
             l.dweller = Glb("Enemies/dweller");
+            l.devourer = Glb("Enemies/devourer");
+            l.cyberFrame = Glb("Items/cyber_frame");
+            l.hunter = Glb("Items/hunter");
             l.particle = Mat("ParticleSoft", "Crab/Soft");
             l.particleAdditive = Mat("ParticleGlow", "Crab/Glow", m => m.SetFloat("_Round", 1));
             l.tracer = Mat("Tracer", "Crab/Glow", m => m.SetFloat("_Round", 0));
@@ -148,6 +152,7 @@ namespace Crab.EditorTools
             l.collector = EnemyPrefab<Collector>("Collector", Glb("Enemies/collector"), 0.35f, 1.2f, e => { e.maxHealth = 50; e.speed = 3.0f; e.aggro = 12; e.attackRange = 0; e.damage = 0; });
             l.goldGuard = EnemyPrefab<GoldGuard>("GoldGuard", Glb("Enemies/goldguard"), 0.5f, 2.2f, e => { e.maxHealth = 130; e.speed = 2.1f; e.attackRange = 2.2f; e.damage = 18; e.windup = 0.8f; e.attackCooldown = 1.8f; e.aggro = 13; });
             l.tank = TankPrefab(Glb("Items/tank"));
+            l.wraith = EnemyPrefab<Wraith>("Wraith", Glb("Enemies/wraith"), 0.4f, 1.8f, e => { e.maxHealth = 60; e.speed = 2.2f; e.attackRange = 1.6f; e.damage = 6; e.windup = 0.6f; e.attackCooldown = 1.8f; e.aggro = 11; });
             l.envious = EnemyPrefab<Envious>("Envious", Glb("Enemies/envious"), 0.35f, 1.6f, e => { e.maxHealth = 80; e.speed = 3.0f; e.attackRange = 1.5f; e.damage = 14; e.windup = 0.45f; e.attackCooldown = 1.3f; e.aggro = 18; });
             EditorUtility.SetDirty(l);
             return l;
@@ -1587,13 +1592,241 @@ namespace Crab.EditorTools
             mc2.glow = AddLight(rRoot.transform, "Glare", rRoot.transform.position + Vector3.up * 3, new Color(0.85f, 0.85f, 1f), 1.5f, 14);
             dir.reflection = mc2;
             var exit = RiftAt(root, 0, MirrorPlaza.z + 9, 180, "envy_exit");
-            exit.leadsTo = "Menu";
+            exit.leadsTo = "Gloom";
             exit.delay = 6;
             exit.membrane.sharedMaterial = Mat("RiftViolet", "Crab/Rift", m => { m.SetColor("_Color", new Color(0.7f, 0.55f, 1f)); m.SetColor("_Core", new Color(0.05f, 0.02f, 0.1f)); });
             exit.glow.color = new Color(0.7f, 0.55f, 1f);
             dir.exit = exit;
             Ui<GameUI>();
             SaveScene(scene, "Envy");
+        }
+
+        // ------------------------------------------------------------------ Despondency
+        // a vast cave under a stone dome: the way in from the south, the shards of memory in the
+        // dark to the west, east and north-west, the ancient machine in the north, the hall of the
+        // Devourer beyond it
+        static readonly Vector3 GloomArena = new Vector3(0, 0, 72);
+
+        static float GloomHeight(float x, float z)
+        {
+            float h = (Mathf.PerlinNoise(x * 0.04f + 71, z * 0.04f + 13) - 0.5f) * 4f;
+            h += (Mathf.PerlinNoise(x * 0.15f + 3, z * 0.15f) - 0.5f) * 0.8f;
+            // the hall and the path stay walkable
+            float hall = Mathf.Clamp01(1 - (new Vector2(x - GloomArena.x, z - GloomArena.z).magnitude - 17) / 6f);
+            h = Mathf.Lerp(h, 0, hall);
+            // a black lake to the east
+            float lake = Mathf.Clamp01(1 - (new Vector2(x - 34, z - 40).magnitude - 10) / 6f);
+            h = Mathf.Lerp(h, -2.5f, lake);
+            // the walls of the cave rise at the edge
+            float r = new Vector2(x / 75f, (z - 15) / 85f).magnitude;
+            h += Mathf.Clamp01((r - 0.85f) / 0.15f) * 25;
+            return h;
+        }
+
+        static Volume DespairVolume()
+        {
+            string path = $"{Gen}/Volume_Despair.asset";
+            AssetDatabase.DeleteAsset(path);
+            var p = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(p, path);
+            var ca = p.Add<ColorAdjustments>(true); ca.saturation.value = -95; ca.postExposure.value = -0.5f; ca.contrast.value = 20;
+            var v = p.Add<Vignette>(true); v.intensity.value = 0.55f; v.smoothness.value = 0.6f; v.color.value = new Color(0.02f, 0.02f, 0.05f);
+            foreach (var c in p.components) AssetDatabase.AddObjectToAsset(c, p);
+            EditorUtility.SetDirty(p);
+            var go = new GameObject("DespairPost");
+            var vol = go.AddComponent<Volume>();
+            vol.isGlobal = true;
+            vol.priority = 5;
+            vol.weight = 0;
+            vol.sharedProfile = p;
+            return vol;
+        }
+
+        static void BuildGloom()
+        {
+            var scene = NewScene("Gloom");
+            ground = GloomHeight;
+            var (cc, cn) = TextureGen.Cave();
+            var floor = Mat("CaveFloor", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", cc);
+                m.SetTexture("_BumpMap", cn);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetFloat("_Smoothness", 0.45f);
+            });
+            var root = Group("Gloom");
+            Ground("GloomGround", new Rect(-90, -85, 180, 200), floor, 0.2f).transform.SetParent(root, false);
+            var water = Mat("BlackWater", "Crab/Water", m =>
+            {
+                m.SetColor("_Shallow", new Color(0.04f, 0.06f, 0.09f));
+                m.SetColor("_Deep", new Color(0.0f, 0.0f, 0.02f));
+                m.SetColor("_Sky", new Color(0.1f, 0.12f, 0.2f));
+                m.SetFloat("_WaveHeight", 0.03f);
+                m.SetColor("_Foam", new Color(0.12f, 0.14f, 0.2f));
+                m.SetFloat("_Alpha", 0.97f);
+            });
+            Sea(water, -0.9f, 300).transform.SetParent(root, false);
+            var dome = Place(Glb("World/cave_dome"), root, 0, 15, 0, 1, collider: "none", sink: 0);
+            dome.transform.position = new Vector3(0, -3, 15);
+            var sun = Sun(new Color(0.45f, 0.5f, 0.75f), 0.12f, new Vector3(70, 20, 0));
+            sun.shadows = LightShadows.None;
+            Environment(new Color(0, 0, 0), Color.black, 0, new Color(0.05f, 0.055f, 0.08f), new Color(0.035f, 0.04f, 0.055f), new Color(0.02f, 0.02f, 0.03f), new Color(0.015f, 0.018f, 0.03f), 0.03f, 0);
+            RenderSettings.skybox = Mat("Sky_Gloom", "Crab/Sky", m =>
+            {
+                m.SetColor("_Top", Color.black);
+                m.SetColor("_Horizon", new Color(0.02f, 0.02f, 0.035f));
+                m.SetColor("_Bottom", Color.black);
+                m.SetColor("_Sun", Color.black);
+            });
+            Post("Gloom", 0.6f, -10, new Color(0.9f, 0.95f, 1f), 1.4f, 0.35f, 14);
+            var despair = new GameObject("Despair");
+
+            // stone teeth, glowing mushrooms (some give energy), stalagmites
+            var props = Group("Scenery", root);
+            var stal = Glb("World/stalagmites");
+            var mush = Glb("World/glow_mushrooms");
+            bool Clear(float x, float z) => new Vector2(x - GloomArena.x, z - GloomArena.z).magnitude > 20 && Mathf.Abs(x) > 3 && GloomHeight(x, z) < 3 && GloomHeight(x, z) > -0.5f;
+            for (int i = 0; i < 70; i++)
+            {
+                float x = R(-65, 65), z = R(-65, 95);
+                if (!Clear(x, z)) continue;
+                Variant(stal, $"Stalag{rnd.Next(4)}", props, x, z, R(0, 360), R(0.7f, 1.8f));
+            }
+            int lights = 0;
+            for (int i = 0; i < 46; i++)
+            {
+                float x = R(-60, 60), z = R(-60, 92);
+                if (!Clear(x, z)) continue;
+                var m = Variant(mush, $"Mush{rnd.Next(3)}", props, x, z, R(0, 360), R(1f, 2f), collider: "none");
+                var zone = m.AddComponent<LightZone>();
+                zone.radius = 3.2f;
+                if (lights++ < 14) AddLight(m.transform, "Glow", m.transform.position + Vector3.up * 0.8f, new Color(0.4f, 0.9f, 1f), 1.2f, 6);
+                if (i % 4 == 0)
+                {
+                    var ms = m.AddComponent<MatterSource>();
+                    ms.kind = Matter.Energy;
+                    ms.amount = 4;
+                    ms.regrow = 60;
+                    ms.reach = 2.4f;
+                }
+            }
+
+            // start, beacons, the director
+            var start = Group("Start", root);
+            start.position = new Vector3(0, H(0, -56), -56);
+            var hero = BuildHero(start.position, 0, out _);
+            Setup("Gloom", start);
+            var dir = new GameObject("Gloom").AddComponent<GloomDirector>();
+            var dsp = despair.AddComponent<Despair>();
+            dsp.grey = DespairVolume();
+            dir.despair = dsp;
+            dir.beacons.Add(BeaconAt(root, 5, -52, -30, "gloom_entry"));
+            dir.beacons.Add(BeaconAt(root, 4, 14, 180, "gloom_middle"));
+            dir.beacons.Add(BeaconAt(root, 6, 50, 180, "gloom_deep"));
+
+            // the lamps of memory along the way
+            MemoryLamp Lamp(float x, float z, float hold)
+            {
+                var go = Place(Glb("World/memory_lamp"), root, x, z, R(0, 360), 1);
+                var l = go.AddComponent<MemoryLamp>();
+                l.name = $"Lamp {x:0}_{z:0}";
+                l.flame = CrabRig.Find(go.transform, "GlowFlame");
+                l.glow = AddLight(go.transform, "Flame", go.transform.position + Vector3.up * 1.8f, new Color(1f, 0.75f, 0.45f), 4, 14);
+                l.zone = go.AddComponent<LightZone>();
+                l.zone.radius = 9;
+                l.lightTime = hold;
+                l.reach = 2.6f;
+                return l;
+            }
+            foreach (var (x, z) in new[] { (-6f, -40f), (12f, -24f), (-14f, -6f), (9f, 8f), (-20f, 24f), (22f, 28f), (2f, 44f), (-34f, -18f), (34f, -2f), (-28f, 40f) })
+                dir.lamps.Add(Lamp(x, z, 0));
+
+            // the shards of memory, each before its fresco
+            var fresco = Glb("World/fresco");
+            var shardModel = Glb("World/memory_shard");
+            var visions = new[]
+            {
+                ("knight", -38f, -24f, 60f, new[] { "Видение… Рыцарь в сияющих доспехах. В его груди — Искра. Моя Искра.", "Он шёл через ад с мечом. Он дошёл до третьего круга…", "…и погас. Искра выпала из него, как уголёк, и покатилась дальше." }),
+                ("bird", 40f, -6f, -80f, new[] { "Птица. Огромная, огненная. Искра горела у неё под крылом.", "Она летела над кругами ада, и демоны прятались от её света.", "Она дошла до шестого круга… и упала. Искра снова осталась одна." }),
+                ("machine", -32f, 46f, 120f, new[] { "Машина. Гигант из металла, а в нём — Искра и чей-то голос.", "Она прошла дальше всех. Восьмой круг. Девятый…", "…и замерла. Здесь, в темноте. Искра поднялась наверх — и упала на берег. Ко мне." }),
+            };
+            for (int i = 0; i < visions.Length; i++)
+            {
+                var (id, x, z, yaw, lines) = visions[i];
+                var sgo = Place(shardModel, root, x, z, yaw, 1);
+                var s = sgo.AddComponent<MemoryShard>();
+                s.id = id;
+                s.lines = lines;
+                s.reach = 2.6f;
+                AddLight(sgo.transform, "ShardGlow", sgo.transform.position + Vector3.up * 1.6f, new Color(1f, 0.92f, 0.75f), 2, 7);
+                var back = sgo.transform.position - sgo.transform.forward * 4.5f;
+                var f = Variant(fresco, $"Fresco{i}", root, back.x, back.z, yaw, 1.1f);
+                s.fresco = f.transform;
+                s.frescoLight = AddLight(f.transform, "FrescoLight", f.transform.position + f.transform.forward * 4 + Vector3.up * 4, new Color(1f, 0.88f, 0.7f), 6, 12);
+                s.frescoLight.enabled = false;
+                dir.shards.Add(s);
+            }
+
+            // the ancient machine: the last bearer's body, its AI asleep
+            var robot = Place(Glb("World/ancient_robot"), root, 14, 54, 200, 1.2f, sink: 0.2f);
+            var am = robot.AddComponent<AncientMachine>();
+            am.reach = 5;
+            am.eye = AddLight(robot.transform, "Eye", robot.transform.position + Vector3.up * 6.5f + robot.transform.forward * 1.2f, new Color(0.35f, 0.85f, 1f), 0, 10);
+            dir.machine = am;
+
+            // matter: old machine scrap, crystals in the walls, stone
+            void Source(GameObject model, string variant, float x, float z, Matter kind, int amount, float regrow)
+            {
+                var go = variant != null ? Variant(model, variant, root, x, z, R(0, 360), 1.2f, collider: "none") : Place(model, root, x, z, R(0, 360), 1, collider: "none", sink: 0.02f);
+                var ms = go.AddComponent<MatterSource>();
+                ms.kind = kind;
+                ms.amount = amount;
+                ms.regrow = regrow;
+                ms.reach = 2.6f;
+            }
+            var scrap = Glb("World/scrap");
+            foreach (var (x, z) in new[] { (-4f, -30f), (16f, -14f), (-18f, 6f), (8f, 30f), (18f, 46f), (6f, 58f), (22f, 58f) }) Source(scrap, null, x, z, Matter.Metal, 9, 45);
+            foreach (var (x, z) in new[] { (-26f, -36f), (28f, -30f), (-40f, 10f), (40f, 20f), (-12f, 52f) }) Source(Glb("World/crystal"), $"Crystal{rnd.Next(3)}", x, z, Matter.Crystal, 6, 50);
+            foreach (var (x, z) in new[] { (10f, -46f), (-22f, 14f), (26f, 12f) }) Source(Glb("World/rubble"), null, x, z, Matter.Mineral, 6, 45);
+            foreach (var (x, z) in new[] { (-8f, 36f), (14f, -36f) }) Source(Glb("World/gold_pile"), "Pile2", x, z, Matter.Gold, 5, 60);
+
+            // the wraiths in the dark
+            foreach (var (x, z) in new[] { (-4f, -24f), (14f, -8f), (-24f, -10f), (-12f, 16f), (26f, 18f), (-30f, 30f), (4f, 36f), (30f, -16f), (-6f, 60f), (24f, 64f) })
+            {
+                var w = (GameObject)PrefabUtility.InstantiatePrefab(lib.wraith);
+                w.transform.position = new Vector3(x, H(x, z), z);
+            }
+
+            // the hall of darkness: three lamps that take holding E, the Devourer at the north end
+            var arena = Group("Arena", root);
+            arena.position = new Vector3(GloomArena.x, H(GloomArena.x, GloomArena.z), GloomArena.z);
+            var d = (GameObject)PrefabUtility.InstantiatePrefab(lib.devourer);
+            var dRoot = new GameObject("Devourer");
+            dRoot.transform.SetPositionAndRotation(arena.position + Vector3.forward * 19, Quaternion.Euler(0, 180, 0));
+            d.transform.SetParent(dRoot.transform, false);
+            var cap = dRoot.AddComponent<CapsuleCollider>();
+            cap.center = new Vector3(0, 6, 0);
+            cap.height = 12;
+            cap.radius = 3.4f;
+            var dev = dRoot.AddComponent<Devourer>();
+            dev.model = d.transform;
+            dev.arena = arena;
+            dev.heartLight = AddLight(dRoot.transform, "HeartLight", dRoot.transform.position + new Vector3(0, 6.8f, -2.5f), new Color(0.7f, 0.45f, 1f), 1, 18);
+            foreach (var a in new[] { -40f, 90f, 220f })
+            {
+                float rad = a * Mathf.Deg2Rad;
+                var l = Lamp(arena.position.x + Mathf.Cos(rad) * 10, arena.position.z + Mathf.Sin(rad) * 10, 1.5f);
+                dev.lamps.Add(l);
+            }
+            dir.devourer = dev;
+            var exit = RiftAt(root, 0, GloomArena.z + 8, 180, "gloom_exit");
+            exit.leadsTo = "Menu";
+            exit.delay = 6;
+            exit.membrane.sharedMaterial = Mat("RiftPale", "Crab/Rift", m => { m.SetColor("_Color", new Color(1f, 0.92f, 0.75f)); m.SetColor("_Core", new Color(0.08f, 0.06f, 0.04f)); });
+            exit.glow.color = new Color(1f, 0.9f, 0.7f);
+            dir.exit = exit;
+            Ui<GameUI>();
+            SaveScene(scene, "Gloom");
         }
 
         // ------------------------------------------------------------------ menu

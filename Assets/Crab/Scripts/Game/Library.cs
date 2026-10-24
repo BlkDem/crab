@@ -23,6 +23,7 @@ namespace Crab.Game
         public GameObject imp, brute, burrower, colossus, armor, drone;
         public GameObject collector, goldGuard, king, heavyArmor, tank, coin;
         public GameObject dweller, envious, sparkCore;
+        public GameObject wraith, devourer, cyberFrame, hunter;
         public Material particle, particleAdditive, rift, beam, tracer, water, fire, gold, shield, mirror;
         public Mesh quad;
 

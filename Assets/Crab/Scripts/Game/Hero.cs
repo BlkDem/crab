@@ -49,7 +49,8 @@ namespace Crab.Game
         public TankBot Tank { get; private set; }
         public EnergyShield Shield { get; private set; }
         public PortalStep Portal { get; private set; }
-        GameObject core;
+        public HunterDrone Hunter { get; private set; }
+        GameObject core, frame;
         float regen;
 
         /// <summary>What the crab wears and who goes with it: armour on the shell (heavy over scrap),
@@ -85,6 +86,21 @@ namespace Crab.Game
                 foreach (var c in core.GetComponentsInChildren<Collider>()) Destroy(c);
                 if (sparkLight) sparkLight.color = new Color(0.8f, 0.6f, 1f);
             }
+            // the cyber-frame: mechanical limbs on the back, the scanner eye
+            if (State.Items.Has(ItemId.CyberFrame) && !frame && lib && lib.cyberFrame && Rig.body)
+            {
+                frame = Instantiate(lib.cyberFrame, Rig.body, false);
+                frame.name = "CyberFrame";
+                foreach (var c in frame.GetComponentsInChildren<Collider>()) Destroy(c);
+            }
+            if (State.Items.Has(ItemId.Hunter) && !Hunter && lib && lib.hunter)
+            {
+                var go = Instantiate(lib.hunter, transform.position + Vector3.up * 2.5f - transform.forward, Quaternion.identity);
+                go.name = "HUNTER";
+                foreach (var c in go.GetComponentsInChildren<Collider>()) Destroy(c);
+                Hunter = go.AddComponent<HunterDrone>();
+                Hunter.hero = this;
+            }
             if (State.Items.Has(ItemId.Tank) && !Tank && lib && lib.tank)
             {
                 var go = Instantiate(lib.tank, transform.position - transform.forward * 2 + transform.right, transform.rotation);
@@ -117,6 +133,7 @@ namespace Crab.Game
             // in the crab's own eyes the armour would sit over the camera
             if (armor && armor.activeSelf == Combat.firstPerson) armor.SetActive(!Combat.firstPerson);
             if (core && core.activeSelf == Combat.firstPerson) core.SetActive(!Combat.firstPerson);
+            if (frame && frame.activeSelf == Combat.firstPerson) frame.SetActive(!Combat.firstPerson);
             // the mage draws energy out of the air, slowly
             if (State.Mage && Alive)
             {

@@ -19,6 +19,8 @@ namespace Crab.Game
         [System.NonSerialized] public bool faceView;
         /// <summary>Slowed (channelling, creating).</summary>
         [System.NonSerialized] public float speedScale = 1;
+        /// <summary>Slowed by despair (the circle of Despondency), on top of speedScale.</summary>
+        [System.NonSerialized] public float moodScale = 1;
         /// <summary>Movement input from a script instead of the player (tests, cutscenes).</summary>
         [System.NonSerialized] public Vector2? autopilot;
         [System.NonSerialized] public bool autopilotRun;
@@ -59,7 +61,7 @@ namespace Crab.Game
             var right = Quaternion.Euler(0, viewYaw, 0) * Vector3.right;
             var wish = fwd * input.y + right * input.x;
             bool running = !frozen && (autopilot.HasValue ? autopilotRun : Controls.Sprint.IsPressed()) && !faceView;
-            float speed = (running ? run : walk) * speedScale;
+            float speed = (running ? run : walk) * speedScale * moodScale;
             var horiz = Vector3.MoveTowards(new Vector3(velocity.x, 0, velocity.z), wish * speed, (cc.isGrounded ? 30 : 8) * dt);
 
             if (cc.isGrounded)

@@ -43,7 +43,7 @@ namespace Crab.Game
             {
                 st.SetFlag("circle4_done");
                 Story.Task("");
-                Story.Title("КОНЕЦ IV КРУГА", "V. Круг уныния — скоро");
+                Story.Title("КОНЕЦ IV КРУГА", "Впереди — круг уныния");
             };
             if (st.Flag("reflection")) reflection.gameObject.SetActive(false);
             hero.Died += () => StartCoroutine(Respawn());

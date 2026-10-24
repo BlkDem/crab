@@ -37,7 +37,7 @@ namespace Crab.Core
 
         /// <summary>The crab's level (its evolution): 1 an ordinary crab, 2 a crab-warrior in scrap armour,
         /// 3 the armoured crab (heavy armour).</summary>
-        public int Level => Items.Has(ItemId.SparkCore) ? 4 : Items.Has(ItemId.HeavyArmor) ? 3 : Items.Has(ItemId.ScrapArmor) ? 2 : 1;
+        public int Level => Items.Has(ItemId.CyberFrame) ? 5 : Items.Has(ItemId.SparkCore) ? 4 : Items.Has(ItemId.HeavyArmor) ? 3 : Items.Has(ItemId.ScrapArmor) ? 2 : 1;
         /// <summary>With the Spark's core the crab makes matter out of energy: what it lacks of the
         /// plain kinds (organic, mineral, metal) energy covers, one for one.</summary>
         public bool Mage => Items.Has(ItemId.SparkCore);

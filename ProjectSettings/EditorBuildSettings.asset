@@ -23,5 +23,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Crab/Scenes/Envy.unity
     guid: 320ac0859f05dcf4eb3fa4abea0705f7
+  - enabled: 1
+    path: Assets/Crab/Scenes/Gloom.unity
+    guid: c0d9c9fa09a673a4693224faf23d0f50
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

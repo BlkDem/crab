@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Crab.Core
 {
-    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank, SparkCore, EnergyBlade, GravityGun, Portal }
+    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank, SparkCore, EnergyBlade, GravityGun, Portal, CyberFrame, Hunter }
 
     public enum WeaponKind { None, Melee, Throw, Gun }
 
@@ -69,6 +69,8 @@ namespace Crab.Core
                 kind = WeaponKind.Melee, damage = 42, range = 1.7f, cooldown = 0.38f, energy = true },
             new Blueprint { id = ItemId.GravityGun, title = "Гравипушка", hint = "Хватает пространство и швыряет. Враги летят кувырком.", cost = new Cost(0, 2, 6, 0, 4, 4),
                 kind = WeaponKind.Gun, damage = 18, range = 35, cooldown = 0.7f, ammo = ItemId.EnergyCell, energy = true, gravity = true },
+            new Blueprint { id = ItemId.CyberFrame, title = "Кибер-каркас", hint = "Механические лапы на спине, глаз-сканер, встроенный вычислитель. Я больше не один в своей голове.", cost = new Cost(0, 4, 14, 4, 6, 6), gear = true, workshop = true },
+            new Blueprint { id = ItemId.Hunter, title = "Дрон HUNTER", hint = "Длинный ствол, холодный глаз. Бьёт издалека, пока враг меня ещё не видит.", cost = new Cost(0, 2, 10, 2, 4, 4), companion = true, workshop = true },
             new Blueprint { id = ItemId.Portal, title = "Портал", hint = "Шаг сквозь пространство (F) — туда, куда смотрю.", cost = new Cost(0, 0, 0, 0, 3, 5), gear = true },
         };
 

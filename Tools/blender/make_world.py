@@ -1307,6 +1307,212 @@ def build_giant_mirror():
     parent(glass, ob)
     L.export_tree("giant_mirror", r)
 
+
+# ---------------------------------------------------------------------- V. the circle of Despondency
+def mat_cave(name):
+    """Wet dark cave rock with pale mineral streaks."""
+    t = NT(name)
+    n = t.noise(t.vec(), 3, detail=8, rough=0.65, distortion=0.6)
+    streak = t.ramp(t.noise(t.vec(scale=(1, 1, 6)), 5, detail=4), [(0.55, 0.0), (0.6, 1.0), (0.65, 0.0)])
+    col = t.ramp(n, [(0.25, C("#0c0d10")), (0.55, C("#24262c")), (0.85, C("#3e4048"))])
+    col = t.mix(t.math("MULTIPLY", streak, 0.4), col, C("#7a8090"))
+    col = t.mix(t.math("MULTIPLY", t.math("SUBTRACT", 1.0, t.ao(0.4)), 0.8), col, C("#050506"))
+    return t.finish(col, rough=t.ramp(n, [(0.3, 0.25), (0.7, 0.7)]), normal=t.bump(n, 1.0, 0.05))
+
+
+def build_cave_dome():
+    """The roof of the underworld: a vast rough dome seen from inside, hung with stalactites."""
+    r = root("cave_dome")
+    m = mat_cave("dome_rock")
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=64, ring_count=32, radius=95, location=(0, 0, 0))
+    d = bpy.context.active_object
+    d.name = "Dome"
+    bm = bmesh.new()
+    bm.from_mesh(d.data)
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z < -2], context="VERTS")
+    for v in bm.verts:
+        n = noise.noise(v.co * 0.04) * 9 + noise.noise(v.co * 0.15) * 2.5
+        v.co += v.co.normalized() * n
+        v.co.z *= 0.42
+    bmesh.ops.reverse_faces(bm, faces=bm.faces)
+    bm.to_mesh(d.data)
+    bm.free()
+    d.data.materials.append(m)
+    parts = [d]
+    for k in range(60):
+        a = random.uniform(0, math.tau)
+        rr = random.uniform(5, 80)
+        x, y = math.cos(a) * rr, math.sin(a) * rr
+        top = 95 * 0.42 * math.sqrt(max(0.05, 1 - (rr / 95) ** 2)) + 2
+        ln = random.uniform(3, 12)
+        st = lathe("stal", [(random.uniform(0.8, 2.2), 0), (0.6, -ln * 0.5), (0.0, -ln)], steps=8)
+        st.location = (x, y, top)
+        L.transform_apply(st)
+        st.data.materials.append(m)
+        parts.append(st)
+    ob = join("CaveDome", parts)
+    L.bake(ob, size=1024, metal=False)
+    parent(ob, r)
+    L.export_tree("cave_dome", r)
+
+
+def build_stalagmites():
+    r = root("stalagmites")
+    m = mat_cave("stalag_rock")
+    for k in range(4):
+        h = random.uniform(2.5, 7)
+        st = lathe("s", [(1.2 + k * 0.2, 0), (0.9, h * 0.3), (0.5, h * 0.7), (0.0, h)], steps=12)
+        for v in st.data.vertices:
+            v.co += Vector((noise.noise(v.co * 0.8) * 0.25, noise.noise(v.co * 0.8 + Vector((5, 0, 0))) * 0.25, 0))
+        st.data.materials.append(m)
+        L.bake(st, size=256, metal=False)
+        st.name = f"Stalag{k}"
+        parent(st, r)
+    L.export_tree("stalagmites", r)
+
+
+def build_glow_mushrooms():
+    """Clusters of pale glowing mushrooms (Mush0..2): stems and glowing caps (GlowCaps)."""
+    r = root("glow_mushrooms")
+    ms = L.mat_plain("mush_stem", "#c8d0d8", rough=0.6)
+    for k in range(3):
+        stems, caps = [], []
+        for i in range(5 + k * 2):
+            a = random.uniform(0, math.tau)
+            d = random.uniform(0, 0.5 + k * 0.2)
+            b = Vector((math.cos(a) * d, math.sin(a) * d, 0))
+            h = random.uniform(0.2, 0.7) * (1 + k * 0.4)
+            stems.append(tube("stem", [(b, 0.03 + h * 0.04), (b + Vector((random.uniform(-0.05, 0.05), random.uniform(-0.05, 0.05), h)), 0.025)], seg=6, sub=1))
+            cr = 0.08 + h * 0.18
+            cap = lathe("cap", [(cr, 0), (cr * 0.8, cr * 0.4), (0.0, cr * 0.55)], steps=12)
+            cap.location = b + Vector((0, 0, h))
+            L.transform_apply(cap)
+            caps.append(cap)
+        for s_ in stems:
+            s_.data.materials.append(ms)
+        ob = join(f"Mush{k}", stems)
+        L.bake(ob, size=128, metal=False)
+        parent(ob, r)
+        c = join("GlowCaps", caps)
+        c.data.materials.append(glow(f"mush_glow{k}", ["#5affd8", "#7ab8ff", "#b07aff"][k], 4.0))
+        parent(c, ob)
+    L.export_tree("glow_mushrooms", r)
+
+
+def build_memory_lamp():
+    """A lamp of memory: an old carved stone brazier; its flame (GlowFlame) shows only when lit."""
+    r = root("memory_lamp")
+    m = ruin_stone("lamp_stone", base="#5a5c62", dark="#2a2c30", light="#7a7c84", moss=0.0)
+    ped = lathe("ped", [(0.6, 0), (0.5, 0.15), (0.25, 0.3), (0.2, 1.1), (0.45, 1.25), (0.55, 1.45), (0.42, 1.5), (0, 1.38)], steps=16)
+    ped.data.materials.append(m)
+    L.bake(ped, size=512, metal=False)
+    ped.name = "Lamp"
+    parent(ped, r)
+    fl = uv_sphere("GlowFlame", 0.24, (0, 0, 1.6), scale=(1, 1, 1.6), seg=12, rings=10)
+    fl.data.materials.append(glow("lamp_flame", "#ffcf7a", 9.0))
+    parent(fl, ped)
+    L.export_tree("memory_lamp", r)
+
+
+def build_memory_shard():
+    """A shard of memory: a worn pedestal and a crystal floating over it (GlowShard)."""
+    r = root("memory_shard")
+    m = ruin_stone("shard_stone", base="#6a6660", dark="#2a2826", light="#8a8680", moss=0.0)
+    ped = lathe("ped", [(0.5, 0), (0.45, 0.2), (0.3, 0.3), (0.3, 0.9), (0.5, 1.0), (0, 1.0)], steps=6)
+    ped.data.materials.append(m)
+    L.bake(ped, size=256, metal=False)
+    ped.name = "Pedestal"
+    parent(ped, r)
+    bpy.ops.mesh.primitive_cone_add(vertices=6, radius1=0.16, depth=0.5, location=(0, 0, 1.75))
+    up = bpy.context.active_object
+    bpy.ops.mesh.primitive_cone_add(vertices=6, radius1=0.16, depth=0.3, location=(0, 0, 1.35), rotation=(math.pi, 0, 0))
+    dn = bpy.context.active_object
+    sh = join("GlowShard", [up, dn])
+    sh.data.materials.append(glow("shard_glow", "#fff0c8", 7.0))
+    set_origin(sh, (0, 0, 1.5))
+    parent(sh, ped)
+    L.export_tree("memory_shard", r)
+
+
+def build_fresco():
+    """Frescoes of the bearers before the crab (Fresco0..2: the knight, the bird, the machine):
+    great slabs with carved figures, a spark in each, its rays glowing (GlowSpark)."""
+    r = root("fresco")
+    m = ruin_stone("fresco_stone", base="#7a7468", dark="#3a362e", light="#a49e90", moss=0.15)
+    mf = ruin_stone("fresco_relief", base="#9a9284", dark="#4a443a", light="#c0b8a8", moss=0.0)
+    for k in range(3):
+        slab = box("slab", (5.0, 0.6, 6.0), (0, 0.3, 3.0), m, 0.1)
+        figs = []
+        if k == 0:   # the knight: a tall figure with a sword and a shield
+            figs.append(L.blob("body", 0.7, seed=500, squash=(0.8, 0.3, 1.7), rough=0.05, sub=3))
+            figs[-1].location = (0, -0.05, 2.6)
+            figs.append(L.blob("head", 0.35, seed=501, squash=(1, 0.4, 1.1), rough=0.05, sub=3))
+            figs[-1].location = (0, -0.05, 4.1)
+            figs.append(box("sword", (0.12, 0.15, 2.6), (1.0, -0.05, 3.2), mf, 0.02, rot=(0, 0.3, 0)))
+            figs.append(L.blob("shield", 0.6, seed=502, squash=(0.8, 0.25, 1.1), rough=0.03, sub=3))
+            figs[-1].location = (-0.9, -0.1, 2.6)
+            spark = (0, -0.2, 3.1)
+        elif k == 1:   # the bird: wide wings
+            figs.append(L.blob("body", 0.6, seed=510, squash=(0.6, 0.3, 1.2), rough=0.05, sub=3))
+            figs[-1].location = (0, -0.05, 3.0)
+            for sx in (-1, 1):
+                w = tube("wing", [((sx * 0.4, -0.05, 3.3), 0.25), ((sx * 1.4, -0.05, 4.0), 0.3), ((sx * 2.2, -0.05, 4.6), 0.12)], seg=8, sub=2, flat=0.3, flat_axis=(0, 1, 0))
+                figs.append(w)
+            figs.append(tube("tail", [((0, -0.05, 2.4), 0.2), ((0, -0.05, 1.4), 0.35)], seg=8, sub=1, flat=0.3, flat_axis=(0, 1, 0)))
+            spark = (0, -0.2, 3.2)
+        else:   # the machine: a square-shouldered robot
+            figs.append(box("torso", (1.6, 0.2, 1.8), (0, -0.05, 2.9), mf, 0.05))
+            figs.append(box("head", (0.9, 0.2, 0.7), (0, -0.05, 4.2), mf, 0.05))
+            for sx in (-1, 1):
+                figs.append(box("arm", (0.4, 0.2, 1.6), (sx * 1.1, -0.05, 2.7), mf, 0.04))
+                figs.append(box("leg", (0.5, 0.2, 1.5), (sx * 0.45, -0.05, 1.3), mf, 0.04))
+            spark = (0, -0.2, 3.1)
+        for f in figs:
+            L.transform_apply(f)
+            if not f.data.materials:
+                f.data.materials.append(mf)
+        ob = join(f"Fresco{k}", [slab] + figs)
+        L.bake(ob, size=1024, metal=False)
+        parent(ob, r)
+        rays = [uv_sphere("core", 0.18, spark, seg=10, rings=8)]
+        for i in range(8):
+            a = i / 8 * math.tau
+            rays.append(tube("ray", [(Vector(spark), 0.04), (Vector(spark) + Vector((math.cos(a) * 0.7, 0, math.sin(a) * 0.7)), 0.005)], seg=5, sub=1))
+        g = join("GlowSpark", rays)
+        g.data.materials.append(glow(f"fresco_spark{k}", "#ffe0a0", 6.0))
+        parent(g, ob)
+    L.export_tree("fresco", r)
+
+
+def build_ancient_robot():
+    """The remains of a giant robot (the last bearer's body): a slumped torso against the rock,
+    a head with a dead eye, one arm on the ground — old metal under dust and moss."""
+    r = root("ancient_robot")
+    mm = L.mat_metal("robot_metal", base="#6a6e74", patina="#3a5a4a", patina_amt=0.6, rough=0.5, metal_max=0.6)
+    md = L.mat_metal("robot_dark", base="#2a2c30", patina="#4a3a2a", patina_amt=0.5, rough=0.55, metal_max=0.5)
+    parts = [box("torso", (4.0, 2.6, 4.5), (0, 0.6, 2.4), mm, 0.25, rot=(0.25, 0, 0))]
+    parts.append(box("chestplate", (3.0, 0.3, 2.4), (0, -0.8, 2.9), md, 0.1, rot=(0.25, 0, 0)))
+    head = box("head", (2.0, 1.8, 1.6), (0.3, 0.2, 5.4), mm, 0.2, rot=(0.35, 0.2, 0.15))
+    parts.append(head)
+    parts.append(box("visor", (1.6, 0.2, 0.5), (0.3, -0.75, 5.5), md, 0.05, rot=(0.35, 0.2, 0.15)))
+    parts.append(tube("armL", [((2.2, 0.4, 3.8), 0.6), ((3.4, -0.6, 1.8), 0.5), ((3.6, -2.4, 0.4), 0.45)], seg=10, sub=1))
+    parts.append(box("handL", (1.4, 1.6, 0.6), (3.7, -3.2, 0.3), mm, 0.1))
+    parts.append(tube("armR", [((-2.2, 0.4, 3.8), 0.6), ((-2.8, 1.2, 1.8), 0.5)], seg=10, sub=1))
+    for sx in (-1, 1):
+        parts.append(tube("leg", [((sx * 1.0, 0.2, 0.4), 0.7), ((sx * 1.4, -2.6, 0.5), 0.6), ((sx * 1.6, -4.4, 0.4), 0.55)], seg=10, sub=1))
+    for p in parts:
+        if not p.data.materials:
+            p.data.materials.append(md)
+    for k in range(5):   # cables hanging out
+        b = Vector((random.uniform(-1.5, 1.5), -0.9, random.uniform(1.5, 3.5)))
+        c = tube("cable", [(b, 0.06), (b + Vector((0.2, -0.6, -0.8)), 0.05), (b + Vector((0.3, -1.0, -b.z + 0.1)), 0.05)], seg=6, sub=2)
+        c.data.materials.append(md)
+        parts.append(c)
+    ob = join("AncientRobot", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    L.export_tree("ancient_robot", r)
+
 ASSETS = {
     "palm": build_palm, "beach_rocks": build_beach_rocks, "shelter": build_shelter, "driftwood": build_driftwood,
     "seaweed": build_seaweed, "morsel": build_morsel, "gull": build_gull,
@@ -1320,6 +1526,8 @@ ASSETS = {
     "gold_column": build_gold_column, "throne": build_throne, "workshop": build_workshop, "scales": build_scales,
     "pavilion": build_pavilion, "blossom_tree": build_blossom_tree, "flowers": build_flowers, "marble_arch": build_marble_arch,
     "spring": build_spring, "giant_mirror": build_giant_mirror,
+    "cave_dome": build_cave_dome, "stalagmites": build_stalagmites, "glow_mushrooms": build_glow_mushrooms,
+    "memory_lamp": build_memory_lamp, "memory_shard": build_memory_shard, "fresco": build_fresco, "ancient_robot": build_ancient_robot,
 }
 
 

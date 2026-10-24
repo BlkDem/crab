@@ -474,6 +474,46 @@ namespace Crab.Game
                     Normalize(d, 0.55f);
                     return d;
                 }
+                case "music_gloom":
+                {
+                    // minimal: a low drone, and now and then a single high note in a lot of silence
+                    d = Buf(16);
+                    var lp = new LP();
+                    int[] notes = { 0, 3, 7, 10, 5 };
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        float drone = lp.Run(Mathf.Sin(2 * Mathf.PI * 41.2f * t) + 0.5f * Mathf.Sin(2 * Mathf.PI * 61.7f * t) + N() * 0.2f, 200) * 0.5f;
+                        int k = (int)(t / 3.2f);
+                        float tn = t - k * 3.2f;
+                        float f = 440 * Mathf.Pow(2, (69 + notes[k % notes.Length] - 69) / 12f);
+                        float bell = (Mathf.Sin(2 * Mathf.PI * f * t) + 0.3f * Mathf.Sin(2 * Mathf.PI * f * 2.76f * t)) * Env(tn, 0.005f, 1.2f) * 0.25f;
+                        d[i] = drone + bell;
+                    }
+                    Normalize(d, 0.45f);
+                    return Seamless(d, 1f);
+                }
+                case "drip":
+                {
+                    // a cave: water dripping into pools, far apart, with an echo
+                    d = Buf(7);
+                    var rng2 = new System.Random(11);
+                    for (int k = 0; k < 6; k++)
+                    {
+                        int at = rng2.Next(0, d.Length - Rate / 2);
+                        float f = 900 + (float)rng2.NextDouble() * 900;
+                        for (int e = 0; e < 3; e++)
+                            for (int i = 0; i < Rate / 6; i++)
+                            {
+                                int j = at + i + e * Rate / 4;
+                                if (j >= d.Length) break;
+                                float t = i / (float)Rate;
+                                d[j] += Mathf.Sin(2 * Mathf.PI * f * (1 + t * 3) * t) * Env(t, 0.001f, 0.04f) * Mathf.Pow(0.35f, e);
+                            }
+                    }
+                    Normalize(d, 0.5f);
+                    return Seamless(d, 0.3f);
+                }
                 case "music_envy":
                 {
                     // too sweet: a bright major pad and a music box that sometimes slips out of tune

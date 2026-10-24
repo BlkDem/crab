@@ -516,10 +516,76 @@ def build_spark_core():
     parent(runes, ob)
     L.export_tree("spark_core", ob)
 
+
+# ---------------------------------------------------------------------- level 5 (circle of Despondency)
+def build_cyber_frame():
+    """The cyber-frame (level 5, the cyber-crab): a steel spine on the shell, two jointed
+    mechanical limbs rising from the back with small claws, an antenna and a scanner lens over
+    the right eye (GlowLens, GlowLights) — in the hero model's units, on the Body."""
+    H = 0.062
+    m = mat_steel("cyber_steel")
+    md = L.mat_metal("cyber_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.4, metal_max=0.6)
+    parts = []
+    spine = tube("spine", [((0, 0.06, H + 0.03), 0.012), ((0, 0.0, H + 0.045), 0.012), ((0, -0.05, H + 0.04), 0.01)], seg=8, sub=2)
+    spine.data.materials.append(m)
+    parts.append(spine)
+    for sx in (-1, 1):
+        b = Vector((sx * 0.03, 0.05, H + 0.04))
+        k1 = b + Vector((sx * 0.04, 0.03, 0.06))
+        k2 = k1 + Vector((sx * 0.02, -0.06, 0.03))
+        arm = tube("limb", [(b, 0.008), (k1, 0.007), (k2, 0.006)], seg=6, sub=1)
+        arm.data.materials.append(md)
+        parts.append(arm)
+        for jnt in (b, k1):
+            j = uv_sphere("joint", 0.01, jnt, seg=8, rings=6)
+            j.data.materials.append(m)
+            parts.append(j)
+        for c in (-1, 1):
+            cl = tube("claw", [(k2, 0.004), (k2 + Vector((c * 0.008, -0.02, -0.006)), 0.001)], seg=5, sub=1)
+            cl.data.materials.append(m)
+            parts.append(cl)
+    ant = tube("antenna", [((-0.02, 0.06, H + 0.04), 0.002), ((-0.025, 0.08, H + 0.11), 0.0012)], seg=5, sub=1)
+    ant.data.materials.append(md)
+    parts.append(ant)
+    ob = join("CyberFrame", parts)
+    L.bake(ob, size=256)
+    lens = uv_sphere("GlowLens", 0.008, (-0.032, -0.058, H + 0.06), scale=(1, 0.4, 1), seg=10, rings=6)
+    lens.data.materials.append(L.mat_plain("cyber_lens", "#5adcff", rough=0.2, emission=("#5adcff", 10.0)))
+    parent(lens, ob)
+    lights = [uv_sphere("l", 0.003, (sx * 0.03, 0.05 - k * 0.03, H + 0.05), seg=6, rings=4) for sx in (-1, 1) for k in range(2)]
+    gl = join("GlowLights", lights)
+    gl.data.materials.append(L.mat_plain("cyber_lights", "#5adcff", rough=0.2, emission=("#5adcff", 8.0)))
+    parent(gl, ob)
+    L.export_tree("cyber_frame", ob)
+
+
+def build_hunter():
+    """HUNTER, the long-range drone: a slim dark hull with swept fins and a long barrel, a red
+    targeting eye (GlowEye). Body (with Muzzle)."""
+    md = L.mat_metal("hunter_dark", base="#2a2c34", patina="#14141a", patina_amt=0.2, rough=0.35, metal_max=0.6)
+    mr = L.mat_plain("hunter_red", "#8a1a1a", rough=0.5)
+    hull = uv_sphere("hull", 0.12, (0, 0, 0), scale=(0.8, 2.0, 0.6), seg=20, rings=12)
+    hull.data.materials.append(md)
+    barrel = tube("barrel", [((0, -0.2, -0.03), 0.018), ((0, -0.55, -0.03), 0.014)], seg=10, sub=1)
+    barrel.data.materials.append(md)
+    fins = []
+    for sx in (-1, 1):
+        f = tube("fin", [((sx * 0.06, 0.05, 0), 0.04), ((sx * 0.28, 0.2, 0.02), 0.01)], seg=6, sub=1, flat=0.2, flat_axis=(0, 0, 1))
+        f.data.materials.append(mr)
+        fins.append(f)
+    ob = join("Body", [hull, barrel] + fins)
+    L.bake(ob, size=256)
+    eye = uv_sphere("GlowEye", 0.03, (0, -0.2, 0.04), scale=(1, 0.5, 1), seg=10, rings=8)
+    eye.data.materials.append(L.mat_plain("hunter_eye", "#ff3a2a", rough=0.2, emission=("#ff3a2a", 12.0)))
+    parent(eye, ob)
+    empty("Muzzle", (0, -0.56, -0.03), ob)
+    L.export_tree("hunter", ob)
+
 ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar, "knife": build_knife, "pistol": build_pistol,
           "machinegun": build_machinegun, "armor": build_armor, "drone": build_drone,
           "heavy_armor": build_heavy_armor, "energy_rifle": build_energy_rifle, "tank": build_tank,
-          "energy_blade": build_energy_blade, "gravity_gun": build_gravity_gun, "spark_core": build_spark_core}
+          "energy_blade": build_energy_blade, "gravity_gun": build_gravity_gun, "spark_core": build_spark_core,
+          "cyber_frame": build_cyber_frame, "hunter": build_hunter}
 
 
 def main():
