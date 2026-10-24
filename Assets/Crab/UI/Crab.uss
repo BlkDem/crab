@@ -143,3 +143,9 @@
 .menu-btn-sub { font-size: 12px; color: var(--muted); -unity-font-definition: url("Fonts/Nunito-Regular.ttf"); margin-top: 2px; }
 .menu-btn.confirm { border-color: #ff5a3c; color: #ffb4a0; }
 .fps { position: absolute; left: 16px; bottom: 10px; font-size: 12px; color: rgba(255, 255, 255, 0.7); }
+
+/* the end: only the words */
+.cinema .status, .cinema .objective, .cinema .weapon, .cinema .crosshair, .cinema .prompt, .cinema .hint { opacity: 0; transition-duration: 1s; }
+.menu-btn:focus { border-color: var(--orange); background-color: rgba(255, 140, 40, 0.3); }
+.settings-switch:focus { background-color: rgba(255, 140, 40, 0.2); }
+.menu-row Slider:focus .unity-base-slider__dragger { background-color: var(--gold); width: 18px; height: 18px; margin-top: -8px; }

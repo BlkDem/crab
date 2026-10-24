@@ -1,5 +1,5 @@
 // A frame-time run through every scene of a player build: start it with -crab-bench (and
-// optionally -crab-quality 0|1|2). Each scene plays a few seconds, the camera turns around the
+// optionally -crab-quality 0|1|2), or open a web build with ?crab-bench. Each scene plays a few seconds, the camera turns around the
 // crab, and the frame times go to the log (BENCH lines), then the player quits.
 using System;
 using System.Collections;
@@ -18,9 +18,13 @@ namespace Crab.Game
         static void Boot()
         {
             var args = Environment.GetCommandLineArgs();
-            if (!args.Contains("-crab-bench")) return;
+            // in a browser: index.html?crab-bench (&crab-quality=1)
+            var url = Application.absoluteURL ?? "";
+            if (!args.Contains("-crab-bench") && !url.Contains("crab-bench")) return;
             int qi = Array.IndexOf(args, "-crab-quality");
             if (qi >= 0 && qi + 1 < args.Length && int.TryParse(args[qi + 1], out int q)) Settings.Quality = q;
+            int ui = url.IndexOf("crab-quality=");
+            if (ui >= 0 && ui + 13 < url.Length && int.TryParse(url.Substring(ui + 13, 1), out int uq)) Settings.Quality = uq;
             Settings.VSync = false;
             var go = new GameObject("Benchmark");
             DontDestroyOnLoad(go);

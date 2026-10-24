@@ -36,6 +36,7 @@ namespace Crab.EditorTools
             PlayerSettings.WebGL.memoryGrowthMode = WebGLMemoryGrowthMode.Geometric;
             PlayerSettings.WebGL.maximumMemorySize = 4096;
             PlayerSettings.WebGL.nameFilesAsHashes = true;
+            PlayerSettings.WebGL.template = "PROJECT:Crab";   // Assets/WebGLTemplates/Crab: full window, a title card while loading
             PlayerSettings.runInBackground = false;
             Build(BuildTarget.WebGL, "Builds/WebGL", BuildOptions.None);
         }

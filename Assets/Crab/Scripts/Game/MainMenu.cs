@@ -87,6 +87,7 @@ namespace Crab.Game
             var foot = new Label($"Маленький краб. Божья Искра. Девять кругов ада.  ·  версия {Application.version}");
             foot.AddToClassList("main-foot");
             root.Add(foot);
+            btns.schedule.Execute(() => btns.Q<Button>()?.Focus());   // a gamepad starts on the first button
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
         }

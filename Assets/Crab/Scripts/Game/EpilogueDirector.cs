@@ -24,6 +24,7 @@ namespace Crab.Game
             UnityEngine.Cursor.visible = false;
             Sfx.StopAll();
             Story.Task("");
+            GameUI.Cinema = true;
             hero.Controller.frozen = true;
             hero.Combat.locked = true;
             hero.Power.locked = true;
@@ -60,6 +61,8 @@ namespace Crab.Game
             yield return Wait(7);
             GameSession.Instance.Go("Menu", 1.5f);
         }
+
+        void OnDestroy() => GameUI.Cinema = false;
 
         void Update()
         {

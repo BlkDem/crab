@@ -103,6 +103,9 @@ namespace Crab.Game
             var b = new Button(() => { Sfx.Play("click"); back(); }) { text = "Назад" };
             b.AddToClassList("menu-btn");
             box.Add(b);
+            // a gamepad: the first setting takes the focus, B goes back
+            box.RegisterCallback<NavigationCancelEvent>(_ => back());
+            box.RegisterCallback<AttachToPanelEvent>(_ => box.schedule.Execute(() => scroll.Q<Slider>()?.Focus()));
             return box;
         }
 
@@ -143,14 +146,17 @@ namespace Crab.Game
             value.text = v ? "вкл" : "выкл";
             row.AddToClassList("settings-switch");
             row.EnableInClassList("on", v);
-            row.RegisterCallback<ClickEvent>(_ =>
+            row.focusable = true;
+            void Flip()
             {
                 v = !v;
                 set(v);
                 Sfx.Play("click");
                 value.text = v ? "вкл" : "выкл";
                 row.EnableInClassList("on", v);
-            });
+            }
+            row.RegisterCallback<ClickEvent>(_ => Flip());
+            row.RegisterCallback<NavigationSubmitEvent>(_ => Flip());
         }
 
         static void Choice(VisualElement parent, string title, string[] options, int v, Action<int> set)

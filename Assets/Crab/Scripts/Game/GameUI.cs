@@ -27,6 +27,8 @@ namespace Crab.Game
         IBoss guardian;
         Label levelText;
         float lastHp = -1;
+        /// <summary>A film moment: only the words stay on screen (the end).</summary>
+        public static bool Cinema;
 
         static VisualElement E(string cls = null, VisualElement parent = null)
         {
@@ -230,6 +232,7 @@ namespace Crab.Game
             float dt = Time.unscaledDeltaTime;
             var s = GameSession.Instance;
             fadeEl.style.opacity = s ? s.fade : 0;
+            root.EnableInClassList("cinema", Cinema);
             fpsTime += dt;
             fpsFrames++;
             if (fpsTime > 0.5f)
@@ -400,6 +403,7 @@ namespace Crab.Game
         {
             Paused = !Paused;
             if (!Paused) CloseSettings();
+            else pauseBox.Q<Button>()?.Focus();
             pause.style.display = Paused ? DisplayStyle.Flex : DisplayStyle.None;
             Time.timeScale = Paused ? 0 : 1;
             UnityEngine.Cursor.lockState = Paused ? CursorLockMode.None : CursorLockMode.Locked;

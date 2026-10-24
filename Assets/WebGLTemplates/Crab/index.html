@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!-- "Краб против ада" in a browser: the canvas fills the window; a dark title card with a loading
+     bar stays over it until the game starts. -->
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
+    <title>{{{ PRODUCT_NAME }}}</title>
+    <style>
+      @font-face { font-family: "Russo One"; src: url("TemplateData/RussoOne-Regular.ttf"); }
+      html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0a0806; }
+      #unity-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #0a0806; outline: none; }
+      #card { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+              background: radial-gradient(ellipse at 50% 60%, #3a1406 0%, #0a0806 70%); color: #f3ece0;
+              font-family: "Russo One", system-ui, sans-serif; transition: opacity 0.8s; }
+      #card.gone { opacity: 0; pointer-events: none; }
+      #card h1 { margin: 0; font-size: clamp(48px, 12vw, 120px); font-weight: normal; color: #ff8a2a; letter-spacing: 2px;
+                 text-shadow: 0 0 40px rgba(255, 100, 20, 0.35); }
+      #card h2 { margin: -6px 0 0; font-size: clamp(20px, 4vw, 40px); font-weight: normal; color: #ffc65a; }
+      #bar { margin-top: 48px; width: min(420px, 70vw); height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+      #fill { width: 0; height: 100%; background: linear-gradient(90deg, #ff8a2a, #ffc65a); transition: width 0.3s; }
+      #note { margin-top: 14px; font: 14px system-ui, sans-serif; color: rgba(240, 225, 205, 0.6); text-align: center; padding: 0 16px; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="card">
+      <h1>КРАБ</h1>
+      <h2>ПРОТИВ АДА</h2>
+      <div id="bar"><div id="fill"></div></div>
+      <div id="note">Загрузка… около 135 МБ при первом запуске, потом — из кэша браузера</div>
+    </div>
+    <script src="Build/{{{ LOADER_FILENAME }}}"></script>
+    <script>
+      const card = document.getElementById("card"), fill = document.getElementById("fill"), note = document.getElementById("note");
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+        note.textContent = "Игре нужны клавиатура и мышь (или геймпад) — на телефоне она не пойдёт.";
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        arguments: [],
+        dataUrl: "Build/{{{ DATA_FILENAME }}}",
+        frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
+#if USE_WASM
+        codeUrl: "Build/{{{ CODE_FILENAME }}}",
+#endif
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+        productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+        productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+      }, p => {
+        fill.style.width = Math.round(p * 100) + "%";
+        if (p >= 0.9) note.textContent = "Почти готово: собираю мир…";
+      }).then(() => {
+        card.classList.add("gone");
+        setTimeout(() => card.remove(), 1000);
+      }).catch(message => {
+        note.textContent = "Не вышло запустить: " + message;
+        note.style.color = "#ff4a3a";
+      });
+    </script>
+  </body>
+</html>
