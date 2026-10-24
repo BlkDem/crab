@@ -63,6 +63,17 @@ namespace Crab.Tests
         }
 
         [Test]
+        public void EnteringASceneForgetsTheBeacon()
+        {
+            var s = new GameState { Scene = "Limbo", Checkpoint = "town" };
+            s.Enter("Limbo");
+            Assert.That(s.Checkpoint, Is.EqualTo("town"), "the same scene keeps it");
+            s.Enter("Wrath");
+            Assert.That(s.Scene, Is.EqualTo("Wrath"));
+            Assert.That(s.Checkpoint, Is.Empty);
+        }
+
+        [Test]
         public void SaveRoundTrip()
         {
             var s = new GameState { Scene = "Limbo", Checkpoint = "town" };

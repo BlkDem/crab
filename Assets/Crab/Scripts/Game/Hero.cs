@@ -95,6 +95,14 @@ namespace Crab.Game
                 lordForm = Instantiate(lib.matterLord, Rig.body, false);
                 lordForm.name = "LordForm";
                 foreach (var c in lordForm.GetComponentsInChildren<Collider>()) Destroy(c);
+                // the wings are light, not plates: see-through, brightest along the middle
+                if (lib.beam)
+                {
+                    var light = new Material(lib.beam) { name = "LordWings" };
+                    light.SetColor("_Tint", new Color(1f, 0.85f, 0.55f, 0.55f));
+                    foreach (var r in lordForm.GetComponentsInChildren<Renderer>())
+                        if (r.name.StartsWith("GlowWings")) { r.sharedMaterial = light; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; }
+                }
                 Lord = gameObject.AddComponent<MatterLord>();
                 Lord.hero = this;
                 Controller.canGlide = true;

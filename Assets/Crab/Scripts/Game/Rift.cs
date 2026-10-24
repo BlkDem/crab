@@ -52,6 +52,8 @@ namespace Crab.Game
             Entered?.Invoke(this);
             Sfx.Play("spark", null, 0.6f, 0.7f);
             hero.Controller.frozen = true;
+            // saved as already there: quitting during the passage continues in the next circle
+            if (leadsTo != "Menu") GameSession.Instance.State.Enter(leadsTo);
             GameSession.Instance.Save();
             StartCoroutine(Leave());
         }

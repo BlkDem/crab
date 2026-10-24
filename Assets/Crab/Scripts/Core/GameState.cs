@@ -35,6 +35,14 @@ namespace Crab.Core
 
         public bool Knows(ItemId id) => known.Contains(id);
 
+        /// <summary>The crab goes on to another scene: the beacons of the last one mean nothing there.</summary>
+        public void Enter(string scene)
+        {
+            if (scene == Scene) return;
+            Scene = scene;
+            Checkpoint = "";
+        }
+
         /// <summary>The crab's level (its evolution): 1 an ordinary crab, 2 a crab-warrior in scrap armour,
         /// 3 the armoured crab (heavy armour).</summary>
         public int Level => Items.Has(ItemId.MatterLord) ? 9 : Items.Has(ItemId.Bridgework) ? 8 : Items.Has(ItemId.Factory) ? 7 : Items.Has(ItemId.Constructor) ? 6 : Items.Has(ItemId.CyberFrame) ? 5 : Items.Has(ItemId.SparkCore) ? 4 : Items.Has(ItemId.HeavyArmor) ? 3 : Items.Has(ItemId.ScrapArmor) ? 2 : 1;

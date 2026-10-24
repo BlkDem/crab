@@ -96,7 +96,7 @@ namespace Crab.Game
             for (float t = 0; t < fadeTime; t += Time.unscaledDeltaTime) { fade = Mathf.Max(from, t / fadeTime); yield return null; }
             fade = 1;
             Time.timeScale = 1;
-            if (scene != "Menu") State.Scene = scene;
+            if (scene != "Menu") State.Enter(scene);
             // loaded at once behind the black: an async load keeps uploading the scene's many
             // textures for seconds after it opens, and the top mips show garbage until then
             yield return null;
