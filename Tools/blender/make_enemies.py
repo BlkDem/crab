@@ -1472,12 +1472,149 @@ def build_warlord():
     parent(eyes, head)
     L.export_tree("warlord", body)
 
+
+# ---------------------------------------------------------------------- VIII. the circle of Lies
+def build_liar():
+    """The Father of Lies (about 4.4 m): a tall narrow figure in a deep violet robe, a smiling golden
+    mask under the hood, two long arms and more hands folded on the chest than any body needs.
+    Body > Head (mask), ArmL, ArmR."""
+    mr = L.mat_canvas("liar_robe", base="#3a2a5a", dark="#140a24", moss=0.0)
+    mg = L.mat_metal("liar_gold", base="#f0c050", patina="#6a4a12", patina_amt=0.15, rough=0.25, metal_max=0.5)
+    ms = L.mat_plain("liar_skin", "#d8c8e8", rough=0.5)
+    robe = lathe("robe", [(0.0, 0.0), (0.9, 0.0), (0.75, 1.0), (0.55, 2.4), (0.5, 3.2), (0.35, 3.5), (0.0, 3.55)], steps=24)
+    robe.data.materials.append(mr)
+    hands = []
+    for k in range(6):
+        z = 2.0 + (k // 2) * 0.35
+        sx = 1 if k % 2 == 0 else -1
+        h = uv_sphere("hand", 0.09, (sx * 0.18, -0.5, z), scale=(1.2, 0.6, 0.9), seg=8, rings=6)
+        h.data.materials.append(ms)
+        hands.append(h)
+    trim = lathe("trim", [(0.92, 0.02), (0.95, 0.12), (0.9, 0.2)], steps=24)
+    trim.data.materials.append(mg)
+    body = join("Body", [robe, trim] + hands)
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    hood = lathe("hood", [(0.0, 4.4), (0.35, 4.3), (0.45, 3.9), (0.42, 3.5), (0.3, 3.45)], steps=16)
+    for v in hood.data.vertices:
+        if v.co.y < -0.1 and v.co.z < 4.2:
+            v.co.y *= 0.3
+    hood.data.materials.append(mr)
+    mask = uv_sphere("mask", 0.3, (0, -0.18, 3.9), scale=(0.85, 0.4, 1.1), seg=16, rings=10)
+    mask.data.materials.append(mg)
+    smile = tube("smile", [((-0.14, -0.32, 3.78), 0.018), ((0, -0.35, 3.72), 0.02), ((0.14, -0.32, 3.78), 0.018)], seg=6, sub=2)
+    smile.data.materials.append(L.mat_plain("liar_dark", "#140a1a", rough=0.6))
+    eyes = [tube("eye", [((sx * 0.15, -0.3, 3.98), 0.02), ((sx * 0.06, -0.33, 3.96), 0.02)], seg=6, sub=1) for sx in (-1, 1)]
+    for e in eyes:
+        e.data.materials.append(L.mat_plain("liar_dark2", "#140a1a", rough=0.6))
+    head = join("Head", [hood, mask, smile] + eyes)
+    set_origin(head, (0, 0, 3.45))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 0.48, 0, 3.25))
+        arm = tube("sleeve", [(sh, 0.14), (sh + Vector((sx * 0.25, -0.3, -0.9)), 0.16), (sh + Vector((sx * 0.3, -0.6, -1.7)), 0.2)], seg=10, sub=2)
+        arm.data.materials.append(mr)
+        hand = uv_sphere("hand", 0.13, sh + Vector((sx * 0.3, -0.68, -1.85)), scale=(1, 1.3, 0.8), seg=10, rings=8)
+        hand.data.materials.append(ms)
+        a = join("Arm" + side, [arm, hand])
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+    for o in parts:
+        L.shade_smooth(o, 45)
+    L.bake_group(parts, "liar", size=512, ao_dist=0.15)
+    L.export_tree("liar", body)
+
+
+# ---------------------------------------------------------------------- IX. the circle of Power
+def build_hell_lord():
+    """The Lord of Hell (about 12 m standing): a giant of dark red hide in black iron plate, four
+    arms, a crown of fire (GlowCrown), burning eyes. Body > Head > GlowCrown, GlowEyes, ArmL, ArmR,
+    LegL, LegR (the lower arms are part of the body)."""
+    m = mat_demon("lord_hide", base="#6a0e0a", dark="#1a0302", vein="#ff6a1a", veins=0.6, scale=2.5)
+    mi = L.mat_metal("lord_iron", base="#1e1c1e", patina="#5a1a10", patina_amt=0.3, rough=0.35, metal_max=0.6)
+    mg = L.mat_metal("lord_gold", base="#e0a840", patina="#6a3a10", patina_amt=0.2, rough=0.3, metal_max=0.5)
+    chest = lathe("chest", [(0.0, 5.0), (2.2, 5.2), (2.8, 7.0), (2.9, 8.6), (2.2, 9.8), (0.0, 10.0)], steps=20)
+    for v in chest.data.vertices:
+        v.co.y *= 0.75
+    chest.data.materials.append(mi)
+    belly = L.blob("belly", 1.9, seed=901, squash=(1.1, 0.9, 0.9), rough=0.06, sub=4)
+    for v in belly.data.vertices:
+        v.co += Vector((0, -0.2, 5.2))
+    belly.data.materials.append(m)
+    skirt = lathe("skirt", [(0.0, 5.0), (2.3, 5.0), (2.8, 3.2), (0.0, 3.2)], steps=16)
+    skirt.data.materials.append(mi)
+    pauld = [uv_sphere("pauldron", 1.3, (sx * 3.0, 0, 9.3), scale=(1.1, 1, 0.8), seg=14, rings=8) for sx in (-1, 1)]
+    for p_ in pauld:
+        p_.data.materials.append(mg)
+    lower = []
+    for sx in (-1, 1):   # the lower pair of arms, folded
+        sh = Vector((sx * 2.4, -0.4, 7.2))
+        lower.append(tube("lowarm", [(sh, 0.6), (sh + Vector((sx * 0.8, -1.2, -1.6)), 0.5), (sh + Vector((-sx * 0.6, -1.9, -2.2)), 0.45)], seg=10, sub=1))
+        lower[-1].data.materials.append(m)
+    body = join("Body", [chest, belly, skirt] + pauld + lower)
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    skull = L.blob("skull", 1.3, seed=902, squash=(0.95, 1.0, 1.05), rough=0.08, sub=4)
+    for v in skull.data.vertices:
+        v.co += Vector((0, -0.4, 11.4))
+    skull.data.materials.append(m)
+    horns = []
+    for sx in (-1, 1):
+        b = Vector((sx * 0.9, -0.2, 12.2))
+        h = tube("horn", [(b, 0.35), (b + Vector((sx * 1.4, 0.3, 0.6)), 0.25), (b + Vector((sx * 1.9, -0.5, 2.6)), 0.02)], seg=10, sub=3)
+        h.data.materials.append(mat_horn("lord_horn"))
+        horns.append(h)
+    crownb = lathe("crownbase", [(1.1, 0), (1.15, 0.4), (1.0, 0.4), (0.95, 0)], steps=20)
+    crownb.location = (0, -0.4, 12.4)
+    L.transform_apply(crownb)
+    crownb.data.materials.append(mg)
+    head = join("Head", [skull, crownb] + horns)
+    set_origin(head, (0, -0.2, 10.2))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 3.1, 0, 9.0))
+        arm = tube("arm", [(sh, 0.8), (sh + Vector((sx * 0.6, -0.6, -2.4)), 0.7), (sh + Vector((sx * 0.6, -1.8, -4.4)), 0.65)], seg=12, sub=1)
+        arm.data.materials.append(m)
+        fist = L.blob("fist", 0.9, seed=903 + sx, squash=(1, 1.1, 0.9), rough=0.06, sub=3)
+        for v in fist.data.vertices:
+            v.co += sh + Vector((sx * 0.6, -2.0, -4.9))
+        fist.data.materials.append(mi)
+        a = join("Arm" + side, [arm, fist])
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+        hip = Vector((sx * 1.3, 0, 4.0))
+        leg = tube("leg", [(hip, 1.0), (hip + Vector((0, -0.3, -2.0)), 0.85), (hip + Vector((0, 0.1, -3.9)), 0.8)], seg=10, sub=1)
+        leg.data.materials.append(mi)
+        lg = join("Leg" + side, [leg])
+        set_origin(lg, hip)
+        parent(lg, body)
+        parts.append(lg)
+    for o in parts:
+        L.shade_smooth(o, 40)
+    L.bake_group(parts, "hell_lord", size=1024, ao_dist=0.6)
+    flames = []
+    for k in range(7):
+        a = k / 7 * math.tau
+        flames.append(tube("flame", [((math.cos(a) * 1.0, -0.4 + math.sin(a) * 1.0, 12.8), 0.25), ((math.cos(a) * 1.2, -0.4 + math.sin(a) * 1.2, 14.2 + (k % 2) * 0.6), 0.02)], seg=6, sub=2))
+    gc = join("GlowCrown", flames)
+    gc.data.materials.append(glow("lord_crown", "#ffb03a", 12.0))
+    parent(gc, head)
+    eyes = [uv_sphere("e", 0.22, (sx * 0.5, -1.55, 11.6), scale=(1.5, 0.5, 0.7), seg=10, rings=8) for sx in (-1, 1)]
+    ge = join("GlowEyes", eyes)
+    ge.data.materials.append(glow("lord_eyes", "#ffd040", 14.0))
+    parent(ge, head)
+    L.export_tree("hell_lord", body)
+
 ASSETS = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian,
           "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus,
           "collector": build_collector, "goldguard": build_goldguard, "usurer": build_usurer,
           "dweller": build_dweller, "envious": build_envious, "wraith": build_wraith, "devourer": build_devourer,
           "legionary": build_legionary, "guide": build_guide, "janus": build_janus,
-          "warlord": build_warlord}
+          "warlord": build_warlord, "liar": build_liar, "hell_lord": build_hell_lord}
 
 
 def main():

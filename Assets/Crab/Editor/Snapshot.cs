@@ -30,6 +30,11 @@ namespace Crab.EditorTools
                 ("heart", new Vector3(0, 6, 76), new Vector3(0, 6, 98)) });
             Scene("Violence", new[] { ("start", (Vector3?)null, Vector3.zero), ("field", new Vector3(-50, 40, -90), new Vector3(0, 0, 10)), ("forge", new Vector3(-20, 4, -30), new Vector3(-32, 2, -38)),
                 ("front", new Vector3(0, 5, 60), new Vector3(0, 5, 94)) });
+            Scene("Lies", new[] { ("start", (Vector3?)null, Vector3.zero), ("islands", new Vector3(-40, 30, -60), new Vector3(0, 0, 30)), ("bridges", new Vector3(-4, 3, -18), new Vector3(16, 0, 8)),
+                ("arena", new Vector3(0, 5, 86), new Vector3(0, 3, 112)) });
+            Scene("Power", new[] { ("start", (Vector3?)null, Vector3.zero), ("bridge", new Vector3(-20, 18, -110), new Vector3(0, 0, 0)), ("gate", new Vector3(0, 4, 30), new Vector3(0, 8, 56)),
+                ("hall", new Vector3(0, 5, 66), new Vector3(0, 8, 100)) });
+            Scene("Epilogue", new[] { ("start", (Vector3?)null, Vector3.zero), ("earth", new Vector3(2, 1.5f, -3), new Vector3(0, 8, 120)), ("worlds", new Vector3(0, 700, -2200), new Vector3(0, 0, 120)) });
             Scene("Menu", new[] { ("title", (Vector3?)null, Vector3.zero) });
             Debug.Log("Snapshots rendered");
         }

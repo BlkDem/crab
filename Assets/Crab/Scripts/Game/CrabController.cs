@@ -24,6 +24,8 @@ namespace Crab.Game
         /// <summary>Movement input from a script instead of the player (tests, cutscenes).</summary>
         [System.NonSerialized] public Vector2? autopilot;
         [System.NonSerialized] public bool autopilotRun;
+        /// <summary>Wings (level 9): holding jump in the air slows the fall to a glide.</summary>
+        [System.NonSerialized] public bool canGlide;
 
         CharacterController cc;
         Vector3 velocity, knock;
@@ -69,7 +71,12 @@ namespace Crab.Game
                 velocity.y = -2;
                 if (!frozen && Controls.Jump.WasPressedThisFrame()) velocity.y = jump;
             }
-            else velocity.y -= gravity * dt;
+            else
+            {
+                velocity.y -= gravity * dt;
+                // the Lord of Matter glides on its wings while the jump is held
+                if (canGlide && velocity.y < -1.5f && Controls.Jump.IsPressed()) velocity.y = -1.5f;
+            }
             velocity = new Vector3(horiz.x, velocity.y, horiz.z);
             knock = Vector3.MoveTowards(knock, Vector3.zero, 12 * dt);
             cc.Move((velocity + knock) * dt);

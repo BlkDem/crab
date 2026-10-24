@@ -52,6 +52,10 @@ namespace Crab.Game
         public HunterDrone Hunter { get; private set; }
         public EngineerBot Engineer { get; private set; }
         public MageOrb Mage { get; private set; }
+        public TruthLens Lens { get; private set; }
+        public BridgeBuilder Bridges { get; private set; }
+        public MatterLord Lord { get; private set; }
+        GameObject lordForm;
         GameObject core, frame;
         float regen;
 
@@ -74,6 +78,27 @@ namespace Crab.Game
             {
                 Shield = gameObject.AddComponent<EnergyShield>();
                 Shield.hero = this;
+            }
+            if (State.Items.Has(ItemId.TruthLens) && !Lens)
+            {
+                Lens = gameObject.AddComponent<TruthLens>();
+                Lens.hero = this;
+            }
+            if (State.Items.Has(ItemId.Bridgework) && !Bridges)
+            {
+                Bridges = gameObject.AddComponent<BridgeBuilder>();
+                Bridges.hero = this;
+            }
+            // the Lord of Matter: the robot's plates, wings of light, the AI's rings — on the same crab
+            if (State.Items.Has(ItemId.MatterLord) && !lordForm && lib && lib.matterLord && Rig.body)
+            {
+                lordForm = Instantiate(lib.matterLord, Rig.body, false);
+                lordForm.name = "LordForm";
+                foreach (var c in lordForm.GetComponentsInChildren<Collider>()) Destroy(c);
+                Lord = gameObject.AddComponent<MatterLord>();
+                Lord.hero = this;
+                Controller.canGlide = true;
+                if (sparkLight) { sparkLight.color = new Color(1f, 0.92f, 0.7f); sparkLight.range = 5; }
             }
             if (State.Items.Has(ItemId.Portal) && !Portal)
             {
@@ -151,6 +176,7 @@ namespace Crab.Game
             if (armor && armor.activeSelf == Combat.firstPerson) armor.SetActive(!Combat.firstPerson);
             if (core && core.activeSelf == Combat.firstPerson) core.SetActive(!Combat.firstPerson);
             if (frame && frame.activeSelf == Combat.firstPerson) frame.SetActive(!Combat.firstPerson);
+            if (lordForm && lordForm.activeSelf == Combat.firstPerson) lordForm.SetActive(!Combat.firstPerson);
             // the mage draws energy out of the air, slowly
             if (State.Mage && Alive)
             {

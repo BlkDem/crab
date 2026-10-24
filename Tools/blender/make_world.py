@@ -1871,6 +1871,127 @@ def build_factory():
     parent(door, ob)
     L.export_tree("factory", r)
 
+
+# ---------------------------------------------------------------------- IX. the circle of Power
+def build_hell_ceiling():
+    """The sky of the last circle: the underside of the fortress of hell — a vast plate of black iron
+    hung with inverted spires and rows of red lights (GlowLights)."""
+    r = root("hell_ceiling")
+    m = mat_iron_plate("ceil_iron", base="#2a2426", rust="#5a1a10")
+    bm = bmesh.new()
+    bmesh.ops.create_grid(bm, x_segments=24, y_segments=24, size=1)
+    for v in bm.verts:
+        x, y = v.co.x * 130, v.co.y * 130
+        v.co = Vector((x, y, noise.noise(Vector((x * 0.03, y * 0.03, 0))) * 6))
+    plate = L.from_bmesh("plate", bm, smooth=False)
+    L.mod(plate, "SOLIDIFY", thickness=4)
+    L.apply_all(plate)
+    plate.data.materials.append(m)
+    parts = [plate]
+    for k in range(40):
+        x, y = random.uniform(-110, 110), random.uniform(-110, 110)
+        ln = random.uniform(10, 35)
+        sp = lathe("spire", [(random.uniform(3, 7), 0), (2.0, -ln * 0.6), (0.0, -ln)], steps=6)
+        sp.location = (x, y, 0)
+        L.transform_apply(sp)
+        sp.data.materials.append(m)
+        parts.append(sp)
+    ob = join("Ceiling", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    lights = [uv_sphere("l", 1.2, (random.uniform(-110, 110), random.uniform(-110, 110), -1), seg=8, rings=6) for _ in range(60)]
+    gl = join("GlowLights", lights)
+    gl.data.materials.append(glow("ceil_lights", "#ff3a1a", 10.0))
+    parent(gl, ob)
+    L.export_tree("hell_ceiling", r)
+
+
+def build_hell_spire():
+    """A spire of the megastructure: a tall stepped tower of black iron with glowing vents."""
+    r = root("hell_spire")
+    m = mat_iron_plate("spire_iron", base="#2e2828", rust="#5a1a10")
+    prof = [(6, 0), (6, 8), (5, 9), (5, 20), (4, 21), (4, 34), (3, 35), (2.2, 48), (0.6, 60), (0, 64)]
+    t = lathe("tower", prof, steps=8)
+    t.data.materials.append(m)
+    parts = [t]
+    for k in range(4):
+        a = k / 4 * math.tau + math.pi / 4
+        parts.append(lathe("buttress", [(1.5, 0), (1.2, 14), (0, 16)], steps=6))
+        parts[-1].location = (math.cos(a) * 7, math.sin(a) * 7, 0)
+        L.transform_apply(parts[-1])
+        parts[-1].data.materials.append(m)
+    ob = join("HellSpire", parts)
+    L.bake(ob, size=512)
+    parent(ob, r)
+    vents = [box("v", (1.6, 0.3, 3), (0, -5.1, 14 + k * 12), glow("spire_vent", "#ff5a1a", 7.0), 0.05) for k in range(3)]
+    gv = join("GlowVents", vents)
+    parent(gv, ob)
+    L.export_tree("hell_spire", r)
+
+
+def build_citadel_gate():
+    """The gate of the citadel: two horned towers and a great arch closed by a shimmering barrier
+    (GlowBarrier) — the place the army must stay behind."""
+    r = root("citadel_gate")
+    m = mat_iron_plate("cgate_iron", base="#2e2828", rust="#5a1a10")
+    mh = L.mat_plain("cgate_horn", "#1a1010", rough=0.4)
+    parts = [wall("arch", 30.0, 22.0, 4.0, m, holes=[(0, 0, 12.0, 12.0, True)], seed=901, broken=0.0)]
+    for sx in (-1, 1):
+        parts.append(lathe("tower", [(5, 0), (5, 26), (3, 28), (0, 34)], steps=8))
+        parts[-1].location = (sx * 17, 0, 0)
+        L.transform_apply(parts[-1])
+        parts[-1].data.materials.append(m)
+        h = tube("horn", [((sx * 17, 0, 30), 1.5), ((sx * 20, 0, 36), 0.8), ((sx * 19, -2, 44), 0.05)], seg=8, sub=2)
+        h.data.materials.append(mh)
+        parts.append(h)
+    ob = join("CitadelGate", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    bar = arch_prism("GlowBarrier", 11.6, 12.0, 0.3, True)
+    bar.data.materials.append(glow("cgate_barrier", "#ff6a3a", 2.0))
+    parent(bar, ob)
+    L.export_tree("citadel_gate", r)
+
+
+def build_circle_pillar():
+    """A pillar of the circles: an obelisk of black stone ringed with a glowing band (GlowBand) —
+    the game tints its light; four of them hold the Lord's shield."""
+    r = root("circle_pillar")
+    m = mat_iron_plate("pillar_stone", base="#2a2626", rust="#3a2a2a")
+    p = lathe("pillar", [(1.4, 0), (1.2, 0.6), (0.9, 0.8), (0.8, 9), (0.0, 11)], steps=4)
+    p.data.materials.append(m)
+    L.bake(p, size=512)
+    p.name = "Pillar"
+    parent(p, r)
+    bands = []
+    for z in (3, 5.5, 8):
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.95, minor_radius=0.12, location=(0, 0, z))
+        bands.append(bpy.context.active_object)
+    g = join("GlowBand", bands)
+    g.data.materials.append(glow("pillar_band", "#ffffff", 6.0))
+    parent(g, p)
+    L.export_tree("circle_pillar", r)
+
+
+def build_hell_throne():
+    """The throne of hell: black iron steps and a seat for a giant, its back a crown of blades."""
+    r = root("hell_throne")
+    m = mat_iron_plate("hthrone_iron", base="#2a2426", rust="#5a1a10")
+    mg = mat_gold("hthrone_gold", rough=0.3)
+    parts = []
+    for k in range(4):
+        parts.append(box("step", (20 - k * 3, 14 - k * 2, 0.8), (0, 2 + k * 0.6, 0.4 + k * 0.8), m, 0.08))
+    parts.append(box("seat", (9, 6, 2.4), (0, 5, 4.4), m, 0.1))
+    parts.append(box("back", (10, 1.6, 12), (0, 8, 9), m, 0.1))
+    for k in range(9):
+        x = -4.4 + k * 1.1
+        parts.append(tube("blade", [((x, 8, 14.5), 0.35), ((x * 1.2, 8.2, 18 + 2 * math.cos((k - 4) * 0.4)), 0.02)], seg=6, sub=1))
+        parts[-1].data.materials.append(mg)
+    ob = join("HellThrone", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    L.export_tree("hell_throne", r)
+
 ASSETS = {
     "palm": build_palm, "beach_rocks": build_beach_rocks, "shelter": build_shelter, "driftwood": build_driftwood,
     "seaweed": build_seaweed, "morsel": build_morsel, "gull": build_gull,
@@ -1890,6 +2011,8 @@ ASSETS = {
     "machine_tower": build_machine_tower,
     "barricade": build_barricade, "wreck": build_wreck, "war_banner": build_war_banner, "catapult": build_catapult,
     "siege_tower": build_siege_tower, "flying_fortress": build_flying_fortress, "factory": build_factory,
+    "hell_ceiling": build_hell_ceiling, "hell_spire": build_hell_spire, "citadel_gate": build_citadel_gate,
+    "circle_pillar": build_circle_pillar, "hell_throne": build_hell_throne,
 }
 
 

@@ -184,6 +184,21 @@ namespace Crab.EditorTools
             return (c, n * 0.6f + (1 - crack) * 0.4f - wet * 0.3f);
         }, 1.8f);
 
+        /// <summary>The Earth for the end: oceans, green and brown land, white caps and clouds (an
+        /// equirectangular map on a sphere; only the colour is used).</summary>
+        public static Texture2D Planet() => Make("planet", 1024, (u, v) =>
+        {
+            float land = Fbm(u, v, 6, 141, 3);
+            float lat = Mathf.Abs(v - 0.5f) * 2;
+            var ocean = Color.Lerp(new Color(0.03f, 0.12f, 0.35f), new Color(0.08f, 0.3f, 0.6f), land);
+            var ground = Color.Lerp(new Color(0.2f, 0.42f, 0.15f), new Color(0.55f, 0.45f, 0.28f), Smooth(0.55f, 0.7f, Fbm(u, v, 4, 143, 6)));
+            var c = land > 0.53f ? ground : ocean;
+            c = Color.Lerp(c, Color.white, Smooth(0.78f, 0.88f, lat));
+            float cloud = Smooth(0.55f, 0.7f, Fbm(u * 2, v, 5, 147, 4));
+            c = Color.Lerp(c, new Color(0.95f, 0.97f, 1f), cloud * 0.7f);
+            return (c, 0);
+        }, 0).Item1;
+
         static (Texture2D, Texture2D) Make(string name, int size, System.Func<float, float, (Color, float)> f, float bump)
         {
             Directory.CreateDirectory(Dir);

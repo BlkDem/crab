@@ -27,6 +27,7 @@ namespace Crab.Game
         public GameObject engineer, mageOrb, turret, legionary, janus, guide;
         public GameObject battleBot, warlord;
         public GameObject liar, mimic;
+        public GameObject hellLord, matterLord;
         public Material particle, particleAdditive, rift, beam, tracer, water, fire, gold, shield, mirror, bridge;
         public Mesh quad;
 

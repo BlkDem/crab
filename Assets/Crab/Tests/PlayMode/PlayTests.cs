@@ -43,6 +43,7 @@ namespace Crab.Tests
         static IEnumerator Load(string scene)
         {
             GameSession.Ensure().State.Scene = scene;
+            GameSession.Instance.fade = 0;   // a test before may end in the dark (the epilogue)
             SceneManager.LoadScene(scene);   // like the game: at once (textures complete)
             yield return null;
             yield return null;

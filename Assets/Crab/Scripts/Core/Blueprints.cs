@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Crab.Core
 {
-    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank, SparkCore, EnergyBlade, GravityGun, Portal, CyberFrame, Hunter, Constructor, Engineer, MageOrb, SquadPlating, SquadFire, Factory, TruthLens, Bridgework }
+    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank, SparkCore, EnergyBlade, GravityGun, Portal, CyberFrame, Hunter, Constructor, Engineer, MageOrb, SquadPlating, SquadFire, Factory, TruthLens, Bridgework, MatterLord }
 
     public enum WeaponKind { None, Melee, Throw, Gun }
 
@@ -79,6 +79,7 @@ namespace Crab.Core
             new Blueprint { id = ItemId.Factory, title = "Фабрика роботов", hint = "Не одна вещь и не один спутник — поток. Фабрика сама собирает мне армию.", cost = new Cost(0, 10, 24, 8, 8, 10), gear = true, workshop = true },
             new Blueprint { id = ItemId.TruthLens, title = "Взгляд истины", hint = "Линза ИИ: на миг показывает, что настоящее, а что — ложь (T).", cost = new Cost(0, 2, 4, 2, 6, 6), gear = true },
             new Blueprint { id = ItemId.Bridgework, title = "Мосты из материи", hint = "Я строю путь там, где его нет (B): плита под лапы, из камня и металла.", cost = new Cost(0, 8, 12, 0, 4, 6), gear = true },
+            new Blueprint { id = ItemId.MatterLord, title = "Повелитель материи", hint = "Всё, что я сделал, — во мне одном: броня машины, крылья света, разум ИИ. И лицо — то же. R — буря материи.", cost = new Cost(10, 20, 30, 20, 20, 30), gear = true },
             new Blueprint { id = ItemId.Portal, title = "Портал", hint = "Шаг сквозь пространство (F) — туда, куда смотрю.", cost = new Cost(0, 0, 0, 0, 3, 5), gear = true },
         };
 

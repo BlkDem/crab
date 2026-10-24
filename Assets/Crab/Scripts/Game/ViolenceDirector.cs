@@ -51,7 +51,7 @@ namespace Crab.Game
             {
                 st.SetFlag("circle7_done");
                 Story.Task("");
-                Story.Title("КОНЕЦ VII КРУГА", "VIII. Круг лжи — скоро");
+                Story.Title("КОНЕЦ VII КРУГА", "Впереди — круг лжи");
             };
             if (st.Flag("warlord")) warlord.gameObject.SetActive(false);
             hero.Died += () => StartCoroutine(Respawn());

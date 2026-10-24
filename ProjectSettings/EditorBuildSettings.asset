@@ -32,5 +32,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Crab/Scenes/Violence.unity
     guid: 3070e711c604916409c9f92075e744b1
+  - enabled: 1
+    path: Assets/Crab/Scenes/Lies.unity
+    guid: 48b304cc0bd60784390209cc55d6495b
+  - enabled: 1
+    path: Assets/Crab/Scenes/Power.unity
+    guid: 6bd1dcfbfbc62c144882ea80da171e45
+  - enabled: 1
+    path: Assets/Crab/Scenes/Epilogue.unity
+    guid: b572056b7e941894e9a8833dfbd4d755
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

@@ -715,13 +715,66 @@ def build_battlebot():
     parent(eye, body)
     L.export_tree("battlebot", body)
 
+
+# ---------------------------------------------------------------------- level 9 (circle of Power)
+def build_matter_lord():
+    """The Lord of Matter (level 9): what goes on the crab's own shell — the plates of a battle robot
+    over the back and the claws' bases, two wings of light (GlowWings), a ring of the AI turning over
+    it (Halo > GlowRing). In the hero model's units, on the Body; the face is left as it is."""
+    H = 0.062
+    m = mat_steel("lord_steel")
+    mg = mat_goldtrim("lord_gold")
+    parts = []
+    bm = bmesh.new()
+    bmesh.ops.create_grid(bm, x_segments=12, y_segments=8, size=0.5)
+    for v in bm.verts:
+        x = v.co.x * 0.26
+        y = 0.0 + (v.co.y + 0.5) * 0.12
+        v.co = Vector((x, y, H + 0.05 - 0.7 * x * x - 0.4 * (y - 0.05) ** 2))
+    back = L.from_bmesh("backplate", bm)
+    L.mod(back, "SOLIDIFY", thickness=0.008, offset=1)
+    L.apply_all(back)
+    back.data.materials.append(m)
+    parts.append(back)
+    for sx in (-1, 1):
+        parts.append(uv_sphere("shoulder", 0.04, (sx * 0.13, -0.04, H + 0.03), scale=(1.2, 1, 0.7), seg=12, rings=8))
+        parts[-1].data.materials.append(mg)
+        parts.append(tube("vent", [((sx * 0.05, 0.11, H + 0.05), 0.01), ((sx * 0.06, 0.14, H + 0.09), 0.008)], seg=6, sub=1))
+        parts[-1].data.materials.append(m)
+    ob = join("LordPlates", parts)
+    L.bake(ob, size=256)
+    wings = []
+    for sx in (-1, 1):
+        bm = bmesh.new()
+        pts = [(0.0, 0.0), (0.12, 0.1), (0.3, 0.14), (0.42, 0.08), (0.36, 0.0), (0.24, -0.04), (0.1, -0.03)]
+        verts = [bm.verts.new((sx * (0.06 + px), 0.08 + pz * 0.3, H + 0.08 + pz)) for px, pz in pts]
+        bm.faces.new(verts if sx > 0 else list(reversed(verts)))
+        w = L.from_bmesh("wing", bm, smooth=False)
+        L.mod(w, "SOLIDIFY", thickness=0.004)
+        L.apply_all(w)
+        wings.append(w)
+    gw = join("GlowWings", wings)
+    gw.data.materials.append(L.mat_plain("lord_wings", "#fff0c8", rough=0.2, emission=("#ffe8a8", 6.0)))
+    parent(gw, ob)
+    halo = bpy.data.objects.new("Halo", None)
+    L.link(halo)
+    halo.location = (0, 0, H + 0.13)
+    parent(halo, ob)
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.07, minor_radius=0.0025, location=(0, 0, H + 0.13))
+    ring = bpy.context.active_object
+    ring.name = "GlowRing"
+    ring.data.materials.append(L.mat_plain("lord_ring", "#5adcff", rough=0.2, emission=("#5adcff", 8.0)))
+    set_origin(ring, (0, 0, H + 0.13))
+    parent(ring, halo)
+    L.export_tree("matter_lord", ob)
+
 ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar, "knife": build_knife, "pistol": build_pistol,
           "machinegun": build_machinegun, "armor": build_armor, "drone": build_drone,
           "heavy_armor": build_heavy_armor, "energy_rifle": build_energy_rifle, "tank": build_tank,
           "energy_blade": build_energy_blade, "gravity_gun": build_gravity_gun, "spark_core": build_spark_core,
           "cyber_frame": build_cyber_frame, "hunter": build_hunter,
           "engineer": build_engineer, "mage_orb": build_mage_orb, "turret": build_turret,
-          "battlebot": build_battlebot}
+          "battlebot": build_battlebot, "matter_lord": build_matter_lord}
 
 
 def main():

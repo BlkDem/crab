@@ -94,7 +94,8 @@ namespace Crab.Game
         IEnumerator GoRoutine(string scene, float fadeTime)
         {
             Changing = true;
-            for (float t = 0; t < fadeTime; t += Time.unscaledDeltaTime) { fade = t / fadeTime; yield return null; }
+            float from = fade;   // it may already be dark (the end)
+            for (float t = 0; t < fadeTime; t += Time.unscaledDeltaTime) { fade = Mathf.Max(from, t / fadeTime); yield return null; }
             fade = 1;
             Time.timeScale = 1;
             if (scene != "Menu") State.Scene = scene;

@@ -250,6 +250,11 @@ namespace Crab.Game
             shieldText.text = !sh ? "" : sh.Active ? "ЩИТ АКТИВЕН" : sh.Cooldown > 0 ? $"щит [Q]: {Mathf.CeilToInt(sh.Cooldown)} с" : "щит [Q]: готов";
             var pt = hero.Portal;
             if (pt) shieldText.text += (shieldText.text.Length > 0 ? "\n" : "") + (pt.Cooldown > 0 ? $"портал [F]: {Mathf.CeilToInt(pt.Cooldown)} с" : "портал [F]: готов");
+            var ln = hero.Lens;
+            if (ln) shieldText.text += (shieldText.text.Length > 0 ? "\n" : "") + (ln.On ? "ВЗГЛЯД ИСТИНЫ" : ln.Cooldown > 0 ? $"истина [T]: {Mathf.CeilToInt(ln.Cooldown)} с" : "истина [T]: готов");
+            if (hero.Bridges) shieldText.text += (shieldText.text.Length > 0 ? "\n" : "") + "мост [B]";
+            var lord = hero.Lord;
+            if (lord) shieldText.text += (shieldText.text.Length > 0 ? "\n" : "") + (lord.Cooldown > 0 ? $"буря [R]: {Mathf.CeilToInt(lord.Cooldown)} с" : "буря материи [R]: готова");
             levelText.text = st.Flag("spark") ? $"Уровень {st.Level} — {GameState.LevelTitle(st.Level)}" : "";
             var eq = Blueprints.Get(st.Items.Equipped);
             weaponName.text = eq != null ? eq.title : st.Flag("spark") ? "Голые клешни" : "";

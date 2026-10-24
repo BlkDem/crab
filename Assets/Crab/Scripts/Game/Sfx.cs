@@ -474,6 +474,41 @@ namespace Crab.Game
                     Normalize(d, 0.55f);
                     return d;
                 }
+                case "music_power":
+                {
+                    // the last march: a deep organ, a slow heavy pulse, a choir of fifths
+                    d = Pad(new[] { new[] { 0, 7, 12 }, new[] { -2, 5, 10 }, new[] { -4, 3, 8 }, new[] { -5, 2, 7 } }, 36, 4, true);
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        float b = t % 1f;
+                        d[i] += Mathf.Sin(2 * Mathf.PI * (42 - 30 * b) * b) * Env(b, 0.004f, 0.35f) * 0.5f;
+                    }
+                    Normalize(d, 0.6f);
+                    return d;
+                }
+                case "music_lies":
+                {
+                    // a waltz that cannot keep its key: the same three notes, a different chord under them each bar
+                    d = Buf(12);
+                    var lp = new LP();
+                    int[][] chords = { new[] { 0, 4, 7 }, new[] { 1, 5, 8 }, new[] { -1, 3, 6 }, new[] { 0, 3, 7 } };
+                    int[] tune = { 12, 14, 16 };
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        int bar = (int)(t / 1.5f);
+                        int beat = (int)(t / 0.5f);
+                        float tb = t - beat * 0.5f;
+                        float v = 0;
+                        foreach (int n in chords[bar % 4]) v += Mathf.Sin(2 * Mathf.PI * 440 * Mathf.Pow(2, (48 + n - 69) / 12f) * t);
+                        float f = 440 * Mathf.Pow(2, (60 + tune[beat % 3] + (bar % 2) * 0.4f - 69) / 12f);
+                        float box = Mathf.Sin(2 * Mathf.PI * f * t) * Env(tb, 0.003f, 0.35f);
+                        d[i] = lp.Run(v, 700) * 0.25f + box * 0.3f;
+                    }
+                    Normalize(d, 0.5f);
+                    return Seamless(d, 0.5f);
+                }
                 case "music_violence":
                 {
                     // war drums: a heavy march in four, low brass fifths over it

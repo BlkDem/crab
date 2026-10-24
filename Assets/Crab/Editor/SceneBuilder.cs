@@ -44,8 +44,11 @@ namespace Crab.EditorTools
             BuildGloom();
             BuildBetrayal();
             BuildViolence();
+            BuildLies();
+            BuildPower();
+            BuildEpilogue();
             BuildMenu();
-            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy", "Gloom", "Betrayal", "Violence" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
+            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy", "Gloom", "Betrayal", "Violence", "Lies", "Power", "Epilogue" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log("Crab scenes built");
         }
@@ -132,6 +135,9 @@ namespace Crab.EditorTools
             l.janus = Glb("Enemies/janus");
             l.guide = Glb("Enemies/guide");
             l.warlord = Glb("Enemies/warlord");
+            l.liar = Glb("Enemies/liar");
+            l.hellLord = Glb("Enemies/hell_lord");
+            l.matterLord = Glb("Items/matter_lord");
             l.particle = Mat("ParticleSoft", "Crab/Soft");
             l.particleAdditive = Mat("ParticleGlow", "Crab/Glow", m => m.SetFloat("_Round", 1));
             l.tracer = Mat("Tracer", "Crab/Glow", m => m.SetFloat("_Round", 0));
@@ -161,6 +167,7 @@ namespace Crab.EditorTools
             l.tank = TankPrefab(Glb("Items/tank"));
             l.legionary = EnemyPrefab<GoldGuard>("Legionary", Glb("Enemies/legionary"), 0.45f, 2.0f, e => { e.maxHealth = 90; e.speed = 2.4f; e.attackRange = 2.0f; e.damage = 13; e.windup = 0.6f; e.attackCooldown = 1.5f; e.aggro = 16; });
             l.engineer = CompanionPrefab<EngineerBot>("Engineer", Glb("Items/engineer"), 0.3f, 0.9f);
+            l.mimic = EnemyPrefab<Mimic>("Mimic", Glb("Enemies/burrower"), 0.5f, 0.9f, e => { e.maxHealth = 90; e.speed = 3.2f; e.attackRange = 1.6f; e.damage = 16; e.windup = 0.4f; e.attackCooldown = 1.3f; e.aggro = 14; });
             l.battleBot = CompanionPrefab<BattleBot>("BattleBot", Glb("Items/battlebot"), 0.3f, 1.1f);
             l.wraith = EnemyPrefab<Wraith>("Wraith", Glb("Enemies/wraith"), 0.4f, 1.8f, e => { e.maxHealth = 60; e.speed = 2.2f; e.attackRange = 1.6f; e.damage = 6; e.windup = 0.6f; e.attackCooldown = 1.8f; e.aggro = 11; });
             l.envious = EnemyPrefab<Envious>("Envious", Glb("Enemies/envious"), 0.35f, 1.6f, e => { e.maxHealth = 80; e.speed = 3.0f; e.attackRange = 1.5f; e.damage = 14; e.windup = 0.45f; e.attackCooldown = 1.3f; e.aggro = 18; });
@@ -1697,8 +1704,9 @@ namespace Crab.EditorTools
             var sun = Sun(new Color(0.45f, 0.5f, 0.75f), 0.12f, new Vector3(70, 20, 0));
             sun.shadows = LightShadows.None;
             Environment(new Color(0, 0, 0), Color.black, 0, new Color(0.05f, 0.055f, 0.08f), new Color(0.035f, 0.04f, 0.055f), new Color(0.02f, 0.02f, 0.03f), new Color(0.015f, 0.018f, 0.03f), 0.03f, 0);
-            RenderSettings.skybox = Mat("Sky_Gloom", "Crab/Sky", m =>
+            RenderSettings.skybox = Mat("Sky_Gloom_Gradient", "Crab/Sky", m =>
             {
+                m.SetFloat("_SunSize", 6);
                 m.SetColor("_Top", Color.black);
                 m.SetColor("_Horizon", new Color(0.02f, 0.02f, 0.035f));
                 m.SetColor("_Bottom", Color.black);
@@ -1889,8 +1897,9 @@ namespace Crab.EditorTools
             Ground("BetrayalGround", new Rect(-80, -60, 160, 200), floor, 0.25f).transform.SetParent(root, false);
             var sun = Sun(new Color(1f, 0.6f, 0.4f), 1.1f, new Vector3(35, 210, 0));
             Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.35f, 0.28f, 0.3f), new Color(0.32f, 0.24f, 0.2f), new Color(0.12f, 0.09f, 0.08f), new Color(0.22f, 0.15f, 0.13f), 0.011f, 0.03f);
-            RenderSettings.skybox = Mat("Sky_Betrayal", "Crab/Sky", m =>
+            RenderSettings.skybox = Mat("Sky_Betrayal_Gradient", "Crab/Sky", m =>
             {
+                m.SetFloat("_SunSize", 6);
                 m.SetColor("_Top", new Color(0.08f, 0.05f, 0.06f));
                 m.SetColor("_Horizon", new Color(0.45f, 0.2f, 0.12f));
                 m.SetColor("_Bottom", new Color(0.1f, 0.06f, 0.05f));
@@ -2169,8 +2178,9 @@ namespace Crab.EditorTools
             Ground("BattleGround", new Rect(-110, -110, 220, 230), mud, 0.2f).transform.SetParent(root, false);
             var sun = Sun(new Color(1f, 0.65f, 0.45f), 1.3f, new Vector3(25, 160, 0));
             Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.45f, 0.38f, 0.38f), new Color(0.42f, 0.32f, 0.28f), new Color(0.16f, 0.12f, 0.1f), new Color(0.38f, 0.26f, 0.22f), 0.009f, 0.04f);
-            RenderSettings.skybox = Mat("Sky_Violence", "Crab/Sky", m =>
+            RenderSettings.skybox = Mat("Sky_Violence_Gradient", "Crab/Sky", m =>
             {
+                m.SetFloat("_SunSize", 6);
                 m.SetColor("_Top", new Color(0.18f, 0.1f, 0.1f));
                 m.SetColor("_Horizon", new Color(0.62f, 0.32f, 0.2f));
                 m.SetColor("_Bottom", new Color(0.2f, 0.1f, 0.08f));
@@ -2346,13 +2356,507 @@ namespace Crab.EditorTools
             wl.auraLight = AddLight(wRoot.transform, "AuraLight", wRoot.transform.position + Vector3.up * 3, new Color(1f, 0.3f, 0.2f), 0, 14);
             dir.warlord = wl;
             var exit = RiftAt(root, 0, WarField.z + 16, 180, "violence_exit");
-            exit.leadsTo = "Menu";
+            exit.leadsTo = "Lies";
             exit.delay = 6;
             exit.membrane.sharedMaterial = Mat("RiftPale", "Crab/Rift");
             exit.glow.color = new Color(0.8f, 0.85f, 1f);
             dir.exit = exit;
             Ui<GameUI>();
             SaveScene(scene, "Violence");
+        }
+
+        // ------------------------------------------------------------------ Lies
+        // islands of rock in a void: (center x, z, radius); strips of land join some of them, lying or
+        // hidden bridges others, and one gap has no bridge at all
+        static readonly Vector3[] LieIslands =
+        {
+            new Vector3(0, -40, 12), new Vector3(0, -12, 7), new Vector3(16, 8, 7), new Vector3(2, 30, 8),
+            new Vector3(-14, 52, 7), new Vector3(-4, 74, 9), new Vector3(0, 106, 20),
+        };
+        static readonly (int, int)[] LieStrips = { (0, 1), (2, 3), (5, 6) };
+
+        static float SegDist(Vector2 p, Vector2 a, Vector2 b)
+        {
+            var ab = b - a;
+            float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / ab.sqrMagnitude);
+            return (p - (a + ab * t)).magnitude;
+        }
+
+        static float LiesHeight(float x, float z)
+        {
+            var p = new Vector2(x, z);
+            float best = -60;
+            foreach (var i in LieIslands)
+            {
+                float d = (p - new Vector2(i.x, i.y)).magnitude;
+                float top = (Mathf.PerlinNoise(x * 0.15f + 5, z * 0.15f) - 0.5f) * 0.3f;
+                if (d < i.z) best = Mathf.Max(best, top);
+                else if (d < i.z + 3) best = Mathf.Max(best, Mathf.Lerp(top, -60, (d - i.z) / 3));
+            }
+            foreach (var (a, b) in LieStrips)
+            {
+                float d = SegDist(p, new Vector2(LieIslands[a].x, LieIslands[a].y), new Vector2(LieIslands[b].x, LieIslands[b].y));
+                if (d < 2.2f) best = Mathf.Max(best, 0);
+                else if (d < 4) best = Mathf.Max(best, Mathf.Lerp(0, -60, (d - 2.2f) / 1.8f));
+            }
+            return best;
+        }
+
+        static void BuildLies()
+        {
+            var scene = NewScene("Lies");
+            ground = LiesHeight;
+            var (pc, pn) = TextureGen.Paving();
+            var floor = Mat("LieFloor", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", pc);
+                m.SetTexture("_BumpMap", pn);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetColor("_BaseColor", new Color(0.85f, 0.78f, 1.15f));
+                m.SetFloat("_Smoothness", 0.55f);
+            });
+            var root = Group("Lies");
+            Ground("LieGround", new Rect(-40, -60, 80, 192), floor, 0.25f).transform.SetParent(root, false);
+            var sun = Sun(new Color(0.9f, 0.85f, 1f), 1.4f, new Vector3(50, 60, 0));
+            Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.55f, 0.5f, 0.75f), new Color(0.5f, 0.42f, 0.6f), new Color(0.15f, 0.12f, 0.25f), new Color(0.35f, 0.28f, 0.5f), 0.011f, 0.04f);
+            RenderSettings.skybox = Mat("Sky_Lies_Gradient", "Crab/Sky", m =>
+            {
+                m.SetFloat("_SunSize", 6);
+                m.SetColor("_Top", new Color(0.1f, 0.3f, 0.35f));
+                m.SetColor("_Horizon", new Color(0.7f, 0.35f, 0.65f));
+                m.SetColor("_Bottom", new Color(0.05f, 0.03f, 0.1f));
+                m.SetColor("_Sun", new Color(1f, 0.9f, 0.7f));
+                m.SetVector("_SunDir", -sun.transform.forward);
+                m.SetFloat("_Exponent", 0.4f);
+            });
+            Post("Lies", 0.3f, 12, new Color(1f, 0.95f, 1.05f), 1.2f, 0.32f, 10);
+
+            // the bridges: lying ones you fall through, hidden ones that hold
+            var bridgeMat = Mat("LieBridge", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetColor("_BaseColor", new Color(0.8f, 0.78f, 0.9f));
+                m.SetFloat("_Smoothness", 0.6f);
+                m.EnableKeyword("_EMISSION");
+                m.SetColor("_EmissionColor", Color.black);
+                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            });
+            lib.bridge = bridgeMat;
+            EditorUtility.SetDirty(lib);
+            void Bridge(Vector3 a, Vector3 b, Illusion.Kind? kind)
+            {
+                var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                go.name = kind == null ? "Bridge" : kind == Illusion.Kind.False ? "FalseBridge" : "HiddenBridge";
+                go.transform.SetParent(root, false);
+                var mid = (a + b) / 2;
+                go.transform.SetPositionAndRotation(new Vector3(mid.x, -0.15f, mid.z), Quaternion.LookRotation(b - a));
+                go.transform.localScale = new Vector3(2.4f, 0.3f, (b - a).magnitude);
+                go.GetComponent<Renderer>().sharedMaterial = bridgeMat;
+                if (kind != null) go.AddComponent<Illusion>().kind = kind.Value;
+            }
+            Vector3 Edge(int i, int j, float side = 0)
+            {
+                var a = new Vector3(LieIslands[i].x, 0, LieIslands[i].y);
+                var b = new Vector3(LieIslands[j].x, 0, LieIslands[j].y);
+                var d = (b - a).normalized;
+                return a + d * (LieIslands[i].z - 0.5f) + Vector3.Cross(Vector3.up, d) * side;
+            }
+            // 1 -> 2: the straight bridge lies; the true one is hidden beside it
+            Bridge(Edge(1, 2), Edge(2, 1), Illusion.Kind.False);
+            Bridge(Edge(1, 2, -4), Edge(2, 1, 4), Illusion.Kind.Hidden);
+            // 4 -> 5: the same, the other way round
+            Bridge(Edge(4, 5, 3.5f), Edge(5, 4, -3.5f), Illusion.Kind.False);
+            Bridge(Edge(4, 5), Edge(5, 4), Illusion.Kind.Hidden);
+            // 3 -> 4: nothing at all — the crab builds it
+
+            // bits of the past circles adrift in the void, trading places
+            var shift = new GameObject("WorldShift").AddComponent<WorldShift>();
+            var rocks = Glb("World/beach_rocks");
+            var pieces = new[] { "palm", "house0", "gold_house", "pavilion", "burnt_house", "blossom_tree", "mech_wall", "deadtree", "obelisk", "column", "spring", "burnt_tree" };
+            for (int i = 0; i < pieces.Length * 2; i++)
+            {
+                float a = i / (pieces.Length * 2f) * Mathf.PI * 2 + R(-0.1f, 0.1f);
+                float rr = R(34, 60);
+                var p = new Vector3(Mathf.Cos(a) * rr, R(-14, 10), 30 + Mathf.Sin(a) * rr * 1.4f);
+                var holder = new GameObject("Fragment").transform;
+                holder.SetParent(root, false);
+                holder.position = p;
+                holder.rotation = Quaternion.Euler(R(-8, 8), R(0, 360), R(-8, 8));
+                var rock = (GameObject)PrefabUtility.InstantiatePrefab(rocks, holder);
+                foreach (Transform c in rock.transform.Cast<Transform>().ToArray()) if (c.name != "Rock1") UnityEngine.Object.DestroyImmediate(c.gameObject);
+                rock.transform.localScale = new Vector3(5, 2.5f, 5);
+                rock.transform.localRotation = Quaternion.Euler(180, 0, 0);
+                var thing = (GameObject)PrefabUtility.InstantiatePrefab(Glb("World/" + pieces[i % pieces.Length]), holder);
+                thing.transform.localPosition = Vector3.zero;
+                if (pieces[i % pieces.Length] == "palm" || pieces[i % pieces.Length] == "obelisk") thing.transform.localScale = Vector3.one * 0.8f;
+                shift.pieces.Add(holder);
+            }
+
+            // start, beacons, director
+            var start = Group("Start", root);
+            start.position = new Vector3(0, H(0, -46), -46);
+            var hero = BuildHero(start.position, 0, out _);
+            Setup("Lies", start);
+            var dir = new GameObject("Lies").AddComponent<LiesDirector>();
+            dir.beacons.Add(BeaconAt(root, 5, -42, -30, "lies_start"));
+            dir.beacons.Add(BeaconAt(root, 6, 30, 200, "lies_middle"));
+            dir.beacons.Add(BeaconAt(root, 2, 70, 180, "lies_archive"));
+            var gap = Group("Gap", root);
+            gap.position = new Vector3(-2, 0, 36);
+            dir.gap = gap;
+            var doubt = Group("Doubt", root);
+            doubt.position = new Vector3(LieIslands[4].x, 0, LieIslands[4].y);
+            dir.doubt = doubt;
+            // a little of each island from a past circle
+            Place(Glb("World/palm"), root, -6, -44, 30, 1, collider: "box");
+            Place(Glb("World/house1"), root, 7, -36, -40, 0.8f, sink: 0.1f);
+            Place(Glb("World/gold_column"), root, 18, 11, 0, 0.8f);
+            Place(Glb("World/pavilion"), root, -16, 54, 0, 0.7f, sink: 0.05f);
+
+            // matter — and the heaps that are not what they seem
+            void Source(GameObject model, string variant, float x, float z, Matter kind, int amount, float regrow)
+            {
+                var go = variant != null ? Variant(model, variant, root, x, z, R(0, 360), 1, collider: "none") : Place(model, root, x, z, R(0, 360), 1, collider: "none", sink: 0.02f);
+                var ms = go.AddComponent<MatterSource>();
+                ms.kind = kind;
+                ms.amount = amount;
+                ms.regrow = regrow;
+                ms.reach = 2.6f;
+            }
+            var scrapM = Glb("World/scrap");
+            foreach (var (x, z) in new[] { (-5f, -36f), (5f, -48f), (4f, 26f), (-2f, 76f) }) Source(scrapM, null, x, z, Matter.Metal, 9, 40);
+            foreach (var (x, z) in new[] { (3f, -42f), (-4f, 34f), (-12f, 48f) }) Source(Glb("World/rubble"), null, x, z, Matter.Mineral, 9, 40);
+            foreach (var (x, z) in new[] { (-6f, -46f), (14f, 4f), (-6f, 70f) }) Source(Glb("World/crystal"), "Crystal0", x, z, Matter.Crystal, 8, 40);
+            foreach (var (x, z) in new[] { (6f, -38f), (18f, 12f), (0f, 34f) }) Source(Glb("World/pylon"), null, x, z, Matter.Energy, 8, 40);
+            foreach (var (x, z) in new[] { (-2f, 24f), (7f, 32f), (-17f, 55f) })
+            {
+                var mm = (GameObject)PrefabUtility.InstantiatePrefab(lib.mimic);
+                mm.transform.position = new Vector3(x, H(x, z), z);
+                var dis = (GameObject)PrefabUtility.InstantiatePrefab(scrapM, mm.transform);
+                dis.name = "Disguise";
+                mm.GetComponent<Mimic>().disguise = dis.transform;
+            }
+            foreach (var (x, z) in new[] { (14f, 12f), (-12f, 50f) })
+            {
+                var w = (GameObject)PrefabUtility.InstantiatePrefab(lib.envious);
+                w.transform.position = new Vector3(x, H(x, z), z);
+            }
+
+            // the archive: a shard of memory that remembers the mission's writing
+            var arch = Place(Glb("World/memory_shard"), root, LieIslands[5].x, LieIslands[5].y, 180, 1.3f);
+            var shard = arch.AddComponent<MemoryShard>();
+            shard.id = "archive";
+            shard.reach = 3;
+            shard.lines = new[]
+            {
+                "Архив. Записи о носителях Искры: рыцарь, птица, машина… краб.",
+                "«Миссия: дойти до трона Ада». Подпись… стёрта. Это писал не Бог.",
+                "«Носители — расходный материал. Цель — открыть трон». Открыть — для кого?",
+            };
+            var fr = Variant(Glb("World/fresco"), "Fresco2", root, LieIslands[5].x, LieIslands[5].y + 5, 180, 1.1f);
+            shard.fresco = fr.transform;
+            shard.frescoLight = AddLight(fr.transform, "FrescoLight", fr.transform.position + fr.transform.forward * 4 + Vector3.up * 4, new Color(1f, 0.88f, 0.7f), 6, 12);
+            shard.frescoLight.enabled = false;
+            AddLight(arch.transform, "ArchiveGlow", arch.transform.position + Vector3.up * 2, new Color(1f, 0.9f, 0.7f), 2, 8);
+            dir.archive = shard;
+
+            // the Father of Lies on the last island
+            var arena = Group("Arena", root);
+            arena.position = new Vector3(LieIslands[6].x, H(LieIslands[6].x, LieIslands[6].y), LieIslands[6].y);
+            var l0 = (GameObject)PrefabUtility.InstantiatePrefab(lib.liar);
+            var lRoot = new GameObject("FatherOfLies");
+            lRoot.transform.SetPositionAndRotation(arena.position + Vector3.forward * 8, Quaternion.Euler(0, 180, 0));
+            l0.transform.SetParent(lRoot.transform, false);
+            var cap = lRoot.AddComponent<CapsuleCollider>();
+            cap.center = new Vector3(0, 2.2f, 0);
+            cap.height = 4.4f;
+            cap.radius = 0.8f;
+            var father = lRoot.AddComponent<FatherOfLies>();
+            father.model = l0.transform;
+            father.arena = arena;
+            father.truthLight = AddLight(lRoot.transform, "Truth", lRoot.transform.position + Vector3.up * 3, new Color(0.4f, 0.9f, 1f), 0, 8);
+            dir.father = father;
+            var exit = RiftAt(root, 0, LieIslands[6].y + 14, 180, "lies_exit");
+            exit.leadsTo = "Power";
+            exit.delay = 6;
+            exit.membrane.sharedMaterial = Mat("RiftGold", "Crab/Rift");
+            exit.glow.color = new Color(1f, 0.85f, 0.4f);
+            dir.exit = exit;
+            Ui<GameUI>();
+            SaveScene(scene, "Lies");
+        }
+
+        // ------------------------------------------------------------------ Power
+        // the last circle: a platform in the south, the great bridge over the abyss, the gate of the
+        // citadel, the throne hall; the underside of the fortress of hell for a sky
+        static readonly Vector3 ThroneHall = new Vector3(0, 0, 86);
+
+        static float PowerHeight(float x, float z)
+        {
+            float h = -50;
+            if (new Vector2(x, z + 88).magnitude < 18) h = 0;                       // the platform
+            if (Mathf.Abs(x) < 7 && z > -75 && z < 62) h = 0;                       // the bridge
+            if (new Vector2(x - ThroneHall.x, z - ThroneHall.z).magnitude < 26) h = 0; // the hall
+            if (Mathf.Abs(x) < 26 && z > 98 && z < 112) h = 0;                       // the throne's dais
+            return h;
+        }
+
+        static void BuildPower()
+        {
+            var scene = NewScene("Power");
+            ground = PowerHeight;
+            var (cc, cn) = TextureGen.Cave();
+            var stone = Mat("HellStone", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", cc);
+                m.SetTexture("_BumpMap", cn);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetColor("_BaseColor", new Color(1.6f, 0.9f, 0.85f));
+                m.SetFloat("_Smoothness", 0.4f);
+            });
+            var root = Group("Power");
+            Ground("PowerGround", new Rect(-40, -110, 80, 230), stone, 0.25f).transform.SetParent(root, false);
+            var lavaGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            lavaGo.name = "Abyss";
+            UnityEngine.Object.DestroyImmediate(lavaGo.GetComponent<Collider>());
+            lavaGo.transform.SetParent(root, false);
+            lavaGo.transform.SetPositionAndRotation(new Vector3(0, -40, 0), Quaternion.Euler(90, 0, 0));
+            lavaGo.transform.localScale = new Vector3(800, 800, 1);
+            lavaGo.GetComponent<Renderer>().sharedMaterial = Mat("Lava", "Crab/Lava");
+            var sun = Sun(new Color(1f, 0.55f, 0.4f), 1.3f, new Vector3(55, 200, 0));
+            Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.7f, 0.38f, 0.32f), new Color(0.6f, 0.32f, 0.25f), new Color(0.35f, 0.15f, 0.1f), new Color(0.3f, 0.1f, 0.06f), 0.009f, 0.03f);
+            RenderSettings.skybox = Mat("Sky_Power_Gradient", "Crab/Sky", m =>
+            {
+                m.SetFloat("_SunSize", 6);
+                m.SetColor("_Top", new Color(0.04f, 0.01f, 0.01f));
+                m.SetColor("_Horizon", new Color(0.35f, 0.08f, 0.04f));
+                m.SetColor("_Bottom", new Color(0.3f, 0.08f, 0.02f));
+                m.SetColor("_Sun", Color.black);
+            });
+            Post("Power", 0.6f, 5, new Color(1f, 0.85f, 0.8f), 1.3f, 0.4f, 16);
+            var ceiling = Place(Glb("World/hell_ceiling"), root, 0, 10, 0, 1.3f, collider: "none", sink: 0);
+            ceiling.transform.position = new Vector3(0, 60, 10);
+            foreach (var (x, z, s) in new[] { (-40f, -40f, 1.2f), (42f, -20f, 1f), (-46f, 30f, 1.4f), (48f, 50f, 1.1f), (-30f, 110f, 1.3f), (34f, 120f, 1.2f), (0f, 140f, 1.6f), (-60f, 80f, 1f), (60f, 90f, 1f) })
+            {
+                var sp = Place(Glb("World/hell_spire"), root, x, z, R(0, 360), s, collider: "none", sink: 0);
+                sp.transform.position = new Vector3(x, -45, z);
+            }
+
+            // start, beacons, director
+            var start = Group("Start", root);
+            start.position = new Vector3(0, 0, -92);
+            var hero = BuildHero(start.position, 0, out _);
+            Setup("Power", start);
+            var dir = new GameObject("Power").AddComponent<PowerDirector>();
+            dir.beacons.Add(BeaconAt(root, 6, -88, -30, "power_start"));
+            dir.beacons.Add(BeaconAt(root, 4, 30, 180, "power_bridge"));
+            var maker = new GameObject("ArmyMaker").AddComponent<RobotFactory>();
+            maker.transform.SetPositionAndRotation(new Vector3(0, 0, -98), Quaternion.identity);
+            maker.company = 12;
+            dir.armyMaker = maker;
+            dir.ceiling = ceiling.transform;
+
+            // matter for the last forging, on the platform
+            void Source(GameObject model, string variant, float x, float z, Matter kind, int amount, float regrow)
+            {
+                var go = variant != null ? Variant(model, variant, root, x, z, R(0, 360), 1, collider: "none") : Place(model, root, x, z, R(0, 360), 1, collider: "none", sink: 0.02f);
+                var ms = go.AddComponent<MatterSource>();
+                ms.kind = kind;
+                ms.amount = amount;
+                ms.regrow = regrow;
+                ms.reach = 2.6f;
+            }
+            foreach (var (x, z) in new[] { (-10f, -84f), (10f, -84f), (-12f, -94f) }) Source(Glb("World/planks"), null, x, z, Matter.Organic, 12, 30);
+            foreach (var (x, z) in new[] { (-6f, -80f), (12f, -92f), (-14f, -88f) }) Source(Glb("World/rubble"), null, x, z, Matter.Mineral, 14, 30);
+            foreach (var (x, z) in new[] { (6f, -80f), (14f, -88f), (-8f, -100f), (8f, -100f) }) Source(Glb("World/scrap"), null, x, z, Matter.Metal, 14, 30);
+            foreach (var (x, z) in new[] { (-4f, -102f), (4f, -76f) }) Source(Glb("World/gold_pile"), "Pile1", x, z, Matter.Gold, 14, 30);
+            foreach (var (x, z) in new[] { (-14f, -80f), (14f, -98f) }) Source(Glb("World/crystal"), "Crystal2", x, z, Matter.Crystal, 14, 30);
+            foreach (var (x, z) in new[] { (-10f, -98f), (10f, -78f), (0f, -104f) }) Source(Glb("World/pylon"), null, x, z, Matter.Energy, 14, 30);
+
+            // the last legions on the bridge
+            foreach (var z in new[] { -50f, -20f, 10f, 34f })
+            {
+                var band = new GameObject("Legion").AddComponent<LegionBand>();
+                band.transform.SetPositionAndRotation(new Vector3(0, 0, z), Quaternion.Euler(0, 180, 0));
+                band.ranks = 2;
+                band.files = 3;
+                band.trigger = 20;
+                dir.bands.Add(band);
+            }
+            foreach (var (x, z) in new[] { (-3f, -36f), (3f, -4f), (-3f, 22f) })
+            {
+                var br = (GameObject)PrefabUtility.InstantiatePrefab(lib.brute);
+                br.transform.position = new Vector3(x, 0, z);
+            }
+            foreach (var z in new[] { -60f, -30f, 0f, 30f })
+                foreach (var sx in new[] { -1f, 1f })
+                    Place(Glb("World/war_banner"), root, sx * 6.2f, z, 0, 1.2f, collider: "box");
+
+            // the gate: the army stays here
+            var gateGo = Place(Glb("World/citadel_gate"), root, 0, 56, 180, 0.9f, collider: "none", sink: 0);
+            foreach (var mf in gateGo.GetComponentsInChildren<MeshFilter>())
+                if (!mf.name.StartsWith("Glow")) mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
+            dir.gate = gateGo.transform;
+            AddLight(gateGo.transform, "Barrier", gateGo.transform.position + Vector3.up * 5, new Color(1f, 0.45f, 0.25f), 4, 20);
+
+            // the throne hall: four pillars of the circles, the throne, the Lord
+            var arena = Group("Arena", root);
+            arena.position = ThroneHall;
+            var hl = (GameObject)PrefabUtility.InstantiatePrefab(lib.hellLord);
+            var throne = Place(Glb("World/hell_throne"), root, 0, 108, 180, 1, sink: 0);
+            var lRoot = new GameObject("HellLord");
+            lRoot.transform.SetPositionAndRotation(new Vector3(0, 1.6f, 100), Quaternion.Euler(0, 180, 0));
+            hl.transform.SetParent(lRoot.transform, false);
+            var cap = lRoot.AddComponent<CapsuleCollider>();
+            cap.center = new Vector3(0, 7, 0);
+            cap.height = 14;
+            cap.radius = 3;
+            var lord = lRoot.AddComponent<HellLord>();
+            lord.model = hl.transform;
+            lord.arena = arena;
+            lord.crownLight = AddLight(lRoot.transform, "Crown", lRoot.transform.position + Vector3.up * 14, new Color(1f, 0.6f, 0.25f), 5, 30);
+            var sh = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sh.name = "LordShield";
+            UnityEngine.Object.DestroyImmediate(sh.GetComponent<Collider>());
+            sh.transform.SetParent(lRoot.transform, false);
+            sh.transform.localPosition = Vector3.up * 7;
+            sh.GetComponent<Renderer>().sharedMaterial = Mat("LordShield", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(1f, 0.6f, 0.25f, 0.45f)); });
+            lord.shield = sh.transform;
+            var colors = new[] { new Color(0.5f, 1f, 0.7f), new Color(1f, 0.5f, 0.15f), new Color(1f, 0.82f, 0.3f), new Color(0.75f, 0.5f, 1f) };
+            for (int i = 0; i < 4; i++)
+            {
+                float a = (45 + i * 90) * Mathf.Deg2Rad;
+                var p = ThroneHall + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * 15;
+                var pg = Place(Glb("World/circle_pillar"), root, p.x, p.z, R(0, 360), 1);
+                var pil = pg.AddComponent<CirclePillar>();
+                pil.color = colors[i];
+                var col = pg.AddComponent<CapsuleCollider>();
+                col.center = new Vector3(0, 5, 0);
+                col.height = 10;
+                col.radius = 1.2f;
+                pil.glow = AddLight(pg.transform, "PillarGlow", pg.transform.position + Vector3.up * 6, colors[i], 12, 14);
+                foreach (var r in pg.GetComponentsInChildren<Renderer>())
+                    if (r.name.StartsWith("Glow")) r.sharedMaterial = Mat($"PillarBand{i}", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 0); m.SetColor("_Tint", colors[i]); });
+                lord.pillars.Add(pil);
+            }
+            dir.lord = lord;
+            var portal = RiftAt(root, 0, ThroneHall.z + 6, 180, "power_portal");
+            portal.leadsTo = "Epilogue";
+            portal.delay = 2;
+            portal.membrane.sharedMaterial = Mat("RiftSpace", "Crab/Rift", m => { m.SetColor("_Color", new Color(0.6f, 0.8f, 1f)); m.SetColor("_Core", new Color(0.0f, 0.02f, 0.08f)); });
+            portal.glow.color = new Color(0.6f, 0.8f, 1f);
+            dir.portal = portal;
+            Ui<GameUI>();
+            SaveScene(scene, "Power");
+        }
+
+        // ------------------------------------------------------------------ the end
+        static void BuildEpilogue()
+        {
+            var scene = NewScene("Epilogue");
+            ground = (x, z) => -200;
+            var root = Group("Space");
+            Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.25f, 0.28f, 0.4f), new Color(0.2f, 0.2f, 0.28f), new Color(0.08f, 0.08f, 0.1f), Color.black, 0.0f);
+            RenderSettings.fog = false;
+            Sun(new Color(1f, 0.97f, 0.9f), 2f, new Vector3(15, 35, 0));
+            RenderSettings.skybox = Mat("Sky_Space_Gradient", "Crab/Sky", m =>
+            {
+                m.SetFloat("_SunSize", 6);
+                m.SetColor("_Top", new Color(0.0f, 0.0f, 0.02f));
+                m.SetColor("_Horizon", new Color(0.02f, 0.03f, 0.08f));
+                m.SetColor("_Bottom", new Color(0.0f, 0.0f, 0.02f));
+                m.SetColor("_Sun", Color.black);
+            });
+            Post("Epilogue", 0.2f, 10, Color.white, 1.4f, 0.35f, 10);
+            // stars
+            var stars = new GameObject("Stars");
+            stars.transform.SetParent(root, false);
+            var ps = stars.AddComponent<ParticleSystem>();
+            var main = ps.main;
+            main.loop = true;
+            main.prewarm = true;
+            main.startLifetime = 1000;
+            main.startSpeed = 0;
+            main.startSize = new ParticleSystem.MinMaxCurve(4f, 12f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.8f, 0.85f, 1f), new Color(1f, 0.9f, 0.75f));
+            main.maxParticles = 4000;
+            var em = ps.emission;
+            em.rateOverTime = 0;
+            em.SetBursts(new[] { new ParticleSystem.Burst(0, 4000) });
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 6000;
+            shape.radiusThickness = 0.1f;
+            stars.GetComponent<ParticleSystemRenderer>().sharedMaterial = lib.particleAdditive;
+            // the stone the crab stands on, the broken portal of hell behind it
+            var stoneGo = Variant(Glb("World/beach_rocks"), "Rock2", root, 0, 0, 0, 1, collider: "none");
+            stoneGo.transform.position = new Vector3(0, -1.2f, 0);
+            stoneGo.transform.localScale = new Vector3(6, 2, 6);
+            var plat = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            plat.name = "Footing";
+            plat.transform.SetParent(root, false);
+            plat.transform.position = new Vector3(0, -0.5f, 0);
+            plat.transform.localScale = new Vector3(6, 0.5f, 6);
+            plat.GetComponent<Renderer>().enabled = false;
+            var rift = RiftAt(root, 0, -8, 0, "epilogue_portal");
+            rift.transform.position = new Vector3(0, 0, -8);
+            rift.transform.localScale = Vector3.one * 2;
+            rift.membrane.sharedMaterial = Mat("RiftFire", "Crab/Rift");
+            rift.open = false;
+            rift.leadsTo = "";
+            // the Earth before it, a moon, and thousands of worlds beyond
+            var earth = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            earth.name = "Earth";
+            UnityEngine.Object.DestroyImmediate(earth.GetComponent<Collider>());
+            earth.transform.SetParent(root, false);
+            earth.transform.position = new Vector3(0, 8, 120);
+            earth.transform.localScale = Vector3.one * 70;
+            earth.transform.rotation = Quaternion.Euler(-20, 0, 15);
+            var planetTex = TextureGen.Planet();
+            earth.GetComponent<Renderer>().sharedMaterial = Mat("Earth", "Universal Render Pipeline/Lit", m => { m.SetTexture("_BaseMap", planetTex); m.SetFloat("_Smoothness", 0.35f); });
+            var moon = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            moon.name = "Moon";
+            UnityEngine.Object.DestroyImmediate(moon.GetComponent<Collider>());
+            moon.transform.SetParent(root, false);
+            moon.transform.position = new Vector3(-70, 40, 170);
+            moon.transform.localScale = Vector3.one * 16;
+            moon.GetComponent<Renderer>().sharedMaterial = Mat("Moon", "Universal Render Pipeline/Lit", m => m.SetColor("_BaseColor", new Color(0.65f, 0.65f, 0.7f)));
+            var worlds = Group("Worlds", root);
+            var palette = new[] { new Color(0.8f, 0.45f, 0.25f), new Color(0.35f, 0.6f, 0.9f), new Color(0.5f, 0.8f, 0.45f), new Color(0.85f, 0.75f, 0.45f), new Color(0.6f, 0.4f, 0.8f), new Color(0.9f, 0.9f, 0.95f), new Color(0.3f, 0.75f, 0.7f) };
+            var mats = new Material[palette.Length];
+            for (int i = 0; i < palette.Length; i++)
+            {
+                var c = palette[i];
+                mats[i] = Mat($"World{i}", "Universal Render Pipeline/Lit", m =>
+                {
+                    m.SetColor("_BaseColor", c);
+                    m.EnableKeyword("_EMISSION");
+                    m.SetColor("_EmissionColor", c * 0.25f);
+                    m.SetFloat("_Smoothness", 0.3f);
+                });
+            }
+            for (int i = 0; i < 900; i++)
+            {
+                var w = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                w.name = "world";
+                UnityEngine.Object.DestroyImmediate(w.GetComponent<Collider>());
+                w.transform.SetParent(worlds, false);
+                var dirv = UnityEngine.Random.onUnitSphere;
+                if (dirv.z < -0.3f) dirv.z = -dirv.z;   // mostly beyond the Earth, ahead and around
+                w.transform.position = dirv * R(1500, 4000);
+                w.transform.localScale = Vector3.one * R(15, 90);
+                w.GetComponent<Renderer>().sharedMaterial = mats[rnd.Next(mats.Length)];
+                w.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            }
+            var start = Group("Start", root);
+            start.position = new Vector3(0, 0, 2);
+            var hero = BuildHero(start.position, 0, out var camRig);
+            camRig.cam.farClipPlane = 9000;
+            Setup("Epilogue", start);
+            var dir = new GameObject("Epilogue").AddComponent<EpilogueDirector>();
+            dir.earth = earth.transform;
+            dir.worlds = worlds;
+            Ui<GameUI>();
+            SaveScene(scene, "Epilogue");
         }
 
         // ------------------------------------------------------------------ menu
