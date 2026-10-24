@@ -1,6 +1,6 @@
 // The first stage played through in the real scenes (the story's moments are triggered the way
 // the player would: eating, hiding, running, drawing matter in, creating, shooting, sealing).
-// Pictures with the interface on top go to Docs/shots/play-*.png.
+// Pictures with the interface on top go to Docs/shots/play-*.jpg.
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -96,7 +96,7 @@ namespace Crab.Tests
                 Object.Destroy(ui);
             }
             Directory.CreateDirectory("Docs/shots");
-            File.WriteAllBytes($"Docs/shots/play-{name}.png", scene.EncodeToPNG());
+            File.WriteAllBytes($"Docs/shots/play-{name}.jpg", scene.EncodeToJPG(88));
             Object.Destroy(scene);
             rt.Release();
         }

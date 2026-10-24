@@ -112,3 +112,6 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Pictures the snapshot tool and the play tests write on every run (working material, not kept)
+/Docs/shots/

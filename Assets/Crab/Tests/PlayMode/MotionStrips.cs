@@ -1,4 +1,4 @@
-// Strips of frames of things in motion, from a camera beside them (Docs/shots/strip-*.png):
+// Strips of frames of things in motion, from a camera beside them (Docs/shots/strip-*.jpg):
 // the crab walking sideways and running, a shade and a scavenger coming at it, the demons of Wrath. For checking the
 // procedural animation by eye — the joints bend the right way, the feet lift, nothing flies off.
 using System.Collections;
@@ -61,7 +61,7 @@ namespace Crab.Tests
             }
             strip.Apply();
             Directory.CreateDirectory("Docs/shots");
-            File.WriteAllBytes($"Docs/shots/strip-{name}.png", strip.EncodeToPNG());
+            File.WriteAllBytes($"Docs/shots/strip-{name}.jpg", strip.EncodeToJPG(88));
             Object.Destroy(strip);
             Object.Destroy(go);
             rt.Release();

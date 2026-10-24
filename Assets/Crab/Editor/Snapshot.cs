@@ -48,7 +48,7 @@ namespace Crab.EditorTools
                     cam.transform.LookAt(look);
                 }
                 else cam.transform.SetPositionAndRotation(p0, r0);
-                Save(cam, $"{Out}/{name}-{tag}.png", 1280, 720);
+                Save(cam, $"{Out}/{name}-{tag}.jpg", 1280, 720);
             }
         }
 
@@ -66,7 +66,7 @@ namespace Crab.EditorTools
             tex.Apply();
             RenderTexture.active = prev;
             cam.targetTexture = null;
-            File.WriteAllBytes(path, tex.EncodeToPNG());
+            File.WriteAllBytes(path, tex.EncodeToJPG(88));
             Object.DestroyImmediate(tex);
             rt.Release();
         }
