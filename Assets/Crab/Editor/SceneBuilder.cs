@@ -90,6 +90,18 @@ namespace Crab.EditorTools
             PlayerSettings.companyName = "umolab";
         }
 
+        /// <summary>A saved copy of a model's material with its colour raised (glTFast's baseColorFactor).</summary>
+        static Material Brighter(Material src, string name, float k)
+        {
+            string path = $"{Gen}/{name}.mat";
+            AssetDatabase.DeleteAsset(path);
+            var m = new Material(src) { name = name };
+            var c = src.GetColor("baseColorFactor");
+            m.SetColor("baseColorFactor", new Color(c.r * k, c.g * k, c.b * k, c.a));
+            AssetDatabase.CreateAsset(m, path);
+            return m;
+        }
+
         // ------------------------------------------------------------------ library
         static Material Mat(string name, string shader, Action<Material> setup = null)
         {
@@ -1898,7 +1910,7 @@ namespace Crab.EditorTools
             var root = Group("Betrayal");
             Ground("BetrayalGround", new Rect(-80, -60, 160, 200), floor, 0.25f).transform.SetParent(root, false);
             var sun = Sun(new Color(1f, 0.6f, 0.4f), 1.1f, new Vector3(35, 210, 0));
-            Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.35f, 0.28f, 0.3f), new Color(0.32f, 0.24f, 0.2f), new Color(0.12f, 0.09f, 0.08f), new Color(0.22f, 0.15f, 0.13f), 0.011f, 0.03f);
+            Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.5f, 0.4f, 0.42f), new Color(0.46f, 0.34f, 0.28f), new Color(0.18f, 0.13f, 0.11f), new Color(0.26f, 0.17f, 0.14f), 0.01f, 0.03f);
             RenderSettings.skybox = Mat("Sky_Betrayal_Gradient", "Crab/Sky", m =>
             {
                 m.SetFloat("_SunSize", 6);
@@ -1908,7 +1920,7 @@ namespace Crab.EditorTools
                 m.SetColor("_Sun", new Color(1f, 0.5f, 0.3f));
                 m.SetVector("_SunDir", -sun.transform.forward);
             });
-            Post("Betrayal", 0.3f, -5, new Color(1f, 0.9f, 0.82f), 1.1f, 0.35f, 16);
+            Post("Betrayal", 0.9f, -5, new Color(1f, 0.9f, 0.82f), 1.1f, 0.35f, 16);
 
             // the maze: a depth-first walk over the cells knocks down walls
             var open = new bool[MazeN, MazeN, 4];   // 0 north (+z), 1 east (+x), 2 south, 3 west
@@ -1975,6 +1987,19 @@ namespace Crab.EditorTools
                     if (!open[cx, cz, 1]) Place(wall, maze, c.x + MazeCell / 2, c.z, 90, 1, sink: 0);
                     if (cz == 0 && !open[cx, cz, 2]) Place(wall, maze, c.x, c.z - MazeCell / 2, 0, 1, sink: 0);
                     if (cx == 0 && !open[cx, cz, 3]) Place(wall, maze, c.x - MazeCell / 2, c.z, 90, 1, sink: 0);
+                }
+            // work lamps of the legion in every other cell: warm pools of light along the iron
+            var lamp = Glb("World/lamp");
+            for (int cx = 0; cx < MazeN; cx++)
+                for (int cz = 0; cz < MazeN; cz++)
+                {
+                    if ((cx + cz) % 2 != 0) continue;
+                    var c = CellCenter(cx, cz);
+                    float sx = rnd.Next(2) == 0 ? -1 : 1, sz = rnd.Next(2) == 0 ? -1 : 1;
+                    var p = c + new Vector3(sx, 0, sz) * (MazeCell / 2 - 1.3f);
+                    var lg = Place(lamp, maze, p.x, p.z, Mathf.Atan2(-sx, -sz) * Mathf.Rad2Deg, 1, collider: "box");
+                    var li = AddLight(lg.transform, "WorkLight", lg.transform.position + Vector3.up * 3.2f, new Color(1f, 0.55f, 0.28f), 12, 15);
+                    li.shadows = LightShadows.None;
                 }
             // gears turning on the walls, machine towers round about
             var gear = Glb("World/gear");
@@ -2137,6 +2162,20 @@ namespace Crab.EditorTools
             exit.glow.color = new Color(1f, 0.55f, 0.3f);
             dir.exit = exit;
             Ui<GameUI>();
+            // the iron is baked near black: a lighter copy of its material, so the lamps have something to light
+            var lighter = new Dictionary<Material, Material>();
+            var ironMats = new HashSet<Material>(wall.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials));
+            foreach (var r in root.GetComponentsInChildren<Renderer>())
+            {
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (!mats[i] || !ironMats.Contains(mats[i])) continue;
+                    if (!lighter.TryGetValue(mats[i], out var m)) lighter[mats[i]] = m = Brighter(mats[i], "MechWall" + lighter.Count, 2.4f);
+                    mats[i] = m;
+                }
+                r.sharedMaterials = mats;
+            }
             SaveScene(scene, "Betrayal");
         }
 
