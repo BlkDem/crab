@@ -50,6 +50,8 @@ namespace Crab.Game
         public EnergyShield Shield { get; private set; }
         public PortalStep Portal { get; private set; }
         public HunterDrone Hunter { get; private set; }
+        public EngineerBot Engineer { get; private set; }
+        public MageOrb Mage { get; private set; }
         GameObject core, frame;
         float regen;
 
@@ -100,6 +102,21 @@ namespace Crab.Game
                 foreach (var c in go.GetComponentsInChildren<Collider>()) Destroy(c);
                 Hunter = go.AddComponent<HunterDrone>();
                 Hunter.hero = this;
+            }
+            if (State.Items.Has(ItemId.Engineer) && !Engineer && lib && lib.engineer)
+            {
+                var go = Instantiate(lib.engineer, transform.position - transform.forward * 2 - transform.right, transform.rotation);
+                go.name = "ENGINEER";
+                Engineer = go.GetComponent<EngineerBot>();
+                if (Engineer) Engineer.hero = this;
+            }
+            if (State.Items.Has(ItemId.MageOrb) && !Mage && lib && lib.mageOrb)
+            {
+                var go = Instantiate(lib.mageOrb, transform.position + Vector3.up * 2, Quaternion.identity);
+                go.name = "MAG";
+                foreach (var c in go.GetComponentsInChildren<Collider>()) Destroy(c);
+                Mage = go.AddComponent<MageOrb>();
+                Mage.hero = this;
             }
             if (State.Items.Has(ItemId.Tank) && !Tank && lib && lib.tank)
             {

@@ -1169,10 +1169,219 @@ def build_devourer():
     parent(ge, body)
     L.export_tree("devourer", body)
 
+
+# ---------------------------------------------------------------------- VI. the circle of Betrayal
+def build_legionary():
+    """A soldier of the legion (2 m): a demon in dark iron plate, a round shield on the left arm,
+    a spear in the right, a red visor. Body > Head > GlowVisor, ArmL, ArmR, LegL, LegR."""
+    mi = L.mat_metal("legion_iron", base="#3a3a3e", patina="#6a2a1a", patina_amt=0.4, rough=0.45, metal_max=0.6)
+    mr = L.mat_canvas("legion_cloth", base="#6a1a14", dark="#2a0806", moss=0.0)
+    md = mat_demon("legion_hide", base="#4a1a10", dark="#1a0604", veins=0.3)
+    chest = lathe("chest", [(0.0, 1.0), (0.3, 1.0), (0.38, 1.3), (0.4, 1.55), (0.3, 1.72), (0.0, 1.72)], steps=16)
+    for v in chest.data.vertices:
+        v.co.y *= 0.75
+    chest.data.materials.append(mi)
+    skirt = lathe("skirt", [(0.0, 1.02), (0.32, 1.02), (0.4, 0.7), (0.0, 0.7)], steps=12)
+    skirt.data.materials.append(mr)
+    body = join("Body", [chest, skirt])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    helm = lathe("helm", [(0.0, 1.72), (0.16, 1.74), (0.19, 1.9), (0.15, 2.04), (0.0, 2.08)], steps=12)
+    helm.data.materials.append(mi)
+    crest = tube("crest", [((0, 0.15, 1.95), 0.03), ((0, 0.0, 2.15), 0.05), ((0, -0.12, 2.05), 0.02)], seg=8, sub=2, flat=0.3, flat_axis=(1, 0, 0))
+    crest.data.materials.append(mr)
+    head = join("Head", [helm, crest])
+    set_origin(head, (0, 0, 1.74))
+    parent(head, body)
+    parts.append(head)
+    shL = Vector((0.42, 0, 1.55))
+    armL = tube("arm", [(shL, 0.08), (shL + Vector((0.05, -0.15, -0.3)), 0.07)], seg=8, sub=1)
+    armL.data.materials.append(md)
+    shield = lathe("shield", [(0.0, 0.05), (0.45, 0.0), (0.42, -0.05), (0.0, -0.02)], steps=20)
+    shield.rotation_euler = (math.pi / 2, 0, 0)
+    shield.location = (0.45, -0.38, 1.15)
+    L.transform_apply(shield)
+    shield.data.materials.append(mi)
+    aL = join("ArmL", [armL, shield])
+    set_origin(aL, shL)
+    parent(aL, body)
+    parts.append(aL)
+    shR = Vector((-0.42, 0, 1.55))
+    armR = tube("arm", [(shR, 0.08), (shR + Vector((-0.05, -0.2, -0.35)), 0.07)], seg=8, sub=1)
+    armR.data.materials.append(md)
+    hand = shR + Vector((-0.05, -0.22, -0.38))
+    spear = tube("spear", [(hand + Vector((0, 0.6, -0.4)), 0.025), (hand + Vector((0, -1.4, 0.6)), 0.025)], seg=6, sub=1)
+    spear.data.materials.append(md)
+    tip = tube("tip", [(hand + Vector((0, -1.4, 0.6)), 0.06), (hand + Vector((0, -1.75, 0.78)), 0.004)], seg=6, sub=1)
+    tip.data.materials.append(mi)
+    aR = join("ArmR", [armR, spear, tip])
+    set_origin(aR, shR)
+    parent(aR, body)
+    parts.append(aR)
+    for side, sx in (("L", 1), ("R", -1)):
+        hip = Vector((sx * 0.17, 0, 0.9))
+        leg = tube("leg", [(hip, 0.1), (hip + Vector((0, -0.05, -0.45)), 0.09), (hip + Vector((0, 0.02, -0.85)), 0.08)], seg=8, sub=1)
+        leg.data.materials.append(md)
+        boot = uv_sphere("boot", 0.11, hip + Vector((0, -0.07, -0.86)), scale=(0.9, 1.5, 0.6), seg=10, rings=6)
+        boot.data.materials.append(mi)
+        lg = join("Leg" + side, [leg, boot])
+        set_origin(lg, hip)
+        parent(lg, body)
+        parts.append(lg)
+    for o in parts:
+        L.shade_smooth(o, 40)
+    L.bake_group(parts, "legionary", size=512, ao_dist=0.08)
+    visor = uv_sphere("GlowVisor", 0.05, (0, -0.16, 1.88), scale=(2.4, 0.5, 0.4), seg=10, rings=6)
+    visor.data.materials.append(glow("legion_visor", "#ff3a2a", 10.0))
+    parent(visor, head)
+    L.export_tree("legionary", body)
+
+
+def build_guide():
+    """The Guide (about 1.5 m): a lanky clockwork figure in a ragged cloak, a round lantern held
+    up in its left hand, one big lens of an eye. Body > Head > GlowEye, ArmL > GlowLantern, ArmR, LegL, LegR."""
+    mb = L.mat_metal("guide_brass", base="#a8803a", patina="#3a6a5a", patina_amt=0.5, rough=0.4, metal_max=0.6)
+    mc = L.mat_canvas("guide_cloak", base="#5a5048", dark="#2a241e", moss=0.0)
+    torso = lathe("torso", [(0.0, 0.75), (0.16, 0.78), (0.2, 1.05), (0.15, 1.2), (0.0, 1.22)], steps=12)
+    torso.data.materials.append(mb)
+    cloak = lathe("cloak", [(0.12, 1.25), (0.28, 1.15), (0.32, 0.8), (0.3, 0.55)], steps=16)
+    for v in cloak.data.vertices:
+        if v.co.z < 0.65:
+            v.co.z += 0.1 * abs(math.sin(math.atan2(v.co.y, v.co.x) * 5))
+        if v.co.y < 0:
+            v.co.y *= 0.5   # open at the front
+    L.mod(cloak, "SOLIDIFY", thickness=0.012)
+    L.apply_all(cloak)
+    cloak.data.materials.append(mc)
+    body = join("Body", [torso, cloak])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    hd = uv_sphere("headball", 0.13, (0, 0, 1.36), scale=(1, 1, 1.1), seg=16, rings=10)
+    hd.data.materials.append(mb)
+    hood = lathe("hood", [(0.0, 1.55), (0.15, 1.5), (0.18, 1.36), (0.15, 1.25)], steps=12)
+    for v in hood.data.vertices:
+        if v.co.y < -0.05:
+            v.co.y *= 0.3
+    hood.data.materials.append(mc)
+    head = join("Head", [hd, hood])
+    set_origin(head, (0, 0, 1.24))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 0.2, 0, 1.15))
+        arm = tube("arm", [(sh, 0.03), (sh + Vector((sx * 0.05, -0.12, -0.3)), 0.025), (sh + Vector((sx * 0.04, -0.2, -0.55)), 0.022)], seg=6, sub=1)
+        arm.data.materials.append(mb)
+        extra = []
+        if side == "L":
+            cage = lathe("cage", [(0.0, -0.15), (0.08, -0.1), (0.09, 0.05), (0.04, 0.1), (0.0, 0.12)], steps=8)
+            cage.location = sh + Vector((sx * 0.04, -0.2, -0.72))
+            L.transform_apply(cage)
+            cage.data.materials.append(mb)
+            extra.append(cage)
+        a = join("Arm" + side, [arm] + extra)
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+        hip = Vector((sx * 0.08, 0, 0.75))
+        leg = tube("leg", [(hip, 0.035), (hip + Vector((0, -0.05, -0.38)), 0.03), (hip + Vector((0, 0.03, -0.72)), 0.028)], seg=6, sub=1)
+        leg.data.materials.append(mb)
+        lg = join("Leg" + side, [leg])
+        set_origin(lg, hip)
+        parent(lg, body)
+        parts.append(lg)
+    for o in parts:
+        L.shade_smooth(o, 40)
+    L.bake_group(parts, "guide", size=512, ao_dist=0.05)
+    eye = uv_sphere("GlowEye", 0.05, (0, -0.125, 1.38), scale=(1, 0.4, 1), seg=10, rings=8)
+    eye.data.materials.append(glow("guide_eye", "#8ae0ff", 8.0))
+    parent(eye, head)
+    lamp = uv_sphere("GlowLantern", 0.065, (0.24, -0.2, 0.43), seg=10, rings=8)
+    lamp.data.materials.append(glow("guide_lamp", "#ffd890", 10.0))
+    parent(lamp, parts[2])
+    L.export_tree("guide", body)
+
+
+def build_janus():
+    """The Two-Faced (about 10 m): a mechanical idol — a stepped iron base, a barrel chest, two
+    long arms ending in saw discs (ArmL > SawL, ArmR > SawR), and a head with two faces: the
+    smiling front (FaceFront, glowing blue) and the true demonic face at the back (FaceBack,
+    glowing red). Body > Head > FaceFront, FaceBack, ArmL, ArmR."""
+    m = L.mat_metal("janus_iron", base="#4a4a50", patina="#6a3a1c", patina_amt=0.45, rough=0.45, metal_max=0.6)
+    mg = L.mat_metal("janus_brass", base="#a8803a", patina="#3a5a4a", patina_amt=0.4, rough=0.4, metal_max=0.6)
+    parts = []
+    base = lathe("base", [(3.2, 0), (3.2, 0.8), (2.6, 0.8), (2.6, 1.6), (2.0, 1.6), (2.0, 2.2), (0, 2.2)], steps=24)
+    base.data.materials.append(m)
+    chest = lathe("chest", [(1.6, 2.2), (2.1, 3.0), (2.3, 4.8), (2.0, 6.2), (1.2, 6.8), (0, 6.9)], steps=24)
+    chest.data.materials.append(m)
+    rings = []
+    for z in (3.4, 4.6, 5.8):
+        bpy.ops.mesh.primitive_torus_add(major_radius=2.3 - abs(z - 4.6) * 0.15, minor_radius=0.12, location=(0, 0, z))
+        t_ = bpy.context.active_object
+        t_.data.materials.append(mg)
+        rings.append(t_)
+    body = join("Body", [base, chest] + rings)
+    set_origin(body, (0, 0, 0))
+    parts.append(body)
+    skull = lathe("skull", [(0.0, 6.8), (1.2, 6.9), (1.4, 7.8), (1.3, 8.8), (0.8, 9.4), (0.0, 9.5)], steps=24)
+    skull.data.materials.append(m)
+    crown = []
+    for k in range(8):
+        a = k / 8 * math.tau
+        crown.append(tube("spike", [((math.cos(a) * 0.9, math.sin(a) * 0.9, 9.2), 0.15), ((math.cos(a) * 1.1, math.sin(a) * 1.1, 10.2), 0.02)], seg=6, sub=1))
+        crown[-1].data.materials.append(mg)
+    head = join("Head", [skull] + crown)
+    set_origin(head, (0, 0, 6.8))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 2.3, 0, 5.8))
+        arm = tube("arm", [(sh, 0.5), (sh + Vector((sx * 1.2, -0.6, -1.6)), 0.4), (sh + Vector((sx * 1.6, -1.8, -3.0)), 0.35)], seg=10, sub=2)
+        arm.data.materials.append(m)
+        a = join("Arm" + side, [arm])
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+        saw_c = sh + Vector((sx * 1.6, -2.2, -3.2))
+        bm = bmesh.new()
+        pts = []
+        for i in range(48):
+            ang = i / 48 * math.tau
+            rr = 1.1 if i % 2 == 0 else 0.92
+            pts.append((math.cos(ang) * rr, math.sin(ang) * rr))
+        fv = [bm.verts.new((x, -0.05, y)) for x, y in pts]
+        bv = [bm.verts.new((x, 0.05, y)) for x, y in pts]
+        bm.faces.new(fv)
+        bm.faces.new(list(reversed(bv)))
+        for i in range(len(pts)):
+            bm.faces.new((fv[(i + 1) % len(pts)], fv[i], bv[i], bv[(i + 1) % len(pts)]))
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        saw = L.from_bmesh("Saw" + side, bm, smooth=False)
+        saw.rotation_euler = (0, 0, math.pi / 2)
+        saw.location = saw_c
+        L.transform_apply(saw)
+        saw.data.materials.append(mg)
+        set_origin(saw, saw_c)
+        parent(saw, a)
+        parts.append(saw)
+    for o in parts:
+        L.shade_smooth(o, 35)
+    L.bake_group(parts, "janus", size=1024, ao_dist=0.5)
+    # the two faces: masks on the front and the back of the head
+    front = uv_sphere("FaceFront", 1.0, (0, -1.25, 8.1), scale=(0.95, 0.35, 1.05), seg=16, rings=10)
+    front.data.materials.append(glow("janus_front", "#8ad0ff", 3.0))
+    set_origin(front, (0, -1.25, 8.1))
+    parent(front, head)
+    back = uv_sphere("FaceBack", 1.0, (0, 1.25, 8.1), scale=(0.95, 0.35, 1.05), seg=16, rings=10)
+    back.data.materials.append(glow("janus_back", "#ff3a2a", 4.0))
+    set_origin(back, (0, 1.25, 8.1))
+    parent(back, head)
+    L.export_tree("janus", body)
+
 ASSETS = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian,
           "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus,
           "collector": build_collector, "goldguard": build_goldguard, "usurer": build_usurer,
-          "dweller": build_dweller, "envious": build_envious, "wraith": build_wraith, "devourer": build_devourer}
+          "dweller": build_dweller, "envious": build_envious, "wraith": build_wraith, "devourer": build_devourer,
+          "legionary": build_legionary, "guide": build_guide, "janus": build_janus}
 
 
 def main():

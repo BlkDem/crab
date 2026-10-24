@@ -16,8 +16,18 @@ namespace Crab.Game
         float health, punchT, phase, vy, hurtT;
         Enemy target;
         bool left;
+        IHittable boss;
+        Transform bossAt;
+
+        /// <summary>In a boss fight the TANK goes in and pounds the boss itself.</summary>
+        public void Engage(IHittable b, Transform at)
+        {
+            boss = b;
+            bossAt = at;
+        }
 
         public bool Alive => health > 0;
+        public void Repair(float amount) => health = Mathf.Min(maxHealth, health + amount);
         public float Health01 => health / maxHealth;
 
         void Awake()
@@ -36,7 +46,7 @@ namespace Crab.Game
         public void Hit(float damage, Vector3 point, Vector3 dir, GameObject by)
         {
             if (hero && by == hero.gameObject) return;
-            health = Mathf.Max(0, health - damage * 0.5f);
+            health = Mathf.Max(0, health - damage * 0.5f * Squad.Armor);
             hurtT = 0.2f;
             Fx.Burst(point, new Color(1f, 0.8f, 0.4f), 10, 2.5f, 0.05f, 0.3f);
             Sfx.Play("hit", point, 0.6f, 0.7f);
@@ -64,12 +74,16 @@ namespace Crab.Game
             punchT -= dt;
             if (!Alive) return;
             if (!target || !target.Alive || !target.Visible || Vector3.Distance(target.transform.position, hero.transform.position) > range) target = Nearest();
+            if (Squad.Hacked) target = null;
             Vector3 goal;
-            if (target) goal = target.transform.position;
+            if (Squad.Hacked) goal = hero.transform.position;
+            else if (target) goal = target.transform.position;
+            else if (boss != null && boss.Alive && bossAt) goal = bossAt.position;
             else goal = hero.transform.position - hero.transform.forward * 1.8f + hero.transform.right * 1.4f;
             var to = goal - transform.position;
             to.y = 0;
-            float stop = target ? 1.6f : 1.2f;
+            bool atBoss = !target && boss != null && boss.Alive && bossAt;
+            float stop = target ? 1.6f : atBoss ? 3.5f : 1.2f;
             var wish = to.magnitude > stop ? to.normalized * speed * (to.magnitude > 8 && !target ? 1.8f : 1) : Vector3.zero;
             vy = cc.isGrounded ? -2 : vy - 18 * dt;
             cc.Move((wish + Vector3.up * vy) * dt);
@@ -77,6 +91,12 @@ namespace Crab.Game
             // left far behind (a jump, a respawn): it catches up at once
             if (Vector3.Distance(transform.position, hero.transform.position) > 30) transform.position = hero.transform.position - hero.transform.forward * 2 + Vector3.up;
             if (target && to.magnitude < 2.2f && punchT <= 0) Punch();
+            if (atBoss && !Squad.Hacked && to.magnitude < 4.5f && punchT <= 0) PunchBoss();
+            if (Squad.Hacked && punchT <= 0 && Vector3.Distance(hero.transform.position, transform.position) < 2.2f && hero.Alive)
+            {
+                punchT = cooldown * 1.5f;
+                hero.Hurt(damage * 0.5f, hero.transform.position + Vector3.up * 0.3f, hero.transform.position - transform.position);
+            }
             Animate(dt, wish.magnitude);
         }
 
@@ -98,11 +118,22 @@ namespace Crab.Game
             punchT = cooldown;
             left = !left;
             var p = target.transform.position + Vector3.up * 0.6f;
-            target.Hit(damage, p, transform.forward, hero.gameObject);
+            target.Hit(damage * Squad.Damage, p, transform.forward, hero.gameObject);
             Sfx.Play("slam", p, 0.5f, 1.6f);
             Fx.Burst(p, new Color(1f, 0.8f, 0.4f), 12, 3, 0.07f, 0.3f);
             // the demon turns on the robot
             target.Provoke(this);
+        }
+
+        void PunchBoss()
+        {
+            punchT = cooldown;
+            left = !left;
+            var p = transform.position + transform.forward * 2 + Vector3.up;
+            boss.Hit(damage * Squad.Damage, p, transform.forward, hero.gameObject);
+            if (boss is Janus j) j.Provoked(this);
+            Sfx.Play("slam", p, 0.5f, 1.4f);
+            Fx.Burst(p, new Color(1f, 0.8f, 0.4f), 12, 3, 0.07f, 0.3f);
         }
 
         void Animate(float dt, float spd)

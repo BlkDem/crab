@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Crab.Core
 {
-    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank, SparkCore, EnergyBlade, GravityGun, Portal, CyberFrame, Hunter }
+    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank, SparkCore, EnergyBlade, GravityGun, Portal, CyberFrame, Hunter, Constructor, Engineer, MageOrb, SquadPlating, SquadFire }
 
     public enum WeaponKind { None, Melee, Throw, Gun }
 
@@ -71,6 +71,11 @@ namespace Crab.Core
                 kind = WeaponKind.Gun, damage = 18, range = 35, cooldown = 0.7f, ammo = ItemId.EnergyCell, energy = true, gravity = true },
             new Blueprint { id = ItemId.CyberFrame, title = "Кибер-каркас", hint = "Механические лапы на спине, глаз-сканер, встроенный вычислитель. Я больше не один в своей голове.", cost = new Cost(0, 4, 14, 4, 6, 6), gear = true, workshop = true },
             new Blueprint { id = ItemId.Hunter, title = "Дрон HUNTER", hint = "Длинный ствол, холодный глаз. Бьёт издалека, пока враг меня ещё не видит.", cost = new Cost(0, 2, 10, 2, 4, 4), companion = true, workshop = true },
+            new Blueprint { id = ItemId.Constructor, title = "Конструктор отряда", hint = "Я больше не делаю вещи по одной. Я проектирую тех, кто будет рядом.", cost = new Cost(0, 6, 16, 6, 8, 8), gear = true, workshop = true },
+            new Blueprint { id = ItemId.Engineer, title = "ИНЖЕНЕР", hint = "Чинит меня и TANK, ставит турели, когда жарко.", cost = new Cost(0, 4, 12, 2, 4, 4), companion = true, workshop = true },
+            new Blueprint { id = ItemId.MageOrb, title = "МАГ", hint = "Сфера из кристалла и энергии: бьёт молнией по нескольким сразу и подпитывает меня энергией.", cost = new Cost(0, 2, 4, 4, 8, 8), companion = true, workshop = true },
+            new Blueprint { id = ItemId.SquadPlating, title = "Броня отряда", hint = "Все мои спутники держат удар почти вдвое лучше.", cost = new Cost(0, 4, 16, 4, 4, 0), gear = true, workshop = true },
+            new Blueprint { id = ItemId.SquadFire, title = "Огонь отряда", hint = "Все мои спутники бьют в полтора раза сильнее.", cost = new Cost(0, 2, 8, 4, 6, 6), gear = true, workshop = true },
             new Blueprint { id = ItemId.Portal, title = "Портал", hint = "Шаг сквозь пространство (F) — туда, куда смотрю.", cost = new Cost(0, 0, 0, 0, 3, 5), gear = true },
         };
 

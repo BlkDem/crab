@@ -42,8 +42,9 @@ namespace Crab.EditorTools
             BuildGreed();
             BuildEnvy();
             BuildGloom();
+            BuildBetrayal();
             BuildMenu();
-            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy", "Gloom" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
+            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy", "Gloom", "Betrayal" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log("Crab scenes built");
         }
@@ -125,6 +126,10 @@ namespace Crab.EditorTools
             l.devourer = Glb("Enemies/devourer");
             l.cyberFrame = Glb("Items/cyber_frame");
             l.hunter = Glb("Items/hunter");
+            l.mageOrb = Glb("Items/mage_orb");
+            l.turret = Glb("Items/turret");
+            l.janus = Glb("Enemies/janus");
+            l.guide = Glb("Enemies/guide");
             l.particle = Mat("ParticleSoft", "Crab/Soft");
             l.particleAdditive = Mat("ParticleGlow", "Crab/Glow", m => m.SetFloat("_Round", 1));
             l.tracer = Mat("Tracer", "Crab/Glow", m => m.SetFloat("_Round", 0));
@@ -152,6 +157,8 @@ namespace Crab.EditorTools
             l.collector = EnemyPrefab<Collector>("Collector", Glb("Enemies/collector"), 0.35f, 1.2f, e => { e.maxHealth = 50; e.speed = 3.0f; e.aggro = 12; e.attackRange = 0; e.damage = 0; });
             l.goldGuard = EnemyPrefab<GoldGuard>("GoldGuard", Glb("Enemies/goldguard"), 0.5f, 2.2f, e => { e.maxHealth = 130; e.speed = 2.1f; e.attackRange = 2.2f; e.damage = 18; e.windup = 0.8f; e.attackCooldown = 1.8f; e.aggro = 13; });
             l.tank = TankPrefab(Glb("Items/tank"));
+            l.legionary = EnemyPrefab<GoldGuard>("Legionary", Glb("Enemies/legionary"), 0.45f, 2.0f, e => { e.maxHealth = 90; e.speed = 2.4f; e.attackRange = 2.0f; e.damage = 13; e.windup = 0.6f; e.attackCooldown = 1.5f; e.aggro = 16; });
+            l.engineer = CompanionPrefab<EngineerBot>("Engineer", Glb("Items/engineer"), 0.3f, 0.9f);
             l.wraith = EnemyPrefab<Wraith>("Wraith", Glb("Enemies/wraith"), 0.4f, 1.8f, e => { e.maxHealth = 60; e.speed = 2.2f; e.attackRange = 1.6f; e.damage = 6; e.windup = 0.6f; e.attackCooldown = 1.8f; e.aggro = 11; });
             l.envious = EnemyPrefab<Envious>("Envious", Glb("Enemies/envious"), 0.35f, 1.6f, e => { e.maxHealth = 80; e.speed = 3.0f; e.attackRange = 1.5f; e.damage = 14; e.windup = 0.45f; e.attackCooldown = 1.3f; e.aggro = 18; });
             EditorUtility.SetDirty(l);
@@ -173,6 +180,22 @@ namespace Crab.EditorTools
             setup(e);
             // a body to hit: the character controller catches shots and blows
             Directory.CreateDirectory("Assets/Crab/Prefabs");
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, $"Assets/Crab/Prefabs/{name}.prefab");
+            UnityEngine.Object.DestroyImmediate(go);
+            return prefab;
+        }
+
+        static GameObject CompanionPrefab<T>(string name, GameObject model, float radius, float height) where T : MonoBehaviour
+        {
+            var go = new GameObject(name);
+            var cc = go.AddComponent<CharacterController>();
+            cc.radius = radius;
+            cc.height = height;
+            cc.center = new Vector3(0, height / 2 + 0.05f, 0);
+            cc.stepOffset = 0.25f;
+            var m = (GameObject)PrefabUtility.InstantiatePrefab(model, go.transform);
+            m.name = "Model";
+            go.AddComponent<T>();
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, $"Assets/Crab/Prefabs/{name}.prefab");
             UnityEngine.Object.DestroyImmediate(go);
             return prefab;
@@ -1820,13 +1843,287 @@ namespace Crab.EditorTools
             }
             dir.devourer = dev;
             var exit = RiftAt(root, 0, GloomArena.z + 8, 180, "gloom_exit");
-            exit.leadsTo = "Menu";
+            exit.leadsTo = "Betrayal";
             exit.delay = 6;
             exit.membrane.sharedMaterial = Mat("RiftPale", "Crab/Rift", m => { m.SetColor("_Color", new Color(1f, 0.92f, 0.75f)); m.SetColor("_Core", new Color(0.08f, 0.06f, 0.04f)); });
             exit.glow.color = new Color(1f, 0.9f, 0.7f);
             dir.exit = exit;
             Ui<GameUI>();
             SaveScene(scene, "Gloom");
+        }
+
+        // ------------------------------------------------------------------ Betrayal
+        // a labyrinth of 7x7 cells of 10 m (x -35..35, z 0..70), the way in from the south, the
+        // heart of the labyrinth (a round hall) to the north
+        const int MazeN = 7;
+        const float MazeCell = 10;
+        static readonly Vector3 Heart = new Vector3(0, 0, 94);
+
+        static float BetrayalHeight(float x, float z)
+        {
+            bool inside = Mathf.Abs(x) < 40 && z > -5 && z < 118;
+            float h = (Mathf.PerlinNoise(x * 0.05f + 91, z * 0.05f + 3) - 0.5f) * 2.5f;
+            return inside ? 0 : Mathf.Lerp(0, h, Mathf.Clamp01((Mathf.Max(Mathf.Abs(x) - 40, Mathf.Max(-5 - z, z - 118))) / 8f));
+        }
+
+        static Vector3 CellCenter(int cx, int cz) => new Vector3(-35 + (cx + 0.5f) * MazeCell, 0, (cz + 0.5f) * MazeCell);
+
+        static void BuildBetrayal()
+        {
+            var scene = NewScene("Betrayal");
+            ground = BetrayalHeight;
+            var (fc, fn) = TextureGen.Cave();
+            var floor = Mat("IronFloor", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", fc);
+                m.SetTexture("_BumpMap", fn);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetColor("_BaseColor", new Color(1.6f, 1.25f, 1.05f));
+                m.SetFloat("_Smoothness", 0.35f);
+                m.SetFloat("_Metallic", 0.3f);
+            });
+            var root = Group("Betrayal");
+            Ground("BetrayalGround", new Rect(-80, -60, 160, 200), floor, 0.25f).transform.SetParent(root, false);
+            var sun = Sun(new Color(1f, 0.6f, 0.4f), 1.1f, new Vector3(35, 210, 0));
+            Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.35f, 0.28f, 0.3f), new Color(0.32f, 0.24f, 0.2f), new Color(0.12f, 0.09f, 0.08f), new Color(0.22f, 0.15f, 0.13f), 0.011f, 0.03f);
+            RenderSettings.skybox = Mat("Sky_Betrayal", "Crab/Sky", m =>
+            {
+                m.SetColor("_Top", new Color(0.08f, 0.05f, 0.06f));
+                m.SetColor("_Horizon", new Color(0.45f, 0.2f, 0.12f));
+                m.SetColor("_Bottom", new Color(0.1f, 0.06f, 0.05f));
+                m.SetColor("_Sun", new Color(1f, 0.5f, 0.3f));
+                m.SetVector("_SunDir", -sun.transform.forward);
+            });
+            Post("Betrayal", 0.3f, -5, new Color(1f, 0.9f, 0.82f), 1.1f, 0.35f, 16);
+
+            // the maze: a depth-first walk over the cells knocks down walls
+            var open = new bool[MazeN, MazeN, 4];   // 0 north (+z), 1 east (+x), 2 south, 3 west
+            var seen = new bool[MazeN, MazeN];
+            int[] dx = { 0, 1, 0, -1 }, dz = { 1, 0, -1, 0 };
+            var stack = new Stack<(int, int)>();
+            stack.Push((3, 0));
+            seen[3, 0] = true;
+            while (stack.Count > 0)
+            {
+                var (cx, cz) = stack.Peek();
+                var dirs = new List<int>();
+                for (int d = 0; d < 4; d++)
+                {
+                    int nx = cx + dx[d], nz = cz + dz[d];
+                    if (nx >= 0 && nz >= 0 && nx < MazeN && nz < MazeN && !seen[nx, nz]) dirs.Add(d);
+                }
+                if (dirs.Count == 0) { stack.Pop(); continue; }
+                int dd = dirs[rnd.Next(dirs.Count)];
+                int ax = cx + dx[dd], az = cz + dz[dd];
+                open[cx, cz, dd] = true;
+                open[ax, az, (dd + 2) % 4] = true;
+                seen[ax, az] = true;
+                stack.Push((ax, az));
+            }
+            // a few extra openings so it is not a single thread
+            for (int k = 0; k < 6; k++)
+            {
+                int cx = rnd.Next(MazeN - 1), cz = rnd.Next(MazeN);
+                open[cx, cz, 1] = true;
+                open[cx + 1, cz, 3] = true;
+            }
+            open[3, 0, 2] = true;            // the way in
+            open[3, MazeN - 1, 0] = true;    // the way to the heart
+            // the solution: breadth-first from the entrance to the exit cell
+            var prev = new Dictionary<(int, int), (int, int)>();
+            var q = new Queue<(int, int)>();
+            q.Enqueue((3, 0));
+            prev[(3, 0)] = (-1, -1);
+            while (q.Count > 0)
+            {
+                var (cx, cz) = q.Dequeue();
+                if (cx == 3 && cz == MazeN - 1) break;
+                for (int d = 0; d < 4; d++)
+                {
+                    if (!open[cx, cz, d]) continue;
+                    int nx = cx + dx[d], nz = cz + dz[d];
+                    if (nx < 0 || nz < 0 || nx >= MazeN || nz >= MazeN || prev.ContainsKey((nx, nz))) continue;
+                    prev[(nx, nz)] = (cx, cz);
+                    q.Enqueue((nx, nz));
+                }
+            }
+            var cells = new List<(int, int)>();
+            for (var c = (3, MazeN - 1); c.Item1 >= 0; c = prev[c]) cells.Add(c);
+            cells.Reverse();
+
+            var maze = Group("Maze", root);
+            var wall = Glb("World/mech_wall");
+            for (int cx = 0; cx < MazeN; cx++)
+                for (int cz = 0; cz < MazeN; cz++)
+                {
+                    var c = CellCenter(cx, cz);
+                    if (!open[cx, cz, 0]) Place(wall, maze, c.x, c.z + MazeCell / 2, 0, 1, sink: 0);
+                    if (!open[cx, cz, 1]) Place(wall, maze, c.x + MazeCell / 2, c.z, 90, 1, sink: 0);
+                    if (cz == 0 && !open[cx, cz, 2]) Place(wall, maze, c.x, c.z - MazeCell / 2, 0, 1, sink: 0);
+                    if (cx == 0 && !open[cx, cz, 3]) Place(wall, maze, c.x - MazeCell / 2, c.z, 90, 1, sink: 0);
+                }
+            // gears turning on the walls, machine towers round about
+            var gear = Glb("World/gear");
+            for (int i = 0; i < 14; i++)
+            {
+                var c = CellCenter(rnd.Next(MazeN), rnd.Next(MazeN));
+                var g = Place(gear, maze, c.x + MazeCell / 2 - 0.7f, c.z + R(-2, 2), 90, R(0.8f, 1.3f), collider: "none", sink: 0);
+                g.transform.position += Vector3.up * R(3, 5);
+                var gp = CrabRig.Find(g.transform, "Gear");
+                if (gp) gp.gameObject.AddComponent<Spinner>().speed = R(-30, 30);
+            }
+            foreach (var (x, z) in new[] { (-50f, 10f), (50f, 20f), (-48f, 60f), (52f, 70f), (-30f, -30f), (34f, -28f) })
+                Place(Glb("World/machine_tower"), root, x, z, R(0, 360), R(0.9f, 1.3f));
+
+            // start, beacons, director
+            var start = Group("Start", root);
+            start.position = new Vector3(0, H(0, -22), -22);
+            var hero = BuildHero(start.position, 0, out _);
+            Setup("Betrayal", start);
+            var dir = new GameObject("Betrayal").AddComponent<BetrayalDirector>();
+            dir.beacons.Add(BeaconAt(root, 5, -18, -30, "betrayal_gate"));
+
+            // the Guide and its way: the entrance, the cells of the solution, into the heart
+            var g0 = (GameObject)PrefabUtility.InstantiatePrefab(lib.guide);
+            var guideGo = new GameObject("Guide");
+            guideGo.transform.position = new Vector3(0, 0, -12);
+            g0.transform.SetParent(guideGo.transform, false);
+            var guide = guideGo.AddComponent<Guide>();
+            guide.model = g0.transform;
+            AddLight(guideGo.transform, "Lantern", guideGo.transform.position + new Vector3(0.3f, 0.5f, 0.2f), new Color(1f, 0.85f, 0.55f), 2.5f, 8);
+            guide.path.Add(new Vector3(0, 0, -12));
+            guide.path.Add(new Vector3(0, 0, -3));
+            foreach (var (cx, cz) in cells) guide.path.Add(CellCenter(cx, cz));
+            guide.path.Add(new Vector3(0, 0, MazeN * MazeCell + 3));
+            guide.path.Add(Heart + new Vector3(0, 0, -14));
+            dir.guide = guide;
+            int Wp(int cellIndex) => cellIndex + 2;   // a path cell's index among the waypoints
+
+            // two gates on the way, each with its lever in the cell before it
+            var gateM = Glb("World/mech_gate");
+            var leverM = Glb("World/lever");
+            foreach (int ci in new[] { 2, Mathf.Min(cells.Count - 3, 8) })
+            {
+                var a = CellCenter(cells[ci].Item1, cells[ci].Item2);
+                var b = CellCenter(cells[ci + 1].Item1, cells[ci + 1].Item2);
+                var mid = (a + b) / 2;
+                float yaw = Mathf.Abs(a.x - b.x) > 0.1f ? 90 : 0;
+                var gg = Place(gateM, maze, mid.x, mid.z, yaw, 1, sink: 0);
+                var mg = gg.AddComponent<MechGate>();
+                mg.door = CrabRig.Find(gg.transform, "Door");
+                guide.gates.Add(mg);
+                var side = Quaternion.Euler(0, yaw + 90, 0) * Vector3.forward;
+                var lp = a + side * 3.5f - (b - a).normalized * 1.5f;
+                var lv = Place(leverM, maze, lp.x, lp.z, Mathf.Atan2(-side.x, -side.z) * Mathf.Rad2Deg, 1, collider: "box", sink: 0);
+                var lever = lv.AddComponent<Lever>();
+                lever.handle = CrabRig.Find(lv.transform, "Handle");
+                lever.gates.Add(mg);
+                lever.reach = 2.4f;
+                AddLight(lv.transform, "LeverLamp", lv.transform.position + Vector3.up * 2, new Color(1f, 0.4f, 0.3f), 1.5f, 5);
+            }
+            // crushers in two corridors
+            foreach (int ci in new[] { 4, Mathf.Min(cells.Count - 2, 10) })
+            {
+                var c = CellCenter(cells[ci].Item1, cells[ci].Item2);
+                var cr = Place(Glb("World/crusher"), maze, c.x, c.z, R(0, 2) < 1 ? 0 : 90, 1, collider: "none", sink: 0);
+                var crusher = cr.AddComponent<Crusher>();
+                crusher.head = CrabRig.Find(cr.transform, "Head");
+                crusher.offset = R(0, 3);
+                foreach (var post in cr.GetComponentsInChildren<MeshFilter>())
+                    if (post.name == "Frame") post.gameObject.AddComponent<MeshCollider>().sharedMesh = post.sharedMesh;
+            }
+            // the legion's workshop beside the way (the crab becomes the architect here)
+            int wsCell = Mathf.Min(6, cells.Count - 2);
+            dir.workshopStop = Wp(wsCell);
+            var wc = CellCenter(cells[wsCell].Item1, cells[wsCell].Item2);
+            var wsGo = Place(Glb("World/workshop"), root, wc.x + 2.5f, wc.z + 2.5f, 225, 0.8f, collider: "none", sink: 0);
+            var ws = wsGo.AddComponent<Workshop>();
+            ws.build = CrabRig.Find(wsGo.transform, "Build");
+            ws.reach = 4;
+            ws.forgeLight = AddLight(wsGo.transform, "Forge", wsGo.transform.position + Vector3.up * 1.2f, new Color(1f, 0.55f, 0.2f), 3, 10);
+            dir.workshop = ws;
+            dir.beacons.Add(BeaconAt(root, wc.x - 3, wc.z - 3, 45, "betrayal_workshop"));
+
+            // the legion: bands along the way
+            foreach (int ci in new[] { 3, 7, Mathf.Min(cells.Count - 2, 11) })
+            {
+                if (ci >= cells.Count) continue;
+                var c = CellCenter(cells[ci].Item1, cells[ci].Item2);
+                var band = new GameObject("Legion").AddComponent<LegionBand>();
+                band.transform.SetPositionAndRotation(c, Quaternion.LookRotation(CellCenter(cells[ci - 1].Item1, cells[ci - 1].Item2) - c));
+                band.ranks = 2;
+                band.files = 2;
+                band.trigger = 9;
+                dir.bands.Add(band);
+            }
+
+            // matter in the labyrinth
+            void Source(GameObject model, string variant, Vector3 p, Matter kind, int amount, float regrow)
+            {
+                var go = variant != null ? Variant(model, variant, root, p.x, p.z, R(0, 360), 1, collider: "none") : Place(model, root, p.x, p.z, R(0, 360), 1, collider: "none", sink: 0.02f);
+                var ms = go.AddComponent<MatterSource>();
+                ms.kind = kind;
+                ms.amount = amount;
+                ms.regrow = regrow;
+                ms.reach = 2.6f;
+            }
+            var scrap = Glb("World/scrap");
+            for (int i = 0; i < cells.Count; i += 2) Source(scrap, null, CellCenter(cells[i].Item1, cells[i].Item2) + new Vector3(3, 0, -3), Matter.Metal, 9, 45);
+            Source(scrap, null, new Vector3(-6, 0, -16), Matter.Metal, 9, 45);
+            Source(Glb("World/rubble"), null, new Vector3(6, 0, -10), Matter.Mineral, 8, 45);
+            Source(Glb("World/crystal"), "Crystal1", wc + new Vector3(-3, 0, 3), Matter.Crystal, 8, 40);
+            Source(Glb("World/pylon"), null, wc + new Vector3(3, 0, -3), Matter.Energy, 8, 40);
+            Source(Glb("World/gold_pile"), "Pile0", wc + new Vector3(-3.5f, 0, -2), Matter.Gold, 6, 40);
+            Source(Glb("World/rubble"), null, wc + new Vector3(0, 0, 3.5f), Matter.Mineral, 8, 40);
+            Source(Glb("World/glow_mushrooms"), "Mush2", new Vector3(-4, 0, -8), Matter.Energy, 5, 50);
+
+            // the heart: a round hall ringed with walls, the gate behind the crab, the idol in the middle
+            var heart = Group("Heart", root);
+            for (int i = 0; i < 14; i++)
+            {
+                float a = i / 14f * Mathf.PI * 2;
+                if (Mathf.Abs(Mathf.Sin(a) + 1) < 0.1f) continue;   // the way in from the south
+                Place(wall, heart, Heart.x + Mathf.Cos(a) * 22, Heart.z + Mathf.Sin(a) * 22, -a * Mathf.Rad2Deg + 90, 1, sink: 0);
+            }
+            var hgGo = Place(gateM, heart, Heart.x, Heart.z - 22, 0, 1, sink: 0);
+            var hg = hgGo.AddComponent<MechGate>();
+            hg.door = CrabRig.Find(hgGo.transform, "Door");
+            hg.open = true;
+            dir.heartGate = hg;
+            foreach (var (x, z) in new[] { (-14f, 84f), (14f, 84f) })
+            {
+                var trap = new GameObject("Trap").AddComponent<LegionBand>();
+                trap.transform.SetPositionAndRotation(new Vector3(x, 0, z), Quaternion.LookRotation(new Vector3(-x, 0, Heart.z - 14 - z)));
+                trap.auto = false;
+                trap.ranks = 2;
+                trap.files = 2;
+                dir.trap.Add(trap);
+            }
+            foreach (var (x, z) in new[] { (-10f, 88f), (10f, 100f), (-8f, 104f), (12f, 86f) }) Source(scrap, null, new Vector3(x, 0, z), Matter.Metal, 6, 25);
+            var arena = Group("Arena", root);
+            arena.position = Heart;
+            var j = (GameObject)PrefabUtility.InstantiatePrefab(lib.janus);
+            var jRoot = new GameObject("Janus");
+            jRoot.transform.SetPositionAndRotation(Heart + Vector3.forward * 4, Quaternion.Euler(0, 180, 0));
+            j.transform.SetParent(jRoot.transform, false);
+            var cap = jRoot.AddComponent<CapsuleCollider>();
+            cap.center = new Vector3(0, 3.5f, 0);
+            cap.height = 7;
+            cap.radius = 2.4f;
+            var janus = jRoot.AddComponent<Janus>();
+            janus.model = j.transform;
+            janus.arena = arena;
+            janus.faceLight = AddLight(jRoot.transform, "FaceLight", jRoot.transform.position + new Vector3(0, 8, -2.5f), new Color(0.5f, 0.8f, 1f), 3, 12);
+            janus.backLight = AddLight(jRoot.transform, "BackLight", jRoot.transform.position + new Vector3(0, 8, 2.5f), new Color(1f, 0.3f, 0.2f), 3, 12);
+            dir.janus = janus;
+            var exit = RiftAt(root, 0, Heart.z + 14, 180, "betrayal_exit");
+            exit.leadsTo = "Menu";
+            exit.delay = 6;
+            exit.membrane.sharedMaterial = Mat("RiftFire", "Crab/Rift");
+            exit.glow.color = new Color(1f, 0.55f, 0.3f);
+            dir.exit = exit;
+            Ui<GameUI>();
+            SaveScene(scene, "Betrayal");
         }
 
         // ------------------------------------------------------------------ menu

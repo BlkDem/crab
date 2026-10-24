@@ -24,6 +24,7 @@ namespace Crab.Game
         public GameObject collector, goldGuard, king, heavyArmor, tank, coin;
         public GameObject dweller, envious, sparkCore;
         public GameObject wraith, devourer, cyberFrame, hunter;
+        public GameObject engineer, mageOrb, turret, legionary, janus, guide;
         public Material particle, particleAdditive, rift, beam, tracer, water, fire, gold, shield, mirror;
         public Mesh quad;
 

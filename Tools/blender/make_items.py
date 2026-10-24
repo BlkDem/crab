@@ -581,11 +581,110 @@ def build_hunter():
     empty("Muzzle", (0, -0.56, -0.03), ob)
     L.export_tree("hunter", ob)
 
+
+# ---------------------------------------------------------------------- level 6 (circle of Betrayal)
+def build_engineer():
+    """ENGINEER: a small walking robot (about 0.9 m) on two legs, a round green-striped body and a
+    welding arm (Arm). Body > Arm, LegL, LegR, GlowEye."""
+    m = mat_steel("eng_steel")
+    mg = L.mat_plain("eng_green", "#2a9a6a", rough=0.5)
+    md = L.mat_metal("eng_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.45, metal_max=0.6)
+    hull = uv_sphere("hull", 0.32, (0, 0, 0.62), scale=(1, 0.9, 0.85), seg=20, rings=12)
+    hull.data.materials.append(m)
+    band = lathe("band", [(0.33, 0.55), (0.34, 0.62), (0.33, 0.69)], steps=20)
+    band.data.materials.append(mg)
+    tank = tube("tank", [((0, 0.25, 0.5), 0.1), ((0, 0.28, 0.85), 0.1)], seg=10, sub=1)
+    tank.data.materials.append(mg)
+    body = join("Body", [hull, band, tank])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    sh = Vector((0.28, -0.05, 0.7))
+    arm = tube("arm", [(sh, 0.04), (sh + Vector((0.05, -0.2, -0.05)), 0.035), (sh + Vector((0.0, -0.38, 0.05)), 0.03)], seg=8, sub=1)
+    arm.data.materials.append(md)
+    torch = tube("torch", [(sh + Vector((0.0, -0.38, 0.05)), 0.025), (sh + Vector((0.0, -0.5, 0.08)), 0.01)], seg=6, sub=1)
+    torch.data.materials.append(mg)
+    a = join("Arm", [arm, torch])
+    set_origin(a, sh)
+    parent(a, body)
+    parts.append(a)
+    for side, sx in (("L", 1), ("R", -1)):
+        hip = Vector((sx * 0.14, 0, 0.36))
+        leg = tube("leg", [(hip, 0.05), (hip + Vector((0, -0.05, -0.2)), 0.04), (hip + Vector((0, 0.02, -0.34)), 0.04)], seg=8, sub=1)
+        leg.data.materials.append(md)
+        foot = uv_sphere("foot", 0.07, hip + Vector((0, -0.04, -0.34)), scale=(1, 1.5, 0.5), seg=10, rings=6)
+        foot.data.materials.append(m)
+        lg = join("Leg" + side, [leg, foot])
+        set_origin(lg, hip)
+        parent(lg, body)
+        parts.append(lg)
+    for o in parts:
+        L.shade_smooth(o, 35)
+    L.bake_group(parts, "engineer", size=512, ao_dist=0.04)
+    eye = uv_sphere("GlowEye", 0.06, (0, -0.29, 0.72), scale=(1.4, 0.4, 0.7), seg=10, rings=6)
+    eye.data.materials.append(L.mat_plain("eng_eye", "#5affb0", rough=0.2, emission=("#5affb0", 10.0)))
+    parent(eye, body)
+    L.export_tree("engineer", body)
+
+
+def build_mage_orb():
+    """MAG: a sphere of violet crystal (glowing) in two turning brass rings (RingA, RingB)."""
+    mb = mat_goldtrim("mage_brass")
+    core = uv_sphere("GlowCore", 0.16, (0, 0, 0), seg=20, rings=14)
+    core.data.materials.append(L.mat_plain("mage_core", "#b07aff", rough=0.15, emission=("#b07aff", 8.0)))
+    ob = core
+    ob.name = "Body"
+    for nm, r_ in (("RingA", 0.26), ("RingB", 0.32)):
+        bpy.ops.mesh.primitive_torus_add(major_radius=r_, minor_radius=0.015, location=(0, 0, 0))
+        t_ = bpy.context.active_object
+        t_.name = nm
+        t_.data.materials.append(mb)
+        L.bake(t_, size=128)
+        t_.name = nm
+        parent(t_, ob)
+    L.export_tree("mage_orb", ob)
+
+
+def build_turret():
+    """The ENGINEER's turret: a tripod and a turning head (Head) with a short barrel (Muzzle)."""
+    m = mat_steel("tur_steel")
+    mg = L.mat_plain("tur_green", "#2a9a6a", rough=0.5)
+    legs = []
+    for k in range(3):
+        a = k / 3 * math.tau
+        legs.append(tube("leg", [((0, 0, 0.45), 0.03), ((math.cos(a) * 0.35, math.sin(a) * 0.35, 0.0), 0.025)], seg=6, sub=1))
+    for l_ in legs:
+        l_.data.materials.append(m)
+    base = join("Base", legs)
+    L.bake(base, size=128)
+    head = box_item("headbox", (0.24, 0.3, 0.18), (0, 0, 0.55), mg)
+    barrel = tube("barrel", [((0, -0.15, 0.56), 0.025), ((0, -0.42, 0.56), 0.02)], seg=8, sub=1)
+    barrel.data.materials.append(m)
+    hd = join("Head", [head, barrel])
+    L.bake(hd, size=128)
+    set_origin(hd, (0, 0, 0.5))
+    parent(hd, base)
+    empty("Muzzle", (0, -0.43, 0.56), hd)
+    L.export_tree("turret", base)
+
+
+def box_item(name, size, loc, mat):
+    bpy.ops.mesh.primitive_cube_add(size=1, location=loc)
+    b = bpy.context.active_object
+    b.name = name
+    b.scale = size
+    L.apply_all(b)
+    L.transform_apply(b)
+    L.mod(b, "BEVEL", width=0.01, segments=2)
+    L.apply_all(b)
+    b.data.materials.append(mat)
+    return b
+
 ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar, "knife": build_knife, "pistol": build_pistol,
           "machinegun": build_machinegun, "armor": build_armor, "drone": build_drone,
           "heavy_armor": build_heavy_armor, "energy_rifle": build_energy_rifle, "tank": build_tank,
           "energy_blade": build_energy_blade, "gravity_gun": build_gravity_gun, "spark_core": build_spark_core,
-          "cyber_frame": build_cyber_frame, "hunter": build_hunter}
+          "cyber_frame": build_cyber_frame, "hunter": build_hunter,
+          "engineer": build_engineer, "mage_orb": build_mage_orb, "turret": build_turret}
 
 
 def main():

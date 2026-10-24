@@ -474,6 +474,42 @@ namespace Crab.Game
                     Normalize(d, 0.55f);
                     return d;
                 }
+                case "music_betrayal":
+                {
+                    // mechanical and uneasy: a ticking pulse, a low ostinato in 7, a tritone above
+                    d = Buf(14);
+                    var lp = new LP();
+                    int[] bass = { 0, 0, 6, 0, 1, 0, 6 };
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        float tick = (t % 0.25f) < 0.004f ? N() * 0.6f : 0;
+                        int k = (int)(t / 0.5f);
+                        float tb = t - k * 0.5f;
+                        float f = 440 * Mathf.Pow(2, (33 + bass[k % bass.Length] - 69) / 12f);
+                        float saw = (2 * ((f * t) % 1) - 1) * Env(tb, 0.01f, 0.3f);
+                        float pad = Mathf.Sin(2 * Mathf.PI * 220 * t) * 0.15f + Mathf.Sin(2 * Mathf.PI * 311.1f * t) * 0.12f;
+                        d[i] = lp.Run(saw, 600) * 0.6f + tick + pad * (0.5f + 0.5f * Mathf.Sin(t * 0.4f));
+                    }
+                    Normalize(d, 0.5f);
+                    return Seamless(d, 0.5f);
+                }
+                case "machines":
+                {
+                    // the labyrinth working: a low hum, clanks of gears now and then
+                    d = Buf(6);
+                    var lp = new LP();
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        float hum = Mathf.Sin(2 * Mathf.PI * 50 * t) * 0.3f + lp.Run(N(), 150) * 1.5f;
+                        float c1 = (t % 1.7f) < 0.15f ? Mathf.Sin(2 * Mathf.PI * 180 * t) * Env(t % 1.7f, 0.002f, 0.05f) : 0;
+                        float c2 = ((t + 0.6f) % 2.3f) < 0.15f ? N() * Env((t + 0.6f) % 2.3f, 0.002f, 0.04f) : 0;
+                        d[i] = hum + c1 + c2 * 0.6f;
+                    }
+                    Normalize(d, 0.5f);
+                    return Seamless(d);
+                }
                 case "music_gloom":
                 {
                     // minimal: a low drone, and now and then a single high note in a lot of silence

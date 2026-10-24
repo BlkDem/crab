@@ -64,7 +64,7 @@ namespace Crab.Game
             {
                 st.SetFlag("circle5_done");
                 Story.Task("");
-                Story.Title("КОНЕЦ V КРУГА", "VI. Круг предательства — скоро");
+                Story.Title("КОНЕЦ V КРУГА", "Впереди — круг предательства");
             };
             if (st.Flag("devourer")) devourer.gameObject.SetActive(false);
             hero.Died += () => StartCoroutine(Respawn());

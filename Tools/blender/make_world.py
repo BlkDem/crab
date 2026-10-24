@@ -1513,6 +1513,158 @@ def build_ancient_robot():
     parent(ob, r)
     L.export_tree("ancient_robot", r)
 
+
+# ---------------------------------------------------------------------- VI. the circle of Betrayal
+def mat_iron_plate(name, base="#4a4c50", rust="#6a3a1c"):
+    """Riveted iron plates, darkened and rusting at the seams."""
+    t = NT(name)
+    v = t.vec(scale=(1, 1, 1))
+    cells = t.voronoi(v, 1.2, feature="DISTANCE_TO_EDGE")
+    seam = t.ramp(cells, [(0.0, 1.0), (0.04, 0.0)])
+    n = t.noise(t.vec(), 6, detail=6, rough=0.6)
+    col = t.ramp(n, [(0.3, C("#2a2c30")), (0.7, C(base))])
+    rust_m = t.math("ADD", t.math("MULTIPLY", seam, 0.6), t.math("MULTIPLY", t.ramp(t.noise(t.vec(), 3, detail=4), [(0.55, 0.0), (0.75, 1.0)]), 0.5))
+    col = t.mix(rust_m, col, C(rust))
+    col = t.mix(t.math("MULTIPLY", seam, 0.5), col, C("#121214"))
+    metal = t.ramp(rust_m, [(0.2, 0.6), (0.6, 0.1)])
+    return t.finish(col, rough=t.ramp(rust_m, [(0.2, 0.45), (0.6, 0.85)]), metal=metal, normal=t.bump(t.math("ADD", seam, t.math("MULTIPLY", n, 0.3)), 0.6, 0.02))
+
+
+def build_mech_wall():
+    """A segment of the labyrinth's wall: 10 m of riveted iron, 6 m tall, ribs, pipes, small lamps."""
+    r = root("mech_wall")
+    m = mat_iron_plate("mwall_iron")
+    md = L.mat_metal("mwall_dark", base="#2a2c30", patina="#4a3a2a", patina_amt=0.4, rough=0.5, metal_max=0.6)
+    parts = [box("plate", (10.0, 1.0, 6.0), (0, 0, 3.0), m, 0.05)]
+    for x in (-4.5, -1.5, 1.5, 4.5):
+        for sy in (-1, 1):
+            parts.append(box("rib", (0.4, 0.25, 6.2), (x, sy * 0.6, 3.1), md, 0.04))
+    for z in (1.2, 4.6):
+        for sy in (-1, 1):
+            parts.append(tube("pipe", [((-5, sy * 0.65, z), 0.12), ((5, sy * 0.65, z), 0.12)], seg=8, sub=1))
+            parts[-1].data.materials.append(md)
+    parts.append(box("cap", (10.2, 1.3, 0.3), (0, 0, 6.1), md, 0.04))
+    ob = join("MechWall", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    lamps = [uv_sphere("l", 0.09, (x, sy * 0.72, 5.3), seg=8, rings=6) for x in (-3, 0, 3) for sy in (-1, 1)]
+    gl = join("GlowLamps", lamps)
+    gl.data.materials.append(glow("mwall_lamp", "#ff8a4a", 6.0))
+    parent(gl, ob)
+    L.export_tree("mech_wall", r)
+
+
+def build_gear():
+    """A great gear (decoration on the walls and in the heart; the game turns it): Gear."""
+    r = root("gear")
+    m = L.mat_metal("gear_iron", base="#5a5c60", patina="#6a3a1c", patina_amt=0.5, rough=0.45, metal_max=0.7)
+    bm = bmesh.new()
+    teeth, R1, R2 = 20, 2.0, 2.35
+    pts = []
+    for i in range(teeth * 4):
+        a = i / (teeth * 4) * math.tau
+        rr = R2 if (i % 4) in (1, 2) else R1
+        pts.append((math.cos(a) * rr, math.sin(a) * rr))
+    f = [bm.verts.new((x, -0.15, y)) for x, y in pts]
+    b = [bm.verts.new((x, 0.15, y)) for x, y in pts]
+    bm.faces.new(f)
+    bm.faces.new(list(reversed(b)))
+    for i in range(len(pts)):
+        bm.faces.new((f[(i + 1) % len(pts)], f[i], b[i], b[(i + 1) % len(pts)]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    g = L.from_bmesh("gear", bm, smooth=False)
+    g.data.materials.append(m)
+    for k in range(6):
+        a = k / 6 * math.tau
+        hole = L.prim("cylinder", "hole", radius=0.4, depth=1, location=(math.cos(a) * 1.2, 0, math.sin(a) * 1.2), rotation=(math.pi / 2, 0, 0))
+        L.boolean(g, hole)
+    hub = L.prim("cylinder", "hub", radius=0.45, depth=0.5, location=(0, 0, 0), rotation=(math.pi / 2, 0, 0))
+    hub.data.materials.append(m)
+    ob = join("Gear", [g, hub])
+    L.bake(ob, size=512)
+    parent(ob, r)
+    L.export_tree("gear", r)
+
+
+def build_crusher():
+    """A crusher: a frame over the corridor and a heavy piston head (Head) that drops."""
+    r = root("crusher")
+    m = mat_iron_plate("crush_iron")
+    md = L.mat_metal("crush_dark", base="#2a2c30", patina="#4a3a2a", patina_amt=0.3, rough=0.5, metal_max=0.6)
+    parts = []
+    for sx in (-1, 1):
+        parts.append(box("post", (0.5, 0.5, 7.5), (sx * 2.3, 0, 3.75), md, 0.04))
+    parts.append(box("beam", (5.2, 0.8, 0.8), (0, 0, 7.4), md, 0.05))
+    stripes = []
+    for k in range(6):
+        stripes.append(box("stripe", (0.35, 0.82, 0.2), (-1.8 + k * 0.7, 0, 7.4), L.mat_plain(f"crush_yel{k%2}", "#d0a020" if k % 2 == 0 else "#151515", rough=0.6), 0.01, rot=(0, 0.6, 0)))
+    fr = join("Frame", parts + stripes)
+    L.bake(fr, size=512)
+    parent(fr, r)
+    head = box("head", (3.2, 3.2, 0.9), (0, 0, 0.45), m, 0.08)
+    rod = tube("rod", [((0, 0, 0.9), 0.25), ((0, 0, 7.0), 0.25)], seg=10, sub=1)
+    rod.data.materials.append(md)
+    h = join("Head", [head, rod])
+    L.bake(h, size=512)
+    set_origin(h, (0, 0, 0))
+    parent(h, r)
+    L.export_tree("crusher", r)
+
+
+def build_mech_gate():
+    """A gate of the labyrinth: a frame and a plate (Door) that sinks into the floor."""
+    r = root("mech_gate")
+    m = mat_iron_plate("gate_iron", base="#5a4a40")
+    md = L.mat_metal("gate_dark", base="#2a2c30", patina="#4a3a2a", patina_amt=0.3, rough=0.5, metal_max=0.6)
+    fr = join("Frame", [box("postL", (0.8, 1.2, 6.4), (-4.6, 0, 3.2), md, 0.05), box("postR", (0.8, 1.2, 6.4), (4.6, 0, 3.2), md, 0.05),
+                         box("top", (10.0, 1.3, 0.6), (0, 0, 6.3), md, 0.05)])
+    L.bake(fr, size=512)
+    parent(fr, r)
+    door = box("Door", (8.4, 0.5, 6.0), (0, 0, 3.0), m, 0.05)
+    L.bake(door, size=512)
+    door.name = "Door"
+    parent(door, r)
+    L.export_tree("mech_gate", r)
+
+
+def build_lever():
+    """A wall lever: a box with a handle (Handle) on a pivot."""
+    r = root("lever")
+    md = L.mat_metal("lever_dark", base="#3a3c40", patina="#4a3a2a", patina_amt=0.3, rough=0.5, metal_max=0.6)
+    base = box("Base", (0.6, 0.4, 1.4), (0, 0, 0.7), md, 0.04)
+    L.bake(base, size=256)
+    base.name = "LeverBase"
+    parent(base, r)
+    hd = join("Handle", [tube("arm", [((0, -0.25, 1.1), 0.04), ((0, -0.25, 1.7), 0.04)], seg=8, sub=1), uv_sphere("knob", 0.09, (0, -0.25, 1.75), seg=10, rings=8)])
+    hd.data.materials.append(L.mat_plain("lever_red", "#b02a20", rough=0.4))
+    set_origin(hd, (0, -0.25, 1.1))
+    parent(hd, r)
+    L.export_tree("lever", r)
+
+
+def build_machine_tower():
+    """A tower of the labyrinth's machinery: a riveted drum with pipes, chimneys and a glowing furnace."""
+    r = root("machine_tower")
+    m = mat_iron_plate("tower_iron")
+    md = L.mat_metal("tower_dark", base="#2a2c30", patina="#4a3a2a", patina_amt=0.3, rough=0.5, metal_max=0.6)
+    parts = [lathe("drum", [(4.0, 0), (4.0, 10), (3.4, 10.5), (3.4, 12), (0, 12)], steps=32)]
+    parts[0].data.materials.append(m)
+    for k in range(3):
+        a = k / 3 * math.tau
+        parts.append(tube("chimney", [((math.cos(a) * 2.2, math.sin(a) * 2.2, 11), 0.6), ((math.cos(a) * 2.2, math.sin(a) * 2.2, 17 + k), 0.5)], seg=12, sub=1))
+        parts[-1].data.materials.append(md)
+    for z in (3, 6, 9):
+        bpy.ops.mesh.primitive_torus_add(major_radius=4.05, minor_radius=0.15, location=(0, 0, z))
+        t_ = bpy.context.active_object
+        t_.data.materials.append(md)
+        parts.append(t_)
+    ob = join("MachineTower", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    fur = box("GlowFurnace", (2.0, 0.3, 1.4), (0, -4.0, 1.4), glow("tower_fire", "#ff7a2a", 8.0), 0.05)
+    parent(fur, ob)
+    L.export_tree("machine_tower", r)
+
 ASSETS = {
     "palm": build_palm, "beach_rocks": build_beach_rocks, "shelter": build_shelter, "driftwood": build_driftwood,
     "seaweed": build_seaweed, "morsel": build_morsel, "gull": build_gull,
@@ -1528,6 +1680,8 @@ ASSETS = {
     "spring": build_spring, "giant_mirror": build_giant_mirror,
     "cave_dome": build_cave_dome, "stalagmites": build_stalagmites, "glow_mushrooms": build_glow_mushrooms,
     "memory_lamp": build_memory_lamp, "memory_shard": build_memory_shard, "fresco": build_fresco, "ancient_robot": build_ancient_robot,
+    "mech_wall": build_mech_wall, "gear": build_gear, "crusher": build_crusher, "mech_gate": build_mech_gate, "lever": build_lever,
+    "machine_tower": build_machine_tower,
 }
 
 

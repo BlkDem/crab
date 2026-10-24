@@ -36,6 +36,19 @@ namespace Crab.Game
             var d = look - transform.position;
             if (d.sqrMagnitude > 0.01f) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(d), 1 - Mathf.Exp(-6 * dt));
             shootT -= dt;
+            if (Squad.Hacked)
+            {
+                // taken over: it shoots the crab
+                if (shootT <= 0 && hero.Alive)
+                {
+                    shootT = cooldown * 1.5f;
+                    var from = transform.position;
+                    var at = hero.transform.position + Vector3.up * 0.3f;
+                    Fx.Tracer(from, at, Squad.HackColor, 0.025f, 0.08f);
+                    hero.Hurt(damage * 0.5f, at, at - from);
+                }
+                return;
+            }
             if (shootT > 0 || !hero.Alive) return;
             if (target) Shoot(target, target.transform.position + Vector3.up * 0.8f);
             else if (bossTarget != null && bossTarget.Alive && bossPoint && Vector3.Distance(bossPoint.position, transform.position) < range * 1.6f) Shoot(bossTarget, bossPoint.position);
@@ -68,7 +81,7 @@ namespace Crab.Game
             Fx.Tracer(from, at, new Color(0.4f, 0.75f, 1f), 0.025f, 0.08f);
             Fx.Flash(from, new Color(0.4f, 0.75f, 1f), 1.5f, 3);
             Sfx.Play("shot", from, 0.35f, 1.8f);
-            h.Hit(damage, at, (at - from).normalized, hero.gameObject);
+            h.Hit(damage * Squad.Damage, at, (at - from).normalized, hero.gameObject);
         }
     }
 }
