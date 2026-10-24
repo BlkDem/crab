@@ -257,8 +257,175 @@ def build_drone():
     L.export_tree("drone", body)
 
 
+
+# ---------------------------------------------------------------------- level 3 (circle of Greed)
+def mat_steel(name):
+    return L.mat_metal(name, base="#9aa0a8", patina="#3a3c40", patina_amt=0.3, rough=0.35, metal_max=0.45)
+
+
+def mat_goldtrim(name):
+    return L.mat_metal(name, base="#f0b840", patina="#6a4612", patina_amt=0.2, rough=0.3, metal_max=0.5)
+
+
+def build_heavy_armor():
+    """Heavy armour (level 3, "Бронекраб"): a full steel carapace over the shell with gold trim,
+    shoulder guards and a glowing crystal insert (GlowInsert) — in the hero model's units."""
+    H = 0.062
+    m = mat_steel("harmor_steel")
+    mg = mat_goldtrim("harmor_gold")
+    parts = []
+    bm = bmesh.new()
+    bmesh.ops.create_grid(bm, x_segments=16, y_segments=10, size=0.5)
+    for v in bm.verts:
+        x = v.co.x * 0.24
+        y = -0.085 + (v.co.y + 0.5) * 0.18
+        z = H + 0.04 - 0.75 * x * x - 0.55 * (y + 0.005) ** 2
+        v.co = Vector((x, y, z))
+    shell = L.from_bmesh("carapace", bm)
+    L.mod(shell, "SOLIDIFY", thickness=0.007, offset=1)
+    L.apply_all(shell)
+    shell.data.materials.append(m)
+    parts.append(shell)
+    for y in (-0.05, 0.0, 0.05):   # ridges in gold
+        pts = []
+        for i in range(9):
+            x = -0.11 + i * 0.0275
+            pts.append((Vector((x, y, H + 0.048 - 0.75 * x * x - 0.55 * (y + 0.005) ** 2)), 0.0035))
+        rid = tube("ridge", pts, seg=6, sub=1)
+        rid.data.materials.append(mg)
+        parts.append(rid)
+    for sx in (-1, 1):
+        g = uv_sphere("guard", 0.035, (sx * 0.1, -0.045, H + 0.03), scale=(1.2, 1, 0.6), seg=14, rings=8)
+        g.data.materials.append(m)
+        parts.append(g)
+        rim = tube("rim", [(Vector((sx * 0.07, -0.07, H + 0.03)), 0.004), (Vector((sx * 0.13, -0.05, H + 0.025)), 0.004), (Vector((sx * 0.12, -0.01, H + 0.02)), 0.004)], seg=6, sub=2)
+        rim.data.materials.append(mg)
+        parts.append(rim)
+        sp = tube("spike", [(Vector((sx * 0.105, -0.045, H + 0.05)), 0.008), (Vector((sx * 0.12, -0.05, H + 0.08)), 0.001)], seg=8, sub=1)
+        sp.data.materials.append(mg)
+        parts.append(sp)
+    ob = join("HeavyArmor", parts)
+    L.bake(ob, size=512)
+    gem = uv_sphere("GlowInsert", 0.012, (0, -0.02, H + 0.05), scale=(1.4, 1, 0.5), seg=12, rings=8)
+    gem.data.materials.append(L.mat_plain("harmor_insert", "#4ad8ff", rough=0.2, emission=("#4ad8ff", 8.0)))
+    parent(gem, ob)
+    L.export_tree("heavy_armor", ob)
+
+
+def build_energy_rifle():
+    """The energy rifle: a steel body, a gold-ringed barrel and a crystal coil that glows (GlowCoil)."""
+    m = mat_steel("rifle_steel")
+    mg = mat_goldtrim("rifle_gold")
+    md = L.mat_metal("rifle_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.4, metal_max=0.7)
+    parts = []
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, -0.02, 0.06))
+    body = bpy.context.active_object
+    body.scale = (0.05, 0.22, 0.08)
+    L.apply_all(body)
+    L.transform_apply(body)   # the root of the item: it must carry no scale (the game resets it)
+    L.mod(body, "BEVEL", width=0.01, segments=3)
+    body.data.materials.append(m)
+    parts.append(body)
+    bar = tube("barrel", [((0, -0.12, 0.08), 0.018), ((0, -0.42, 0.08), 0.014)], seg=14, sub=1)
+    bar.data.materials.append(md)
+    parts.append(bar)
+    for y in (-0.2, -0.28, -0.36):
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.024, minor_radius=0.005, location=(0, y, 0.08), rotation=(math.pi / 2, 0, 0))
+        r = bpy.context.active_object
+        r.data.materials.append(mg)
+        parts.append(r)
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1)
+    for v in bm.verts:
+        v.co = Vector((v.co.x * 0.035, v.co.y * 0.05, v.co.z * 0.12))
+    bmesh.ops.transform(bm, matrix=Matrix.Translation((0, 0.06, -0.02)) @ Matrix.Rotation(-0.3, 4, "X"), verts=bm.verts)
+    grip = L.from_bmesh("grip", bm, smooth=False)
+    L.mod(grip, "BEVEL", width=0.006, segments=2)
+    grip.data.materials.append(md)
+    parts.append(grip)
+    stock = tube("stock", [((0, 0.09, 0.06), 0.03), ((0, 0.2, 0.04), 0.035)], seg=10, sub=1, flat=0.6, flat_axis=(1, 0, 0))
+    stock.data.materials.append(md)
+    parts.append(stock)
+    ob = join("EnergyRifle", parts)
+    L.bake(ob, size=512)
+    coil = tube("GlowCoil", [((0, -0.04, 0.115), 0.012), ((0, -0.14, 0.115), 0.012)], seg=6, sub=1)
+    coil.data.materials.append(L.mat_plain("rifle_coil", "#4ad8ff", rough=0.2, emission=("#4ad8ff", 10.0)))
+    parent(coil, ob)
+    empty("Muzzle", (0, -0.43, 0.08), ob)
+    L.export_tree("energy_rifle", ob)
+
+
+def build_tank():
+    """TANK, the heavy robot (about 1.3 m): a squat steel body with yellow-black stripes, a round
+    head with one eye (GlowEye), big fists and stubby legs. Body > Head > GlowEye, ArmL, ArmR,
+    LegL, LegR."""
+    m = mat_steel("tank_steel")
+    my = L.mat_plain("tank_yellow", "#e0b020", rough=0.5)
+    md = L.mat_metal("tank_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.45, metal_max=0.7)
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0.8))
+    torso = bpy.context.active_object
+    torso.scale = (0.7, 0.55, 0.6)
+    L.apply_all(torso)
+    L.transform_apply(torso)   # the root part must carry no scale
+    L.mod(torso, "BEVEL", width=0.08, segments=3)
+    torso.data.materials.append(my)
+    stripe = []
+    for k in range(4):
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(-0.24 + k * 0.16, -0.285, 0.62), rotation=(0, 0.6, 0))
+        st = bpy.context.active_object
+        st.scale = (0.06, 0.02, 0.22)
+        st.data.materials.append(md)
+        stripe.append(st)
+    vent = []
+    for k in range(3):
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0.28, 0.75 + k * 0.1))
+        v = bpy.context.active_object
+        v.scale = (0.4, 0.02, 0.04)
+        v.data.materials.append(md)
+        vent.append(v)
+    body = join("Body", [torso] + stripe + vent)
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    head = uv_sphere("dome", 0.22, (0, -0.05, 1.22), scale=(1, 1, 0.8), seg=20, rings=12)
+    head.data.materials.append(m)
+    visor = tube("visor", [((-0.15, -0.22, 1.22), 0.06), ((0.15, -0.22, 1.22), 0.06)], seg=10, sub=1)
+    visor.data.materials.append(md)
+    head = join("Head", [head, visor])
+    set_origin(head, (0, -0.05, 1.1))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 0.42, 0, 0.95))
+        arm = tube("arm", [(sh, 0.12), (sh + Vector((sx * 0.1, -0.1, -0.3)), 0.1), (sh + Vector((sx * 0.08, -0.2, -0.45)), 0.1)], seg=10, sub=2)
+        arm.data.materials.append(md)
+        fist = L.blob("fist", 0.18, seed=80 + sx, squash=(1, 1.1, 0.9), rough=0.04, sub=3)
+        for v in fist.data.vertices:
+            v.co += sh + Vector((sx * 0.08, -0.25, -0.6))
+        fist.data.materials.append(m)
+        a = join("Arm" + side, [arm, fist])
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+        hip = Vector((sx * 0.22, 0, 0.45))
+        leg = tube("leg", [(hip, 0.12), (hip + Vector((0, 0, -0.38)), 0.11)], seg=10, sub=1)
+        leg.data.materials.append(md)
+        foot = uv_sphere("foot", 0.16, hip + Vector((0, -0.06, -0.38)), scale=(1, 1.4, 0.55), seg=12, rings=8)
+        foot.data.materials.append(m)
+        lg = join("Leg" + side, [leg, foot])
+        set_origin(lg, hip)
+        parent(lg, body)
+        parts.append(lg)
+    for o in parts:
+        L.shade_smooth(o, 35)
+    L.bake_group(parts, "tank", size=1024, ao_dist=0.05)
+    eye = uv_sphere("GlowEye", 0.06, (0, -0.285, 1.22), scale=(1, 0.5, 0.8), seg=12, rings=8)
+    eye.data.materials.append(L.mat_plain("tank_eye", "#ff9a2a", rough=0.2, emission=("#ff9a2a", 10.0)))
+    parent(eye, head)
+    L.export_tree("tank", body)
+
 ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar, "knife": build_knife, "pistol": build_pistol,
-          "machinegun": build_machinegun, "armor": build_armor, "drone": build_drone}
+          "machinegun": build_machinegun, "armor": build_armor, "drone": build_drone,
+          "heavy_armor": build_heavy_armor, "energy_rifle": build_energy_rifle, "tank": build_tank}
 
 
 def main():

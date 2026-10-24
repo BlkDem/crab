@@ -474,6 +474,24 @@ namespace Crab.Game
                     Normalize(d, 0.55f);
                     return d;
                 }
+                case "music_greed":
+                {
+                    // a slow, stately minor waltz of plucked notes over a low organ: counting coins
+                    d = Pad(new[] { new[] { 0, 3, 7 }, new[] { -4, 0, 3 }, new[] { -2, 2, 5 }, new[] { -5, -1, 2 } }, 43, 3, true);
+                    int[] tune = { 12, 15, 19, 15, 8, 12, 15, 12, 10, 14, 17, 14, 7, 11, 14, 19 };
+                    float beat = 0.75f;
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        int n = (int)(t / beat);
+                        float tb = t - n * beat;
+                        float f = 440 * Mathf.Pow(2, (55 + tune[n % tune.Length] - 69) / 12f);
+                        float pluck = (Mathf.Sin(2 * Mathf.PI * f * t) + 0.4f * Mathf.Sin(2 * Mathf.PI * f * 2 * t) + 0.2f * Mathf.Sin(2 * Mathf.PI * f * 3 * t)) * Env(tb, 0.004f, 0.25f);
+                        d[i] += pluck * 0.22f;
+                    }
+                    Normalize(d, 0.5f);
+                    return d;
+                }
                 case "lava":
                 {
                     // a low rumble with bubbles bursting in it

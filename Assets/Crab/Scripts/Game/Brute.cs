@@ -28,6 +28,7 @@ namespace Crab.Game
 
         protected override void Strike(Hero hero, float dist)
         {
+            if (Provoked) { base.Strike(hero, dist); return; }
             var at = transform.position + transform.forward * 1.6f;
             Sfx.Play("slam", at, 0.9f, 1.2f);
             Fx.Burst(at + Vector3.up * 0.3f, new Color(0.7f, 0.5f, 0.35f), 40, 4, 0.25f, 0.9f, false, 0.4f);

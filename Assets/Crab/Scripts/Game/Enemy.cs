@@ -26,6 +26,13 @@ namespace Crab.Game
         protected Vector3 wanderTo;
         protected bool hunting;
         protected Hero Target => Hero.Instance;
+        /// <summary>A companion that struck this demon draws it away from the crab for a while.</summary>
+        protected TankBot provoker;
+        float provokedT;
+        public void Provoke(TankBot by) { provoker = by; provokedT = 5; hunting = true; }
+        protected bool Provoked => provoker && provoker.Alive && provokedT > 0;
+        /// <summary>Runs away from the crab instead of fighting (the gold collectors).</summary>
+        protected virtual bool Flees => false;
         public bool Alive => health != null && !health.Dead;
         /// <summary>Can be seen and shot (a burrower under the sand cannot).</summary>
         public virtual bool Visible => true;
@@ -84,7 +91,9 @@ namespace Crab.Game
             hurtT -= dt;
             attackT -= dt;
             var hero = Target;
-            float dist = hero ? Vector3.Distance(Flat(hero.transform.position), Flat(transform.position)) : 999;
+            provokedT -= dt;
+            var foe = Provoked ? provoker.transform : hero ? hero.transform : null;
+            float dist = foe ? Vector3.Distance(Flat(foe.position), Flat(transform.position)) : 999;
             if (hero && hero.Alive && dist < aggro) hunting = true;
             if (hero && !hero.Alive) hunting = false;
 
@@ -99,9 +108,16 @@ namespace Crab.Game
                     Strike(hero, dist);
                 }
             }
-            else if (hunting && hero)
+            else if (hunting && hero && Flees)
             {
-                var to = Flat(hero.transform.position - transform.position);
+                var away = Flat(transform.position - hero.transform.position);
+                wish = dist < aggro * 1.5f ? Steer(away.normalized) : Vector3.zero;
+                if (wish.sqrMagnitude > 0.01f) FaceTowards(wish, dt);
+                Hunt(hero, dist, dt);
+            }
+            else if (hunting && foe)
+            {
+                var to = Flat(foe.position - transform.position);
                 if (dist > attackRange * 0.85f) wish = Steer(to.normalized);
                 FaceTowards(to, dt);
                 if (dist <= attackRange && attackT <= 0 && hurtT <= 0) BeginAttack();
@@ -143,6 +159,11 @@ namespace Crab.Game
         /// <summary>The blow at the end of the wind-up: lands if the crab is still in reach.</summary>
         protected virtual void Strike(Hero hero, float dist)
         {
+            if (Provoked)
+            {
+                if (dist <= attackRange * 1.25f) provoker.Hit(damage, provoker.transform.position + Vector3.up * 0.6f, provoker.transform.position - transform.position, gameObject);
+                return;
+            }
             if (!hero || dist > attackRange * 1.25f) return;
             hero.Hurt(damage, hero.transform.position + Vector3.up * 0.3f, hero.transform.position - transform.position);
         }

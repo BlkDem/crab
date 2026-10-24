@@ -16,6 +16,8 @@ namespace Crab.Game
         VisualElement root, hpFill, objective, thought, hint, prompt, crosshair, boss, bossFill, titleCard, flash, fadeEl, vignette, create, ring, pause, slots;
         Label hpText, objText, thoughtText, hintText, promptText, weaponName, weaponCount, bossName, titleMain, titleSub, createSub;
         readonly Dictionary<Matter, Label> matterLabels = new Dictionary<Matter, Label>();
+        readonly Dictionary<Matter, VisualElement> matterChips = new Dictionary<Matter, VisualElement>();
+        Label shieldText;
         IVisualElementScheduledItem thoughtTimer, hintTimer, titleTimer;
         float flashA, flashFade = 1, hurtA;
         Color flashColor = Color.white;
@@ -72,6 +74,7 @@ namespace Crab.Game
                 var dot = E("dot", chip);
                 dot.style.backgroundColor = MatterSource.ColorOf(m);
                 matterLabels[m] = L("0", null, chip);
+                matterChips[m] = chip;
                 L(MatterStore.Title(m).ToLower(), "name", chip);
             }
             // task
@@ -82,6 +85,7 @@ namespace Crab.Game
             var weapon = E("weapon", root);
             weaponName = L("", "name", weapon);
             weaponCount = L("", "count", weapon);
+            shieldText = L("", "count", weapon);
             slots = E("slots", weapon);
             // texts
             thought = E("thought", root);
@@ -204,10 +208,13 @@ namespace Crab.Game
                 hpText.text = $"{Mathf.CeilToInt(hp)}";
             }
             foreach (var kv in matterLabels) kv.Value.text = st.Matter[kv.Key].ToString();
+            foreach (var kv in matterChips) kv.Value.style.display = Shown(st, kv.Key) ? DisplayStyle.Flex : DisplayStyle.None;
+            var sh = hero.Shield;
+            shieldText.text = !sh ? "" : sh.Active ? "ЩИТ АКТИВЕН" : sh.Cooldown > 0 ? $"щит [Q]: {Mathf.CeilToInt(sh.Cooldown)} с" : "щит [Q]: готов";
             levelText.text = st.Flag("spark") ? $"Уровень {st.Level} — {GameState.LevelTitle(st.Level)}" : "";
             var eq = Blueprints.Get(st.Items.Equipped);
             weaponName.text = eq != null ? eq.title : st.Flag("spark") ? "Голые клешни" : "";
-            weaponCount.text = eq?.kind == WeaponKind.Gun ? $"патроны: {st.Items.Count(ItemId.Ammo)}" : eq?.kind == WeaponKind.Throw ? $"камней: {st.Items.Count(ItemId.Stone)}" : "";
+            weaponCount.text = eq?.kind == WeaponKind.Gun ? (eq.ammo == ItemId.EnergyCell ? $"ячейки: {st.Items.Count(ItemId.EnergyCell)}" : $"патроны: {st.Items.Count(ItemId.Ammo)}") : eq?.kind == WeaponKind.Throw ? $"камней: {st.Items.Count(ItemId.Stone)}" : "";
             UpdateSlots(st);
             promptText.text = Story.Prompt ?? "";
             prompt.style.display = string.IsNullOrEmpty(Story.Prompt) ? DisplayStyle.None : DisplayStyle.Flex;
@@ -242,6 +249,9 @@ namespace Crab.Game
             }
         }
 
+        /// <summary>Gold, crystals and energy appear on the panel once the crab has met them.</summary>
+        static bool Shown(GameState st, Matter m) => MatterStore.Basic(m) || st.Matter[m] > 0 || st.Flag("met_" + m);
+
         // ------------------------------------------------------------------ creation
         void ShowCreate(bool open)
         {
@@ -255,14 +265,18 @@ namespace Crab.Game
         {
             foreach (var (el, _, _) in bps) el.RemoveFromHierarchy();
             bps.Clear();
-            var all = Blueprints.All.ToList();
+            // what the crab knows, and a couple of shapes still to be understood
+            var st0 = hero.State;
+            int unknown = 0;
+            var all = Blueprints.All.Where(b => st0.Knows(b.id) || unknown++ < 2).ToList();
+            float radius = all.Count > 10 ? 235 : 205;
             for (int i = 0; i < all.Count; i++)
             {
                 var bp = all[i];
                 float a = -Mathf.PI / 2 + i * Mathf.PI * 2 / all.Count;
                 var el = E("bp", ring);
-                el.style.left = 280 + Mathf.Cos(a) * 205;
-                el.style.top = 280 + Mathf.Sin(a) * 205;
+                el.style.left = 280 + Mathf.Cos(a) * radius;
+                el.style.top = 280 + Mathf.Sin(a) * radius;
                 var name = L(bp.title, "name", el);
                 var cost = L(bp.cost.ToString(), "cost", el);
                 var have = L("", "have", el);
@@ -285,13 +299,13 @@ namespace Crab.Game
             {
                 bool known = st.Knows(bp.id);
                 el.EnableInClassList("locked", !known);
-                el.EnableInClassList("cannot", known && (!st.Matter.CanPay(bp.cost) || st.Items.Full(bp.id)));
+                el.EnableInClassList("cannot", known && (!st.Matter.CanPay(bp.cost) || st.Items.Full(bp.id) || (bp.workshop && !st.AtWorkshop)));
                 el.Q<Label>(className: "name").text = known ? bp.title : "???";
-                el.Q<Label>(className: "cost").text = known ? bp.cost.ToString() : "ещё не понял, как это делать";
+                el.Q<Label>(className: "cost").text = !known ? "ещё не понял, как это делать" : bp.workshop && !st.AtWorkshop ? $"{bp.cost}\nтолько в мастерской" : bp.cost.ToString();
                 int n = st.Items.Count(bp.id);
                 have.text = !known ? "" : bp.stack ? $"есть: {n}" : n > 0 ? "есть" : "";
             }
-            createSub.text = $"органика {st.Matter[Matter.Organic]} · минерал {st.Matter[Matter.Mineral]} · металл {st.Matter[Matter.Metal]}\nклик — создать, Tab — закрыть";
+            createSub.text = string.Join(" · ", MatterStore.Kinds.Where(m => Shown(st, m)).Select(m => $"{MatterStore.Title(m).ToLower()} {st.Matter[m]}")) + "\nклик — создать, Tab — закрыть";
         }
 
         // ------------------------------------------------------------------ pause
@@ -305,7 +319,7 @@ namespace Crab.Game
             Slider(box, "Музыка", Sfx.music, v => { Sfx.music = v; PlayerPrefs.SetFloat("crab.music", v); });
             Slider(box, "Чувствительность мыши", Controls.sensitivity / 2, v => { Controls.sensitivity = Mathf.Max(0.1f, v * 2); PlayerPrefs.SetFloat("crab.sens", Controls.sensitivity); });
             B("Сохранить и выйти в меню", "menu-btn", () => { TogglePause(); GameSession.Instance.Save(); GameSession.Instance.Go("Menu"); }, box);
-            L("WASD — идти · мышь — смотреть · Shift — бежать · Пробел — прыжок\nЛКМ — удар/выстрел · ПКМ — прицел · E — втянуть/использовать · Tab — создать · 1–5, X/Z — оружие", "menu-note", box);
+            L("WASD — идти · мышь — смотреть · Shift — бежать · Пробел — прыжок\nЛКМ — удар/выстрел · ПКМ — прицел · E — втянуть/использовать · Tab — создать · 1–7, X/Z — оружие · Q — щит", "menu-note", box);
             return m;
         }
 

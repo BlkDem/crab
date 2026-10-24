@@ -20,6 +20,9 @@ namespace Crab.Game
 
     public static class Hits
     {
+        /// <summary>True while an energy shot is landing (it goes through golden armour and shields).</summary>
+        public static bool Energy;
+
         public static IHittable Of(Collider c) => c ? c.GetComponentInParent<IHittable>() : null;
     }
 }

@@ -99,6 +99,40 @@ namespace Crab.Tests
         }
 
         [Test]
+        public void TheWorkshopMakesTheArmouredCrab()
+        {
+            var s = new GameState();
+            s.Learn(ItemId.HeavyArmor);
+            s.Learn(ItemId.EnergyRifle);
+            s.Learn(ItemId.EnergyCell);
+            s.Matter.Set(0, 20, 30, 20, 20, 20);
+            Assert.That(s.Create(ItemId.HeavyArmor), Is.EqualTo(GameState.CreateResult.NeedWorkshop));
+            s.AtWorkshop = true;
+            Assert.That(s.Create(ItemId.HeavyArmor), Is.EqualTo(GameState.CreateResult.Done));
+            Assert.That(s.Level, Is.EqualTo(3));
+            Assert.That(GameState.LevelTitle(3), Is.EqualTo("Бронекраб"));
+            Assert.That(s.Create(ItemId.EnergyRifle), Is.EqualTo(GameState.CreateResult.Done));
+            Assert.That(s.Items.Equipped, Is.EqualTo(ItemId.EnergyRifle));
+            s.AtWorkshop = false;
+            Assert.That(s.Create(ItemId.EnergyCell), Is.EqualTo(GameState.CreateResult.Done), "cells are made anywhere");
+            Assert.That(s.Items.Count(ItemId.EnergyCell), Is.EqualTo(10));
+        }
+
+        [Test]
+        public void GoldCrystalsAndEnergyAreSaved()
+        {
+            var s = new GameState();
+            s.Matter.Set(1, 2, 3, 4, 5, 6);
+            Assert.That(s.Matter.Remove(Matter.Gold, 10), Is.EqualTo(4));
+            var t = new GameState();
+            t.Load(s.ToSave());
+            Assert.That(t.Matter[Matter.Crystal], Is.EqualTo(5));
+            Assert.That(t.Matter[Matter.Energy], Is.EqualTo(6));
+            Assert.That(t.Matter[Matter.Gold], Is.EqualTo(0));
+            Assert.That(new Cost(0, 0, 1, 2).ToString(), Is.EqualTo("металл 1, золото 2"));
+        }
+
+        [Test]
         public void HealthDiesOnce()
         {
             var h = new Health(20);

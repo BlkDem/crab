@@ -596,8 +596,318 @@ def build_colossus():
     L.export_tree("colossus", body)
 
 
+
+# ---------------------------------------------------------------------- III. the circle of Greed
+def mat_gold(name, rough=0.3, patina=0.25):
+    return L.mat_metal(name, base="#f0b840", patina="#6a4612", patina_amt=patina, rough=rough, metal_max=0.5)
+
+
+def build_collector():
+    """A collector of Greed: a hunched, pot-bellied demon of sickly olive hide, dragging a sack
+    of gold on its back. Body > Head > GlowEyes, ArmL, ArmR, LegL, LegR, Sack."""
+    m = mat_demon("collector_hide", base="#6a5a22", dark="#201a06", vein="#ffd040", veins=0.35, scale=5.0)
+    mh = mat_horn("collector_horn")
+    ms = L.mat_canvas("collector_sack", base="#7a6440", dark="#3a2a14", moss=0.0)
+    mg = mat_gold("collector_gold")
+    torso = L.blob("torso", 0.36, seed=61, squash=(1.0, 0.9, 0.85), rough=0.1, sub=4)
+    for v in torso.data.vertices:
+        v.co += Vector((0, -0.02, 0.62))
+    belly = L.blob("belly", 0.3, seed=62, squash=(1.0, 0.95, 0.9), rough=0.08, sub=4)
+    for v in belly.data.vertices:
+        v.co += Vector((0, -0.12, 0.5))
+    for o in (torso, belly):
+        o.data.materials.append(m)
+    body = join("Body", [torso, belly])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    skull = L.blob("skull", 0.17, seed=63, squash=(1.0, 1.15, 0.9), rough=0.1, sub=3)
+    for v in skull.data.vertices:
+        v.co += Vector((0, -0.28, 0.9))
+    nose = tube("nose", [((0, -0.42, 0.92), 0.05), ((0, -0.5, 0.86), 0.02)], seg=8, sub=2)
+    ears = [tube("ear", [((sx * 0.13, -0.24, 0.95), 0.04), ((sx * 0.3, -0.2, 1.02), 0.008)], seg=8, sub=2, flat=0.4, flat_axis=(0, 1, 0)) for sx in (-1, 1)]
+    for o in [skull, nose] + ears:
+        o.data.materials.append(m)
+    horns = []
+    for sx in (-1, 1):
+        b = Vector((sx * 0.07, -0.22, 1.03))
+        h = tube("horn", [(b, 0.025), (b + Vector((sx * 0.03, 0.05, 0.08)), 0.004)], seg=6, sub=2)
+        h.data.materials.append(mh)
+        horns.append(h)
+    head = join("Head", [skull, nose] + ears + horns)
+    set_origin(head, (0, -0.2, 0.85))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 0.3, -0.05, 0.75))
+        arm = tube("arm", [(sh, 0.06), (sh + Vector((sx * 0.06, -0.12, -0.22)), 0.05), (sh + Vector((sx * 0.04, -0.2, -0.42)), 0.045)], seg=10, sub=3)
+        arm.data.materials.append(m)
+        a = join("Arm" + side, [arm])
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+        hip = Vector((sx * 0.14, 0.0, 0.36))
+        leg = tube("leg", [(hip, 0.08), (hip + Vector((0, -0.08, -0.18)), 0.06), (hip + Vector((0, 0.04, -0.34)), 0.05), (hip + Vector((0, -0.08, -0.36)), 0.045)], seg=10, sub=3)
+        leg.data.materials.append(m)
+        leg = join("Leg" + side, [leg])
+        set_origin(leg, hip)
+        parent(leg, body)
+        parts.append(leg)
+    sack = L.blob("sackbody", 0.32, seed=64, squash=(1.0, 0.9, 1.15), rough=0.15, sub=4)
+    for v in sack.data.vertices:
+        v.co += Vector((0, 0.32, 0.85))
+    sack.data.materials.append(ms)
+    neck = tube("neck", [((0, 0.32, 1.18), 0.1), ((0, 0.3, 1.28), 0.06)], seg=10, sub=2)
+    neck.data.materials.append(ms)
+    coins = []
+    for k in range(6):
+        bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=0.04, depth=0.01, location=(random.uniform(-0.06, 0.06), 0.3 + random.uniform(-0.05, 0.05), 1.3 + k * 0.005), rotation=(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5), 0))
+        c = bpy.context.active_object
+        c.data.materials.append(mg)
+        coins.append(c)
+    sk = join("Sack", [sack, neck] + coins)
+    set_origin(sk, (0, 0.15, 0.95))
+    parent(sk, body)
+    parts.append(sk)
+    for o in parts:
+        L.shade_smooth(o, 50)
+    L.bake_group(parts, "collector", size=1024, ao_dist=0.06)
+    eyes = [uv_sphere("e", 0.025, (sx * 0.06, -0.42, 0.97), seg=10, rings=8) for sx in (-1, 1)]
+    for e in eyes:
+        e.data.materials.append(glow("collector_eyes", "#ffe060", 10.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, head)
+    L.export_tree("collector", body)
+
+
+def build_goldguard():
+    """A guard of the treasury: a 2.2 m knight in gilded plate over a dark demon body, a tower
+    shield on the left arm, a halberd in the right. Body > Head > GlowVisor, ArmL (shield),
+    ArmR (halberd), LegL, LegR."""
+    mg = mat_gold("guard_gold", rough=0.28)
+    md = L.mat_metal("guard_dark", base="#3a3026", patina="#1a120a", patina_amt=0.3, rough=0.4, metal_max=0.6)
+    mh = mat_horn("guard_horn")
+    chest = lathe("chest", [(0.0, 1.0), (0.32, 1.02), (0.4, 1.25), (0.44, 1.55), (0.36, 1.75), (0.15, 1.82), (0.0, 1.82)], steps=24)
+    for v in chest.data.vertices:
+        v.co.y *= 0.75
+    chest.data.materials.append(mg)
+    skirt = lathe("skirt", [(0.0, 1.05), (0.34, 1.05), (0.42, 0.75), (0.0, 0.75)], steps=16)
+    skirt.data.materials.append(md)
+    pauld = []
+    for sx in (-1, 1):
+        p = uv_sphere("pauldron", 0.2, (sx * 0.45, 0, 1.7), scale=(1.1, 1, 0.75), seg=16, rings=10)
+        p.data.materials.append(mg)
+        pauld.append(p)
+    body = join("Body", [chest, skirt] + pauld)
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    helm = lathe("helm", [(0.0, 1.82), (0.17, 1.84), (0.2, 2.0), (0.17, 2.15), (0.0, 2.2)], steps=20)
+    helm.data.materials.append(mg)
+    crest = tube("crest", [((0, 0.05, 2.15), 0.04), ((0, 0.12, 2.3), 0.03), ((0, 0.25, 2.33), 0.01)], seg=8, sub=2)
+    crest.data.materials.append(mg)
+    horns = []
+    for sx in (-1, 1):
+        b = Vector((sx * 0.16, 0, 2.08))
+        h = tube("horn", [(b, 0.04), (b + Vector((sx * 0.15, 0.02, 0.1)), 0.025), (b + Vector((sx * 0.18, 0.08, 0.25)), 0.004)], seg=8, sub=2)
+        h.data.materials.append(mh)
+        horns.append(h)
+    head = join("Head", [helm, crest] + horns)
+    set_origin(head, (0, 0, 1.85))
+    parent(head, body)
+    parts.append(head)
+    # left arm with the tower shield, held before the body
+    shL = Vector((0.45, 0, 1.6))
+    armL = tube("arm", [(shL, 0.09), (shL + Vector((0.05, -0.15, -0.3)), 0.08), (shL + Vector((0.0, -0.35, -0.45)), 0.07)], seg=10, sub=2)
+    armL.data.materials.append(md)
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0.1, -0.5, 1.05))
+    shield = bpy.context.active_object
+    shield.scale = (0.7, 0.08, 1.3)
+    L.apply_all(shield)
+    L.transform_apply(shield)
+    for v in shield.data.vertices:
+        v.co.y -= 0.12 * (1 - (v.co.x - 0.1) ** 2 / 0.12)   # curved forward
+    L.mod(shield, "BEVEL", width=0.03, segments=2)
+    shield.data.materials.append(mg)
+    boss = uv_sphere("boss", 0.12, (0.1, -0.62, 1.15), scale=(1, 0.5, 1), seg=14, rings=8)
+    boss.data.materials.append(md)
+    aL = join("ArmL", [armL, shield, boss])
+    set_origin(aL, shL)
+    parent(aL, body)
+    parts.append(aL)
+    shR = Vector((-0.45, 0, 1.6))
+    armR = tube("arm", [(shR, 0.09), (shR + Vector((-0.05, -0.1, -0.3)), 0.08), (shR + Vector((-0.05, -0.25, -0.5)), 0.07)], seg=10, sub=2)
+    armR.data.materials.append(md)
+    hand = shR + Vector((-0.05, -0.28, -0.52))
+    shaft = tube("shaft", [(hand + Vector((0, 0, -0.9)), 0.03), (hand + Vector((0, 0, 1.4)), 0.03)], seg=8, sub=1)
+    shaft.data.materials.append(md)
+    bpy.ops.mesh.primitive_cube_add(size=1, location=hand + Vector((0, -0.12, 1.25)))
+    blade = bpy.context.active_object
+    blade.scale = (0.03, 0.3, 0.4)
+    L.apply_all(blade)
+    L.transform_apply(blade)
+    for v in blade.data.vertices:
+        if v.co.y < hand.y - 0.2:
+            v.co.z += 0.12 * (1 if v.co.z > hand.z + 1.25 else -1)
+    blade.data.materials.append(mg)
+    spike = tube("spike", [(hand + Vector((0, 0, 1.4)), 0.03), (hand + Vector((0, 0, 1.75)), 0.003)], seg=6, sub=1)
+    spike.data.materials.append(mg)
+    aR = join("ArmR", [armR, shaft, blade, spike])
+    set_origin(aR, shR)
+    parent(aR, body)
+    parts.append(aR)
+    for side, sx in (("L", 1), ("R", -1)):
+        hip = Vector((sx * 0.18, 0, 0.9))
+        leg = tube("leg", [(hip, 0.11), (hip + Vector((0, -0.05, -0.45)), 0.1), (hip + Vector((0, 0.02, -0.85)), 0.09)], seg=10, sub=2)
+        leg.data.materials.append(md)
+        greave = tube("greave", [(hip + Vector((0, -0.06, -0.45)), 0.115), (hip + Vector((0, 0.0, -0.82)), 0.1)], seg=12, sub=1)
+        greave.data.materials.append(mg)
+        boot = uv_sphere("boot", 0.12, hip + Vector((0, -0.08, -0.85)), scale=(0.9, 1.5, 0.6), seg=12, rings=8)
+        boot.data.materials.append(mg)
+        lg = join("Leg" + side, [leg, greave, boot])
+        set_origin(lg, hip)
+        parent(lg, body)
+        parts.append(lg)
+    for o in parts:
+        L.shade_smooth(o, 40)
+    L.bake_group(parts, "goldguard", size=1024, ao_dist=0.08)
+    visor = uv_sphere("GlowVisor", 0.05, (0, -0.17, 2.0), scale=(2.4, 0.5, 0.5), seg=12, rings=6)
+    visor.data.materials.append(glow("guard_visor", "#ff3a2a", 10.0))
+    parent(visor, head)
+    L.export_tree("goldguard", body)
+
+
+def build_usurer():
+    """The Usurer King: a bloated demon, seated (about 7 m), in a red robe trimmed with gold, a
+    crown with horns, a gem on his chest (his weak point). Body > Head > GlowEyes, Gem,
+    ArmL_0 > ArmL_1 (a purse), ArmR_0 > ArmR_1 > Scepter."""
+    m = mat_demon("usurer_hide", base="#7a5a20", dark="#2a1a06", vein="#ffcf40", veins=0.25, scale=3.0)
+    mr = L.mat_canvas("usurer_robe", base="#6a1018", dark="#2a0408", moss=0.0)
+    mg = mat_gold("usurer_gold", rough=0.25)
+    mh = mat_horn("usurer_horn")
+    belly = L.blob("belly", 2.0, seed=71, squash=(1.1, 0.95, 0.9), rough=0.06, sub=4)
+    for v in belly.data.vertices:
+        v.co += Vector((0, -0.3, 3.0))
+    chest = L.blob("chest", 1.7, seed=72, squash=(1.15, 0.85, 0.8), rough=0.06, sub=4)
+    for v in chest.data.vertices:
+        v.co += Vector((0, 0.1, 4.6))
+    for o in (belly, chest):
+        o.data.materials.append(m)
+    robe = lathe("robe", [(0.0, 0.0), (2.6, 0.0), (2.5, 1.0), (2.3, 2.4), (0.0, 2.4)], steps=32)
+    for v in robe.data.vertices:
+        v.co.y = v.co.y * 0.9 - 0.4
+    robe.data.materials.append(mr)
+    bpy.ops.mesh.primitive_torus_add(major_radius=2.0, minor_radius=0.18, location=(0, -0.3, 2.3))
+    belt = bpy.context.active_object
+    belt.scale = (1.1, 0.95, 1)
+    L.apply_all(belt)
+    belt.data.materials.append(mg)
+    legs = []
+    for sx in (-1, 1):   # seated: thighs forward, shins down
+        k = Vector((sx * 1.0, -2.2, 1.6))
+        legs.append(tube("leg", [(Vector((sx * 1.0, -0.5, 1.8)), 0.75), (k, 0.6), (k + Vector((0, -0.1, -1.55)), 0.5)], seg=14, sub=2))
+        legs[-1].data.materials.append(mr)
+        shoe = uv_sphere("shoe", 0.5, k + Vector((0, -0.35, -1.55)), scale=(0.9, 1.6, 0.5), seg=14, rings=8)
+        shoe.data.materials.append(mg)
+        legs.append(shoe)
+    chain = []
+    for i in range(14):   # a gold chain across the belly
+        a = math.pi * (0.15 + 0.7 * i / 13)
+        p = Vector((math.cos(a) * 1.9, -0.3 - math.sin(a) * 1.75, 3.6 - math.sin(a) * 0.5))
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.12, minor_radius=0.04, location=p, rotation=(0, math.pi / 2 * (i % 2), a))
+        c = bpy.context.active_object
+        c.data.materials.append(mg)
+        chain.append(c)
+    body = join("Body", [belly, chest, robe, belt] + legs + chain)
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    skull = L.blob("skull", 0.85, seed=73, squash=(1.0, 1.0, 0.95), rough=0.08, sub=4)
+    for v in skull.data.vertices:
+        v.co += Vector((0, -0.4, 6.2))
+    jowls = L.blob("jowls", 0.8, seed=74, squash=(1.2, 0.9, 0.6), rough=0.05, sub=3)
+    for v in jowls.data.vertices:
+        v.co += Vector((0, -0.6, 5.7))
+    nose = tube("nose", [((0, -1.15, 6.25), 0.18), ((0, -1.35, 6.0), 0.1)], seg=10, sub=2)
+    for o in (skull, jowls, nose):
+        o.data.materials.append(m)
+    crown = lathe("crown", [(0.75, 0), (0.78, 0.35), (0.7, 0.35), (0.67, 0.0)], steps=24)
+    crown.location = (0, -0.35, 6.85)
+    L.transform_apply(crown)
+    crown.data.materials.append(mg)
+    pts = []
+    for k in range(8):
+        a = k / 8 * math.tau
+        pts.append(tube("point", [((math.cos(a) * 0.72, -0.35 + math.sin(a) * 0.72, 7.15), 0.1), ((math.cos(a) * 0.8, -0.35 + math.sin(a) * 0.8, 7.55), 0.01)], seg=6, sub=1))
+        pts[-1].data.materials.append(mg)
+    horns = []
+    for sx in (-1, 1):
+        b = Vector((sx * 0.7, -0.3, 6.6))
+        h = tube("horn", [(b, 0.18), (b + Vector((sx * 0.6, 0.1, 0.1)), 0.13), (b + Vector((sx * 0.85, -0.1, 0.7)), 0.02)], seg=10, sub=3)
+        h.data.materials.append(mh)
+        horns.append(h)
+    head = join("Head", [skull, jowls, nose, crown] + pts + horns)
+    set_origin(head, (0, -0.2, 5.6))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 1.9, 0.1, 5.2))
+        el = sh + Vector((sx * 0.5, -0.6, -1.4))
+        wr = el + Vector((-sx * 0.2, -1.3, 0.1))
+        up = tube("upper", [(sh, 0.6), (el, 0.5)], seg=14, sub=2)
+        up.data.materials.append(m)
+        cuff = tube("cuff", [(sh + (el - sh) * 0.2, 0.68), (sh + (el - sh) * 0.55, 0.62)], seg=14, sub=1)
+        cuff.data.materials.append(mr)
+        a0 = join(f"Arm{side}_0", [up, cuff])
+        fo = tube("fore", [(el, 0.45), (wr, 0.38)], seg=14, sub=2)
+        fo.data.materials.append(m)
+        hand = L.blob("hand", 0.42, seed=75 + sx, squash=(1, 1.1, 0.8), rough=0.06, sub=3)
+        for v in hand.data.vertices:
+            v.co += wr + Vector((0, -0.3, 0))
+        hand.data.materials.append(m)
+        rings = []
+        for k in range(2):
+            bpy.ops.mesh.primitive_torus_add(major_radius=0.14, minor_radius=0.045, location=wr + Vector((sx * 0.15 * (k - 0.5), -0.6, 0.05)), rotation=(math.pi / 2, 0, 0))
+            rr = bpy.context.active_object
+            rr.data.materials.append(mg)
+            rings.append(rr)
+        extra = []
+        if side == "L":
+            purse = L.blob("purse", 0.5, seed=77, squash=(1, 0.9, 1.1), rough=0.1, sub=3)
+            for v in purse.data.vertices:
+                v.co += wr + Vector((0, -0.45, -0.55))
+            purse.data.materials.append(mr)
+            extra.append(purse)
+        a1 = join(f"Arm{side}_1", [fo, hand] + rings + extra)
+        set_origin(a0, sh)
+        set_origin(a1, el)
+        parent(a0, body)
+        parent(a1, a0)
+        parts += [a0, a1]
+        if side == "R":
+            sc = tube("rod", [(wr + Vector((0, -0.3, -1.0)), 0.08), (wr + Vector((0, -0.3, 2.0)), 0.08)], seg=10, sub=1)
+            sc.data.materials.append(mg)
+            top = uv_sphere("orb", 0.3, wr + Vector((0, -0.3, 2.25)), seg=16, rings=10)
+            top.data.materials.append(mg)
+            scep = join("Scepter", [sc, top])
+            set_origin(scep, wr)
+            parent(scep, a1)
+            parts.append(scep)
+    for o in parts:
+        L.shade_smooth(o, 45)
+    L.bake_group(parts, "usurer", size=2048, ao_dist=0.6)
+    gem = uv_sphere("Gem", 0.5, (0, -1.6, 4.6), scale=(1, 0.55, 1.25), seg=8, rings=6)
+    gem.data.materials.append(glow("usurer_gem", "#ff2a44", 9.0))
+    parent(gem, body)
+    setting = lathe("setting", [(0.6, -0.65), (0.75, 0), (0.6, 0.65)], steps=16)
+    eyes = [uv_sphere("e", 0.12, (sx * 0.32, -1.18, 6.4), scale=(1.3, 0.6, 0.7), seg=10, rings=8) for sx in (-1, 1)]
+    bpy.data.objects.remove(setting)
+    for e in eyes:
+        e.data.materials.append(glow("usurer_eyes", "#ffd040", 12.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, head)
+    L.export_tree("usurer", body)
+
 ASSETS = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian,
-          "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus}
+          "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus,
+          "collector": build_collector, "goldguard": build_goldguard, "usurer": build_usurer}
 
 
 def main():

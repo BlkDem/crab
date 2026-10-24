@@ -21,7 +21,8 @@ namespace Crab.Game
         public List<Named> items = new List<Named>();
         public GameObject shade, crawler, guardian, gull, morsel, stone;
         public GameObject imp, brute, burrower, colossus, armor, drone;
-        public Material particle, particleAdditive, rift, beam, tracer, water, fire;
+        public GameObject collector, goldGuard, king, heavyArmor, tank, coin;
+        public Material particle, particleAdditive, rift, beam, tracer, water, fire, gold, shield;
         public Mesh quad;
 
         public GameObject Item(ItemId id) => items.Find(i => i.name == id.ToString())?.model;

@@ -3,6 +3,8 @@
 // procedural animation by eye — the joints bend the right way, the feet lift, nothing flies off.
 using System.Collections;
 using System.IO;
+using System.Linq;
+using Crab.Core;
 using Crab.Game;
 using NUnit.Framework;
 using UnityEngine;
@@ -124,6 +126,32 @@ namespace Crab.Tests
             yield return Strip("brute", brute.transform, Vector3.back + Vector3.right * 0.3f, 1.5f, 7f, 0.2f);
             yield return Strip("burrower", burrower.transform, Vector3.back + Vector3.left * 0.4f, 0.4f, 3.5f, 0.15f);
             Assert.That(imp.Alive && brute.Alive && burrower.Alive);
+        }
+
+        [UnityTest]
+        public IEnumerator GreedDemonsAndTheTank()
+        {
+            var st = GameSession.Instance.State;
+            st.SetFlag("greed_intro");
+            st.SetFlag("city");
+            yield return SceneManager.LoadSceneAsync("Greed");
+            yield return null;
+            var hero = Hero.Instance;
+            hero.Invulnerable = true;
+            foreach (var e in Enemy.All.ToArray()) if (e) Object.Destroy(e.gameObject);
+            var open = new Vector3(0, 0, -8);
+            hero.Controller.Teleport(open, 0);
+            yield return new WaitForSeconds(0.5f);
+            var lib = Library.Current;
+            var pos = hero.transform.position;
+            var guard = Object.Instantiate(lib.goldGuard, pos + new Vector3(-7, 0, 6), Quaternion.identity).GetComponent<Enemy>();
+            var collector = Object.Instantiate(lib.collector, pos + new Vector3(6, 0, 5), Quaternion.identity).GetComponent<Enemy>();
+            st.Items.Add(ItemId.Tank);
+            yield return new WaitForSeconds(0.8f);
+            yield return Strip("goldguard", guard.transform, Vector3.back + Vector3.left * 0.3f, 1.2f, 5f, 0.15f);
+            yield return Strip("collector", collector.transform, Vector3.back, 0.6f, 3.5f, 0.12f);
+            Assert.That(hero.Tank, Is.Not.Null);
+            yield return Strip("tank", hero.Tank.transform, Vector3.back + Vector3.right * 0.5f, 0.7f, 3.5f, 0.15f);
         }
     }
 }

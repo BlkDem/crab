@@ -39,8 +39,9 @@ namespace Crab.EditorTools
             BuildPrologue();
             BuildLimbo();
             BuildWrath();
+            BuildGreed();
             BuildMenu();
-            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
+            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log("Crab scenes built");
         }
@@ -91,7 +92,7 @@ namespace Crab.EditorTools
             if (!l) { l = ScriptableObject.CreateInstance<Library>(); AssetDatabase.CreateAsset(l, path); }
             l.hero = Glb("Hero/hero");
             l.items = new List<Library.Named>();
-            foreach (var (id, file) in new[] { (ItemId.Stick, "stick"), (ItemId.Stone, "stone"), (ItemId.Crowbar, "crowbar"), (ItemId.Knife, "knife"), (ItemId.Pistol, "pistol"), (ItemId.MachineGun, "machinegun") })
+            foreach (var (id, file) in new[] { (ItemId.Stick, "stick"), (ItemId.Stone, "stone"), (ItemId.Crowbar, "crowbar"), (ItemId.Knife, "knife"), (ItemId.Pistol, "pistol"), (ItemId.MachineGun, "machinegun"), (ItemId.EnergyRifle, "energy_rifle") })
                 l.items.Add(new Library.Named { name = id.ToString(), model = Glb("Items/" + file) });
             l.stone = Glb("Items/stone");
             l.gull = Glb("World/gull");
@@ -100,18 +101,25 @@ namespace Crab.EditorTools
             l.colossus = Glb("Enemies/colossus");
             l.armor = Glb("Items/armor");
             l.drone = Glb("Items/drone");
+            l.heavyArmor = Glb("Items/heavy_armor");
+            l.king = Glb("Enemies/usurer");
             l.particle = Mat("ParticleSoft", "Crab/Soft");
             l.particleAdditive = Mat("ParticleGlow", "Crab/Glow", m => m.SetFloat("_Round", 1));
             l.tracer = Mat("Tracer", "Crab/Glow", m => m.SetFloat("_Round", 0));
             l.beam = Mat("Beam", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(0.7f, 1f, 0.85f, 0.85f)); });
             l.rift = Mat("Rift", "Crab/Rift");
             l.water = Mat("Sea", "Crab/Water");
+            l.gold = Mat("Gold", "Universal Render Pipeline/Lit", m => { m.SetColor("_BaseColor", new Color(1f, 0.75f, 0.25f)); m.SetFloat("_Metallic", 0.6f); m.SetFloat("_Smoothness", 0.7f); });
+            l.shield = Mat("ShieldDome", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(0.45f, 0.9f, 1f, 0.6f)); });
             l.fire = Mat("Fire", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(1f, 0.55f, 0.15f, 1f)); });
             l.shade = EnemyPrefab<Shade>("Shade", Glb("Enemies/shade"), 0.35f, 1.8f, e => { e.maxHealth = 40; e.speed = 1.8f; e.attackRange = 1.7f; e.damage = 9; e.windup = 0.7f; e.attackCooldown = 1.5f; });
             l.crawler = EnemyPrefab<Crawler>("Crawler", Glb("Enemies/crawler"), 0.35f, 0.6f, e => { e.maxHealth = 28; e.speed = 3.6f; e.attackRange = 1.1f; e.damage = 8; e.windup = 0.35f; e.attackCooldown = 1.2f; });
             l.imp = EnemyPrefab<Imp>("Imp", Glb("Enemies/imp"), 0.35f, 1.3f, e => { e.maxHealth = 45; e.speed = 3.4f; e.attackRange = 1.4f; e.damage = 11; e.windup = 0.4f; e.attackCooldown = 1.1f; e.aggro = 16; });
             l.brute = EnemyPrefab<Brute>("Brute", Glb("Enemies/brute"), 0.8f, 3.0f, e => { e.maxHealth = 220; e.speed = 1.7f; e.attackRange = 2.6f; e.damage = 26; e.windup = 1.0f; e.attackCooldown = 2.4f; e.aggro = 14; });
             l.burrower = EnemyPrefab<Burrower>("Burrower", Glb("Enemies/burrower"), 0.5f, 0.9f, e => { e.maxHealth = 70; e.speed = 1.6f; e.attackRange = 1.6f; e.damage = 14; e.windup = 0.5f; e.attackCooldown = 1.6f; e.aggro = 15; });
+            l.collector = EnemyPrefab<Collector>("Collector", Glb("Enemies/collector"), 0.35f, 1.2f, e => { e.maxHealth = 50; e.speed = 3.0f; e.aggro = 12; e.attackRange = 0; e.damage = 0; });
+            l.goldGuard = EnemyPrefab<GoldGuard>("GoldGuard", Glb("Enemies/goldguard"), 0.5f, 2.2f, e => { e.maxHealth = 130; e.speed = 2.1f; e.attackRange = 2.2f; e.damage = 18; e.windup = 0.8f; e.attackCooldown = 1.8f; e.aggro = 13; });
+            l.tank = TankPrefab(Glb("Items/tank"));
             EditorUtility.SetDirty(l);
             return l;
         }
@@ -132,6 +140,22 @@ namespace Crab.EditorTools
             // a body to hit: the character controller catches shots and blows
             Directory.CreateDirectory("Assets/Crab/Prefabs");
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, $"Assets/Crab/Prefabs/{name}.prefab");
+            UnityEngine.Object.DestroyImmediate(go);
+            return prefab;
+        }
+
+        static GameObject TankPrefab(GameObject model)
+        {
+            var go = new GameObject("Tank");
+            var cc = go.AddComponent<CharacterController>();
+            cc.radius = 0.45f;
+            cc.height = 1.3f;
+            cc.center = new Vector3(0, 0.7f, 0);
+            cc.stepOffset = 0.3f;
+            var m = (GameObject)PrefabUtility.InstantiatePrefab(model, go.transform);
+            m.name = "Model";
+            go.AddComponent<TankBot>().model = m.transform;
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/Crab/Prefabs/Tank.prefab");
             UnityEngine.Object.DestroyImmediate(go);
             return prefab;
         }
@@ -184,10 +208,11 @@ namespace Crab.EditorTools
         static GameObject Variant(GameObject model, string child, Transform parent, float x, float z, float yaw, float scale, string collider = "mesh")
         {
             var go = Place(model, parent, x, z, yaw, scale, collider: "none");
-            foreach (Transform c in go.GetComponentsInChildren<Transform>(true).ToArray())
-                if (c.parent == go.transform && c.name != child) UnityEngine.Object.DestroyImmediate(c.gameObject);
+            foreach (var c in go.transform.Cast<Transform>().ToArray())
+                if (c.name != child) UnityEngine.Object.DestroyImmediate(c.gameObject);
             if (collider == "mesh")
-                foreach (var mf in go.GetComponentsInChildren<MeshFilter>()) mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
+                foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
+                    if (!mf.name.StartsWith("Glow")) mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
             return go;
         }
 
@@ -949,7 +974,7 @@ namespace Crab.EditorTools
             colossus.glow = AddLight(cRoot.transform, "CoreGlow", cRoot.transform.position + new Vector3(0, 8, -3), new Color(1f, 0.55f, 0.2f), 3, 25);
             dir.colossus = colossus;
             var exit = RiftAt(root, 0, LakeIsland.z + 9, 180, "wrath_exit");
-            exit.leadsTo = "Menu";
+            exit.leadsTo = "Greed";
             exit.delay = 6;
             exit.membrane.sharedMaterial = Mat("RiftGold", "Crab/Rift", m => { m.SetColor("_Color", new Color(1f, 0.8f, 0.3f)); m.SetColor("_Core", new Color(0.1f, 0.05f, 0)); });
             exit.glow.color = new Color(1f, 0.8f, 0.35f);
@@ -1054,6 +1079,241 @@ namespace Crab.EditorTools
             var r = go.GetComponent<ParticleSystemRenderer>();
             r.sharedMaterial = lib.particleAdditive;
             return ps;
+        }
+
+        // ------------------------------------------------------------------ Greed
+        // the golden city stands on a dark plain: walls around x -40..40, z -30..50, the gate in
+        // the south, the vault door in the north wall, the Usurer's hall beyond it
+        const float CityW = 40, CityS = -30, CityN = 50;
+
+        static float GreedHeight(float x, float z)
+        {
+            float h = (Mathf.PerlinNoise(x * 0.025f + 31, z * 0.025f + 17) - 0.5f) * 4f;
+            h += (Mathf.PerlinNoise(x * 0.1f + 3, z * 0.1f + 9) - 0.5f) * 0.5f;
+            // inside the walls and the hall the ground is levelled
+            float inside = Mathf.Clamp01(1 - Mathf.Max(Mathf.Abs(x) - CityW, Mathf.Max(CityS - z, z - 98)) / 12f);
+            float road = Mathf.Clamp01(1 - (Mathf.Abs(x) - 4) / 6f) * Mathf.Clamp01((CityS + 2 - z) / 2f) * Mathf.Clamp01((z + 90) / 10f);
+            return Mathf.Lerp(h, 0, Mathf.Max(inside, road * 0.8f));
+        }
+
+        static void BuildGreed()
+        {
+            var scene = NewScene("Greed");
+            ground = GreedHeight;
+            var (gc, gn) = TextureGen.Gloom();
+            var gloom = Mat("Gloom", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", gc);
+                m.SetTexture("_BumpMap", gn);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetFloat("_Smoothness", 0.2f);
+            });
+            var (pc, pn) = TextureGen.Paving();
+            var paving = Mat("Paving", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", pc);
+                m.SetTexture("_BumpMap", pn);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetFloat("_Smoothness", 0.45f);
+                m.SetFloat("_Metallic", 0.15f);
+            });
+            var root = Group("Greed");
+            Ground("GreedGround", new Rect(-120, -120, 240, 260), gloom, 0.15f).transform.SetParent(root, false);
+            // the paved floors of the city and the hall, a hair above the plain
+            var plain = ground;
+            ground = (x, z) => plain(x, z) + 0.03f;
+            Ground("CityFloor", new Rect(-CityW, CityS, CityW * 2, CityN - CityS + 1), paving, 0.125f).transform.SetParent(root, false);
+            Ground("HallFloor", new Rect(-17, CityN, 34, 48), paving, 0.125f).transform.SetParent(root, false);
+            Ground("Road", new Rect(-4, -95, 8, 66), paving, 0.125f).transform.SetParent(root, false);
+            ground = plain;
+
+            var sun = Sun(new Color(1f, 0.8f, 0.55f), 1.5f, new Vector3(24, 200, 0));
+            Environment(new Color(0.5f, 0.5f, 0.5f), new Color(0.1f, 0.07f, 0.08f), 1, new Color(0.5f, 0.46f, 0.66f), new Color(0.55f, 0.44f, 0.38f), new Color(0.22f, 0.16f, 0.12f), new Color(0.3f, 0.23f, 0.3f), 0.0065f, 0.04f);
+            RenderSettings.skybox = Mat("Sky_Greed_Gradient", "Crab/Sky", m =>
+            {
+                m.SetColor("_Top", new Color(0.05f, 0.04f, 0.13f));
+                m.SetColor("_Horizon", new Color(0.6f, 0.36f, 0.32f));
+                m.SetColor("_Bottom", new Color(0.1f, 0.07f, 0.09f));
+                m.SetColor("_Sun", new Color(1f, 0.75f, 0.4f));
+                m.SetVector("_SunDir", -sun.transform.forward);
+                m.SetFloat("_Exponent", 0.45f);
+            });
+            Post("Greed", 0.3f, 10, new Color(1f, 0.96f, 0.9f), 1.0f, 0.3f, 12);
+
+            // the walls, towers and two gates
+            var city = Group("City", root);
+            var gw = Glb("World/gold_wall");
+            var gt = Glb("World/gold_tower");
+            for (float x = -CityW + 5; x < CityW; x += 10)
+            {
+                if (Mathf.Abs(x) > 6) Place(gw, city, x, CityS, 0, 1, sink: 0.1f);
+                if (Mathf.Abs(x) > 6) Place(gw, city, x, CityN, 180, 1, sink: 0.1f);
+            }
+            for (float z = CityS + 5; z < CityN; z += 10)
+            {
+                Place(gw, city, -CityW, z, 90, 1, sink: 0.1f);
+                Place(gw, city, CityW, z, -90, 1, sink: 0.1f);
+            }
+            foreach (var x in new[] { -CityW, -20f, 20f, CityW })
+                foreach (var z in new[] { CityS, CityN })
+                    Place(gt, city, x, z, R(0, 360), 1, sink: 0.1f);
+            Place(gt, city, -CityW, 10, 0, 1, sink: 0.1f);
+            Place(gt, city, CityW, 10, 0, 1, sink: 0.1f);
+            var gateGo = Place(Glb("World/gold_gate"), city, 0, CityS, 0, 1, sink: 0.05f);
+            foreach (var (n, a) in new[] { ("DoorL", 100f), ("DoorR", -100f) })
+            {
+                var d = CrabRig.Find(gateGo.transform, n);
+                if (d) d.localRotation = Quaternion.Euler(0, a, 0);
+            }
+
+            // the hall of the Usurer beyond the north wall
+            var hall = Group("Hall", root);
+            for (float z = CityN + 6; z < 98; z += 10)
+            {
+                Place(gw, hall, -17, z, 90, 1, sink: 0.1f);
+                Place(gw, hall, 17, z, -90, 1, sink: 0.1f);
+            }
+            foreach (var x in new[] { -12f, -2f, 8f }) Place(gw, hall, x + 2, 99, 180, 1, sink: 0.1f);
+            Place(gt, hall, -17, 99, 0, 1, sink: 0.1f);
+            Place(gt, hall, 17, 99, 0, 1, sink: 0.1f);
+            var gcol = Glb("World/gold_column");
+            foreach (var x in new[] { -9f, 9f })
+                foreach (var z in new[] { 58f, 66f, 74f, 82f })
+                    Place(gcol, hall, x, z, 0, 1);
+            Place(Glb("World/scales"), hall, -13, 92, 30, 1);
+            Place(Glb("World/scales"), hall, 13, 92, -30, 1);
+            var throne = Place(Glb("World/throne"), hall, 0, 92, 180, 1, sink: 0);
+
+            // the houses of the rich, the monuments
+            var gh = Glb("World/gold_house");
+            foreach (var (x, z, yaw) in new[] { (-13f, -18f, 90f), (13f, -18f, -90f), (-26f, -18f, 90f), (26f, -18f, -90f), (-13f, 30f, 90f), (13f, 30f, -90f),
+                         (-27f, 30f, 0f), (27f, 30f, 0f), (-31f, 0f, 90f), (31f, 0f, -90f), (14f, 0f, -90f), (-14f, 40f, 180f), (14f, 41f, 180f), (28f, 42f, 180f) })
+                Place(gh, city, x, z, yaw + R(-3, 3), R(0.95f, 1.1f), sink: 0.1f);
+            foreach (var (x, z) in new[] { (-6f, 13f), (6f, 13f), (0f, -40f) }) Place(Glb("World/obelisk"), city, x, z, 0, 1, collider: "box");
+
+            // start, beacons, director
+            var start = Group("Start", root);
+            start.position = new Vector3(0, H(0, -80), -80);
+            var hero = BuildHero(start.position, 0, out _);
+            Setup("Greed", start);
+            var dir = new GameObject("Greed").AddComponent<GreedDirector>();
+            dir.beacons.Add(BeaconAt(root, 5, -77, -30, "greed_road"));
+            dir.beacons.Add(BeaconAt(root, 5, -24, 180, "greed_gate"));
+            dir.beacons.Add(BeaconAt(root, -4, 20, 180, "greed_plaza"));
+            dir.beacons.Add(BeaconAt(root, 5, 44, 180, "greed_vault"));
+            var gate = Group("GateIn", root);
+            gate.position = new Vector3(0, 0, CityS + 2);
+            dir.gate = gate;
+
+            // matter: gold, crystals, energy — and the plain old metal and stone
+            void Source(GameObject model, string variant, float x, float z, Matter kind, int amount, float regrow, float scale = 1, float reach = 2.6f)
+            {
+                var go = variant != null ? Variant(model, variant, root, x, z, R(0, 360), scale, collider: "none") : Place(model, root, x, z, R(0, 360), scale, collider: "none", sink: 0.02f);
+                var ms = go.AddComponent<MatterSource>();
+                ms.kind = kind;
+                ms.amount = amount;
+                ms.regrow = regrow;
+                ms.reach = reach;
+            }
+            var pile = Glb("World/gold_pile");
+            var crys = Glb("World/crystal");
+            var pyl = Glb("World/pylon");
+            foreach (var (x, z) in new[] { (-8f, -12f), (9f, -6f), (-20f, 18f), (22f, 12f), (-8f, 34f), (20f, 36f), (-34f, 40f) }) Source(pile, $"Pile{rnd.Next(2)}", x, z, Matter.Gold, 6, 70);
+            foreach (var (x, z) in new[] { (-18f, -60f), (22f, -52f), (-34f, -10f), (30f, -24f), (-30f, 20f), (33f, 22f) }) Source(crys, $"Crystal{rnd.Next(3)}", x, z, Matter.Crystal, 5, 70, 1.2f);
+            foreach (var (x, z) in new[] { (-8f, 4f), (8f, 22f), (-22f, -6f), (24f, -10f), (0f, 44f) })
+            {
+                Source(pyl, null, x, z, Matter.Energy, 5, 50);
+                AddLight(root, "PylonLight", new Vector3(x, H(x, z) + 3, z), new Color(0.7f, 0.5f, 1f), 2, 9);
+            }
+            var scrap = Glb("World/scrap");
+            var rubble = Glb("World/rubble");
+            foreach (var (x, z) in new[] { (-7f, -70f), (8f, -58f), (-14f, -40f), (16f, -38f), (-18f, 6f), (-24f, 14f), (10f, 6f), (-4f, 26f) })
+                Source(scrap, null, x, z, Matter.Metal, 8, 50);
+            foreach (var (x, z) in new[] { (6f, -66f), (-10f, -50f), (-16f, 30f), (18f, -14f) }) Source(rubble, null, x, z, Matter.Mineral, 6, 50);
+
+            // the workshop's ruin on the west square
+            var wsGo = Place(Glb("World/workshop"), root, -22, 4, 90, 1, collider: "none", sink: 0);
+            var ws = wsGo.AddComponent<Workshop>();
+            ws.build = CrabRig.Find(wsGo.transform, "Build");
+            if (ws.build)
+                foreach (var mf in ws.build.GetComponentsInChildren<MeshFilter>())
+                    if (!mf.name.StartsWith("Glow")) mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
+            ws.reach = 4.5f;
+            ws.forgeLight = AddLight(wsGo.transform, "Forge", wsGo.transform.position + Vector3.up * 1.2f + wsGo.transform.forward * 1.2f, new Color(1f, 0.55f, 0.2f), 3, 10);
+            dir.workshop = ws;
+
+            // the demons: collectors with sacks out on the plain and in the streets, guards of gold
+            foreach (var (x, z) in new[] { (-6f, -55f), (6f, -50f), (12f, -44f) })
+            {
+                var c = (GameObject)PrefabUtility.InstantiatePrefab(lib.collector);
+                c.transform.position = new Vector3(x, H(x, z), z);
+                dir.firstCollectors.Add(c.GetComponent<Enemy>());
+            }
+            foreach (var (x, z) in new[] { (-20f, -14f), (18f, 26f), (-2f, 38f), (26f, 4f) })
+            {
+                var c = (GameObject)PrefabUtility.InstantiatePrefab(lib.collector);
+                c.transform.position = new Vector3(x, H(x, z), z);
+            }
+            foreach (var (x, z, yaw) in new[] { (0f, 22f, 180f), (-18f, 32f, 120f), (18f, 32f, 240f), (-5f, 45f, 180f), (5f, 45f, 180f), (16f, -2f, 270f) })
+            {
+                var g = (GameObject)PrefabUtility.InstantiatePrefab(lib.goldGuard);
+                g.transform.SetPositionAndRotation(new Vector3(x, H(x, z), z), Quaternion.Euler(0, yaw, 0));
+            }
+
+            // the vault door in the north wall
+            var vaultGo = Place(Glb("World/gold_gate"), city, 0, CityN, 0, 1, sink: 0.05f);
+            var vault = vaultGo.AddComponent<VaultDoor>();
+            vault.doorL = CrabRig.Find(vaultGo.transform, "DoorL");
+            vault.doorR = CrabRig.Find(vaultGo.transform, "DoorR");
+            vault.price = 15;
+            vault.reach = 5;
+            dir.vault = vault;
+
+            // the Usurer on his throne, the golden dome, his three hoards
+            var u = (GameObject)PrefabUtility.InstantiatePrefab(lib.king);
+            var uRoot = new GameObject("Usurer");
+            uRoot.transform.SetPositionAndRotation(throne.transform.position + Vector3.up * 1.5f + Vector3.forward * 2f, Quaternion.Euler(0, 180, 0));
+            u.transform.SetParent(uRoot.transform, false);
+            var cap = uRoot.AddComponent<CapsuleCollider>();
+            cap.center = new Vector3(0, 3.5f, 0);
+            cap.height = 7;
+            cap.radius = 1.5f;   // the gem stands out in front of it
+            var usurer = uRoot.AddComponent<Usurer>();
+            usurer.model = u.transform;
+            var arena = Group("Arena", root);
+            arena.position = new Vector3(0, H(0, 72), 72);
+            usurer.arena = arena;
+            var domeRoot = new GameObject("Dome").transform;
+            domeRoot.SetParent(uRoot.transform, false);
+            domeRoot.localPosition = new Vector3(0, 4, 1);
+            var domeBall = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            domeBall.name = "DomeShell";
+            domeBall.transform.SetParent(domeRoot, false);
+            domeBall.transform.localScale = Vector3.one * 13;
+            domeBall.GetComponent<Renderer>().sharedMaterial = Mat("GoldDome", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(1f, 0.78f, 0.3f, 0.55f)); });
+            domeBall.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            usurer.dome = domeRoot;
+            usurer.gemLight = AddLight(uRoot.transform, "GemLight", uRoot.transform.position + new Vector3(0, 6, -2.5f), new Color(1f, 0.25f, 0.3f), 2, 12);
+            AddLight(uRoot.transform, "HallLight", uRoot.transform.position + new Vector3(0, 9, -12), new Color(1f, 0.85f, 0.6f), 3, 40);
+            foreach (var (x, z) in new[] { (-12f, 70f), (12f, 70f), (0f, 59f) })
+            {
+                var hg = Variant(pile, "Pile1", root, x, z, R(0, 360), 1.5f, collider: "none");
+                var ms = hg.AddComponent<MatterSource>();
+                ms.kind = Matter.Gold;
+                ms.amount = 10;
+                ms.regrow = 0;
+                ms.reach = 3.2f;
+                usurer.hoards.Add(ms);
+                AddLight(hg.transform, "HoardGlow", hg.transform.position + Vector3.up * 1.5f, new Color(1f, 0.8f, 0.35f), 1.5f, 6);
+            }
+            dir.usurer = usurer;
+            var exit = RiftAt(root, 0, 80, 180, "greed_exit");
+            exit.leadsTo = "Menu";
+            exit.delay = 6;
+            exit.membrane.sharedMaterial = Mat("RiftGreen", "Crab/Rift", m => { m.SetColor("_Color", new Color(0.5f, 1f, 0.8f)); m.SetColor("_Core", new Color(0.02f, 0.08f, 0.06f)); });
+            dir.exit = exit;
+            Ui<GameUI>();
+            SaveScene(scene, "Greed");
         }
 
         // ------------------------------------------------------------------ menu

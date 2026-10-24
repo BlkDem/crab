@@ -1,5 +1,6 @@
 """
-The worlds of the first stage: the beach of the prologue and Limbo, the dead world.
+The worlds: the beach of the prologue, Limbo (the dead world), the circle of Wrath (dunes, lava,
+volcanoes) and the circle of Greed (the golden fortress city).
 
 Run headless:
   blender -b -P Tools/blender/make_world.py -- <out_dir> [asset ...]
@@ -731,6 +732,397 @@ def build_burnt_tree():
     L.export_tree("burnt_tree", r)
 
 
+
+# ---------------------------------------------------------------------- III. the circle of Greed
+def mat_gold(name, rough=0.3, patina=0.22):
+    """Polished gold, darker and duller in the cavities. Only half metallic: pure metal shows the
+    sky, and the skies of hell are dark — this keeps it reading as gold under any of them."""
+    return L.mat_metal(name, base="#f0b840", patina="#6a4612", patina_amt=patina, rough=rough, metal_max=0.5)
+
+
+def gold_stone(name):
+    """Pale golden sandstone in big dressed blocks (the city's walls)."""
+    return L.mat_stone(name, base="#c4a46a", dark="#8a6e40", light="#e2cc96", block=1.6, stretch=(1, 1, 2.4), mortar=0.025, moss=0.0, dirt=0.45, rough=0.7)
+
+
+def box(name, size, loc, mat, bevel=0.03, rot=(0, 0, 0)):
+    bpy.ops.mesh.primitive_cube_add(size=1, location=loc, rotation=rot)
+    b = bpy.context.active_object
+    b.name = name
+    b.scale = size
+    L.apply_all(b)
+    L.transform_apply(b)
+    if bevel:
+        L.mod(b, "BEVEL", width=bevel, segments=2)
+        L.apply_all(b)
+    b.data.materials.append(mat)
+    return b
+
+
+def onion(name, r, z, mat, h=None):
+    """An onion dome with a spire, standing at height z."""
+    h = h or r * 1.6
+    prof = [(r * 0.9, 0), (r, h * 0.12), (r * 1.08, h * 0.35), (r * 0.9, h * 0.6), (r * 0.45, h * 0.85), (r * 0.12, h * 0.97), (0.05, h * 1.05), (0.05, h * 1.4), (0.0, h * 1.45)]
+    d = lathe(name, [(x, y + z) for x, y in prof], steps=32)
+    L.shade_smooth(d, 60)
+    d.data.materials.append(mat)
+    return d
+
+
+def merlons(length, z, thick, mat, n=None):
+    n = n or max(2, int(length / 1.1))
+    out = []
+    for k in range(n):
+        x = -length / 2 + (k + 0.5) * length / n
+        out.append(box("merlon", (length / n * 0.55, thick, 0.6), (x, 0, z + 0.3), mat, 0.02))
+    return out
+
+
+def build_gold_wall():
+    """A segment of the fortress wall: dressed golden stone, a gilded band and battlements."""
+    r = root("gold_wall")
+    m = gold_stone("gwall_stone")
+    mg = mat_gold("gwall_gold")
+    L_, H, T = 10.0, 7.0, 1.4
+    w = wall("w", L_, H, T, m, holes=[(-2.5, 4.5, 0.5, 1.2, True), (2.5, 4.5, 0.5, 1.2, True)], seed=301, broken=0.0)
+    parts = [w] + merlons(L_, H, T * 0.9, m)
+    parts.append(box("band", (L_ + 0.02, T + 0.12, 0.3), (0, 0, H - 0.6), mg, 0.03))
+    parts.append(box("plinth", (L_ + 0.02, T + 0.3, 0.6), (0, 0, 0.3), m, 0.05))
+    ob = join("GoldWall", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    L.export_tree("gold_wall", r)
+
+
+def build_gold_tower():
+    r = root("gold_tower")
+    m = gold_stone("gtower_stone")
+    mg = mat_gold("gtower_gold")
+    body = lathe("body", [(3.0, 0), (2.8, 0.8), (2.5, 1.0), (2.4, 11.0), (2.9, 11.4), (2.9, 12.2), (0.0, 12.2)], steps=40)
+    body.data.materials.append(m)
+    parts = [body]
+    for k in range(12):
+        a = k / 12 * math.tau
+        parts.append(box("merlon", (0.7, 0.6, 0.8), (math.cos(a) * 2.6, math.sin(a) * 2.6, 12.6), m, 0.02, rot=(0, 0, a)))
+    bpy.ops.mesh.primitive_torus_add(major_radius=2.45, minor_radius=0.12, location=(0, 0, 8.0))
+    band = bpy.context.active_object
+    band.data.materials.append(mg)
+    parts.append(band)
+    parts.append(onion("dome", 1.8, 12.2, mg, 3.4))
+    for k in range(4):
+        a = k / 4 * math.tau + 0.4
+        win = arch_prism("win", 0.5, 1.0, 1.4, True)
+        win.location = (math.cos(a) * 2.4, math.sin(a) * 2.4, 6.0)
+        win.rotation_euler = (0, 0, a + math.pi / 2)
+        L.transform_apply(win)
+        L.boolean(body, win)
+    ob = join("GoldTower", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    L.export_tree("gold_tower", r)
+
+
+def build_gold_house():
+    """A rich house: a cube of golden stone, arched windows, a gilded onion dome."""
+    r = root("gold_house")
+    m = gold_stone("ghouse_stone")
+    mg = mat_gold("ghouse_gold")
+    W, D, H, T = 6.0, 6.0, 5.5, 0.5
+    win = lambda x: (x, 1.6, 0.9, 1.4, True)  # noqa: E731
+    walls = [place(wall("front", W, H, T, m, holes=[(0, 0, 1.4, 2.0, True), win(-1.8), win(1.8)], seed=311, broken=0.0), (0, -D / 2, 0)),
+             place(wall("back", W, H, T, m, holes=[win(-1.5), win(1.5)], seed=312, broken=0.0), (0, D / 2, 0), (0, 0, math.pi)),
+             place(wall("left", D - T, H, T, m, holes=[win(0)], seed=313, broken=0.0), (-W / 2 + T / 2, 0, 0), (0, 0, math.pi / 2)),
+             place(wall("right", D - T, H, T, m, holes=[win(0)], seed=314, broken=0.0), (W / 2 - T / 2, 0, 0), (0, 0, -math.pi / 2))]
+    parts = walls + [box("roof", (W + 0.4, D + 0.4, 0.4), (0, 0, H + 0.2), m, 0.05), box("cornice", (W + 0.6, D + 0.6, 0.18), (0, 0, H - 0.1), mg, 0.03)]
+    parts.append(onion("dome", 2.2, H + 0.4, mg, 3.6))
+    ob = join("GoldHouse", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    L.export_tree("gold_house", r)
+
+
+def build_gold_gate():
+    """A great gate: two towers of golden stone, an arch between them and two gilded doors on
+    hinges (DoorL, DoorR: origins at the hinges), closed."""
+    r = root("gold_gate")
+    m = gold_stone("ggate_stone")
+    mg = mat_gold("ggate_gold", rough=0.22)
+    W, H = 6.0, 7.5
+    frame = wall("frame", 14.0, 11.0, 2.2, m, holes=[(0, 0, W, H - W / 2, False)], seed=321, broken=0.0)
+    parts = [frame] + merlons(14.0, 11.0, 2.0, m)
+    for sx in (-1, 1):
+        parts.append(box("pylon", (2.2, 2.8, 12.5), (sx * 6.2, 0, 6.25), m, 0.05))
+        parts.append(onion("dome", 1.3, 12.5, mg, 2.4))
+        parts[-1].location.x = sx * 6.2
+        L.transform_apply(parts[-1])
+    parts.append(box("band", (14.1, 2.35, 0.35), (0, 0, 10.2), mg, 0.03))
+    ob = join("Gate", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    doors = []
+    for side, sx in (("L", -1), ("R", 1)):
+        leaf = box("leaf", (W / 2 - 0.05, 0.25, H - 0.1), (sx * W / 4, 0, (H - 0.1) / 2), mg, 0.03)
+        studs = []
+        for i in range(3):
+            for j in range(5):
+                studs.append(uv_sphere("stud", 0.09, (sx * (0.45 + i * 0.85), -0.15, 0.8 + j * 1.3), seg=10, rings=6))
+        for st in studs:
+            st.data.materials.append(mg)
+        ring = tube("ring", [((sx * 0.35, -0.2, 3.3), 0.05), ((sx * 0.35, -0.3, 3.0), 0.05), ((sx * 0.35, -0.2, 2.7), 0.05)], seg=8, sub=2)
+        ring.data.materials.append(mg)
+        d = join("Door" + side, [leaf, ring] + studs)
+        L.bake(d, size=512)
+        set_origin(d, (sx * W / 2, 0, 0))
+        parent(d, r)
+    L.export_tree("gold_gate", r)
+
+
+def build_gold_pile():
+    """Heaps of coins and goblets (gold sources): Pile0..2."""
+    r = root("gold_pile")
+    mg = mat_gold("pile_gold", rough=0.3, patina=0.3)
+    for k, (rad, h) in enumerate(((0.9, 0.5), (1.3, 0.75), (0.6, 0.35))):
+        heap = L.blob("heap", rad, seed=330 + k, squash=(1, 1, h / rad), rough=0.08, sub=4)
+        heap.data.materials.append(mg)
+        parts = [heap]
+        for i in range(int(18 * rad)):
+            a = random.uniform(0, math.tau)
+            d = random.uniform(0.1, rad * 0.95)
+            z = h * max(0.05, 1 - (d / rad) ** 2) * 0.95
+            bpy.ops.mesh.primitive_cylinder_add(vertices=14, radius=0.07, depth=0.015, location=(math.cos(a) * d, math.sin(a) * d, z),
+                                                rotation=(random.uniform(-0.6, 0.6), random.uniform(-0.6, 0.6), 0))
+            c = bpy.context.active_object
+            c.data.materials.append(mg)
+            parts.append(c)
+        if k != 2:
+            g = lathe("goblet", [(0.09, 0), (0.03, 0.03), (0.02, 0.15), (0.1, 0.22), (0.12, 0.34), (0.11, 0.34), (0.0, 0.24)], steps=16)
+            g.location = (rad * 0.3, -rad * 0.2, h * 0.7)
+            g.rotation_euler = (0.4, 0.2, 0)
+            L.transform_apply(g)
+            g.data.materials.append(mg)
+            parts.append(g)
+        ob = join(f"Pile{k}", parts)
+        L.bake(ob, size=512)
+        parent(ob, r)
+    L.export_tree("gold_pile", r)
+
+
+def build_crystal():
+    """Crystal clusters (crystal sources): a rock base (Crystal0..2) with glowing shards (GlowShards)."""
+    r = root("crystal")
+    mb = L.mat_basalt("crystal_rock", moss=0.0)
+    gm = glow("crystal_glow", "#4ad8ff", 3.5)
+    for k in range(3):
+        base = L.craggy("base", 0.6 + 0.2 * k, 340 + k, (1.2, 1.0, 0.5), mb)
+        L.bake(base, size=512, metal=False)
+        base.name = f"Crystal{k}"
+        parent(base, r)
+        shards = []
+        for i in range(5 + k * 2):
+            a = random.uniform(0, math.tau)
+            tilt = random.uniform(0.0, 0.6)
+            ln = random.uniform(0.6, 1.5) * (1 + 0.3 * k)
+            rad = random.uniform(0.08, 0.16)
+            bpy.ops.mesh.primitive_cone_add(vertices=6, radius1=rad, radius2=rad * 0.7, depth=ln, location=(0, 0, ln / 2))
+            sh = bpy.context.active_object
+            bm_ = sh.data
+            for v in bm_.vertices:   # a pointed tip
+                if v.co.z > ln / 2 - 1e-4:
+                    v.co.x *= 0.15
+                    v.co.y *= 0.15
+                    v.co.z += rad * 1.6
+            sh.rotation_euler = (math.cos(a) * tilt, math.sin(a) * tilt, random.uniform(0, 1))
+            sh.location = (math.cos(a) * random.uniform(0, 0.35), math.sin(a) * random.uniform(0, 0.35), 0.15)
+            L.transform_apply(sh)
+            sh.data.materials.append(gm)
+            shards.append(sh)
+        g = join("GlowShards", shards)
+        parent(g, base)
+    L.export_tree("crystal", r)
+
+
+def build_pylon():
+    """An energy pylon (energy source): a gilded post with rings and a violet core (GlowCore)."""
+    r = root("pylon")
+    m = gold_stone("pylon_stone")
+    mg = mat_gold("pylon_gold")
+    parts = [lathe("post", [(0.6, 0), (0.55, 0.3), (0.3, 0.45), (0.25, 2.2), (0.42, 2.4), (0.42, 2.5), (0, 2.5)], steps=24)]
+    parts[0].data.materials.append(m)
+    for z in (1.0, 1.6):
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.3, minor_radius=0.05, location=(0, 0, z))
+        t = bpy.context.active_object
+        t.data.materials.append(mg)
+        parts.append(t)
+    for k in range(3):
+        a = k / 3 * math.tau
+        c = tube("claw", [((math.cos(a) * 0.35, math.sin(a) * 0.35, 2.45), 0.06), ((math.cos(a) * 0.5, math.sin(a) * 0.5, 2.9), 0.05), ((math.cos(a) * 0.25, math.sin(a) * 0.25, 3.4), 0.02)], seg=8, sub=2)
+        c.data.materials.append(mg)
+        parts.append(c)
+    ob = join("Pylon", parts)
+    L.bake(ob, size=512)
+    parent(ob, r)
+    core = uv_sphere("GlowCore", 0.26, (0, 0, 2.95), seg=16, rings=12)
+    core.data.materials.append(glow("pylon_core", "#b07aff", 9.0))
+    parent(core, ob)
+    L.export_tree("pylon", r)
+
+
+def build_obelisk():
+    """A gilded obelisk with a coin emblem: the city's monuments to wealth."""
+    r = root("obelisk")
+    m = gold_stone("obelisk_stone")
+    mg = mat_gold("obelisk_gold")
+    parts = [box("base", (2.0, 2.0, 0.8), (0, 0, 0.4), m, 0.05), box("step", (1.5, 1.5, 0.4), (0, 0, 1.0), m, 0.04)]
+    sh = lathe("shaft", [(0.62, 0), (0.45, 6.5), (0.0, 7.3)], steps=4)
+    sh.location = (0, 0, 1.2)
+    sh.rotation_euler = (0, 0, math.pi / 4)
+    L.transform_apply(sh)
+    sh.data.materials.append(m)
+    parts.append(sh)
+    tip = lathe("tip", [(0.47, 0), (0.0, 0.8)], steps=4)
+    tip.location = (0, 0, 7.7)
+    tip.rotation_euler = (0, 0, math.pi / 4)
+    L.transform_apply(tip)
+    tip.data.materials.append(mg)
+    parts.append(tip)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.45, depth=0.1, location=(0, -0.58, 3.5), rotation=(math.pi / 2, 0, 0))
+    coin = bpy.context.active_object
+    coin.data.materials.append(mg)
+    parts.append(coin)
+    ob = join("Obelisk", parts)
+    L.bake(ob, size=512)
+    parent(ob, r)
+    L.export_tree("obelisk", r)
+
+
+def build_gold_column():
+    r = root("gold_column")
+    m = gold_stone("gcol_stone")
+    mg = mat_gold("gcol_gold")
+    c = L.column("col", 7.0, 0.6, m)
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.6, minor_radius=0.08, location=(0, 0, 5.5))
+    t = bpy.context.active_object
+    t.data.materials.append(mg)
+    ob = join("GoldColumn", [c, t])
+    L.bake(ob, size=512)
+    parent(ob, r)
+    L.export_tree("gold_column", r)
+
+
+def build_throne():
+    """The Usurer's throne: wide steps of gold, a seat for a giant, a back like a wall of coins."""
+    r = root("throne")
+    m = gold_stone("throne_stone")
+    mg = mat_gold("throne_gold", rough=0.2)
+    mr = L.mat_plain("throne_velvet", "#5a0f1a", rough=0.8)
+    parts = []
+    for k in range(3):
+        parts.append(box("step", (12 - k * 2, 9 - k * 1.5, 0.5), (0, 0.8 + k * 0.5, 0.25 + k * 0.5), m, 0.05))
+    parts.append(box("seat", (6.5, 4.5, 1.6), (0, 2.6, 2.3), mg, 0.08))
+    parts.append(box("cushion", (5.6, 3.8, 0.5), (0, 2.6, 3.3), mr, 0.15))
+    parts.append(box("back", (7.5, 1.2, 9.0), (0, 4.8, 5.9), mg, 0.1))
+    for sx in (-1, 1):
+        parts.append(box("arm", (0.9, 4.0, 1.2), (sx * 3.4, 2.6, 3.6), mg, 0.1))
+        parts.append(uv_sphere("knob", 0.55, (sx * 3.4, 0.5, 4.3), seg=16, rings=10))
+        parts[-1].data.materials.append(mg)
+    # a crown of coins along the top of the back
+    for k in range(9):
+        x = -3.3 + k * 0.825
+        bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=0.55, depth=0.15, location=(x, 4.6, 10.6 + 0.4 * math.cos((k - 4) * 0.5)), rotation=(math.pi / 2, 0, 0))
+        c = bpy.context.active_object
+        c.data.materials.append(mg)
+        parts.append(c)
+    ob = join("Throne", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    L.export_tree("throne", r)
+
+
+def build_workshop():
+    """The crab's workshop. Base: the stone floor of a ruined forge (always there). Build: what the
+    crab raises from matter — a forge with a glowing mouth (GlowForge), an anvil, a workbench and a
+    crane arm."""
+    r = root("workshop")
+    m = gold_stone("ws_stone")
+    mi = L.mat_metal("ws_iron", base="#4a4846", patina="#6a3416", patina_amt=0.4, rough=0.45, metal_max=0.9)
+    mw = L.mat_wood("ws_wood", base="#5a3a22", dark="#2a180a", light="#7a5838", rings=20, along="X")
+    base = [box("floor", (6.0, 5.0, 0.3), (0, 0, 0.15), m, 0.05)]
+    for k in range(6):
+        b = L.rock_obj("rb", random.uniform(0.2, 0.4), 350 + k, (1.2, 1.0, 0.7), 0.3, m, sub=3)
+        place(b, (random.uniform(-2.8, 2.8), random.uniform(-2.3, 2.3), 0.35), (0, 0, random.uniform(0, 3)))
+        base.append(b)
+    bo = join("Base", base)
+    L.bake(bo, size=512)
+    parent(bo, r)
+    bl = []
+    forge = box("forge", (1.8, 1.4, 1.4), (-1.8, 1.4, 1.0), m, 0.08)
+    mouth = arch_prism("mouth", 0.8, 0.4, 2.0)
+    mouth.location = (-1.8, 0.7, 0.6)
+    L.transform_apply(mouth)
+    L.boolean(forge, mouth)
+    bl.append(forge)
+    chim = lathe("chimney", [(0.5, 0), (0.35, 0.5), (0.3, 3.0), (0.38, 3.2), (0, 3.2)], steps=16)
+    chim.location = (-1.8, 1.6, 1.7)
+    L.transform_apply(chim)
+    chim.data.materials.append(m)
+    bl.append(chim)
+    anvil = lathe("anvil_foot", [(0.3, 0), (0.18, 0.2), (0.12, 0.5), (0.0, 0.5)], steps=12)
+    anvil.location = (0.6, 0.0, 0.3)
+    L.transform_apply(anvil)
+    anvil.data.materials.append(mi)
+    bl.append(anvil)
+    bl.append(box("anvil_top", (0.9, 0.35, 0.22), (0.6, 0, 0.9), mi, 0.03))
+    horn = tube("horn", [((1.05, 0, 0.92), 0.13), ((1.35, 0, 0.92), 0.03)], seg=10, sub=2)
+    horn.data.materials.append(mi)
+    bl.append(horn)
+    bl.append(box("bench", (2.2, 0.9, 0.12), (1.6, 1.8, 1.0), mw, 0.02))
+    for x in (0.7, 2.5):
+        for y in (1.45, 2.15):
+            bl.append(box("leg", (0.1, 0.1, 0.9), (x, y, 0.5), mw, 0.01))
+    for k in range(4):   # tools on the bench
+        bl.append(box("tool", (0.06, 0.4, 0.05), (1.0 + k * 0.4, 1.8, 1.1), mi, 0.01, rot=(0, 0, random.uniform(-0.5, 0.5))))
+    mast = tube("mast", [((2.6, -1.8, 0.3), 0.12), ((2.6, -1.8, 4.0), 0.1)], seg=10, sub=1)
+    boom = tube("boom", [((2.6, -1.8, 3.8), 0.08), ((0.6, -1.2, 3.6), 0.06)], seg=8, sub=1)
+    hook = tube("chain", [((0.6, -1.2, 3.6), 0.02), ((0.6, -1.2, 2.2), 0.02)], seg=6, sub=1)
+    for o in (mast, boom, hook):
+        o.data.materials.append(mi)
+        bl.append(o)
+    build = join("Build", bl)
+    L.bake(build, size=1024)
+    parent(build, r)
+    fire = uv_sphere("GlowForge", 0.35, (-1.8, 0.8, 0.75), scale=(1.2, 0.6, 0.7), seg=14, rings=10)
+    fire.data.materials.append(glow("ws_fire", "#ff8a2a", 10.0))
+    parent(fire, build)
+    L.export_tree("workshop", r)
+
+
+def build_scales():
+    """Giant scales of gold (decoration of the vault)."""
+    r = root("scales")
+    mg = mat_gold("scales_gold")
+    m = gold_stone("scales_stone")
+    parts = [box("base", (1.6, 1.6, 0.6), (0, 0, 0.3), m, 0.05)]
+    post = tube("post", [((0, 0, 0.6), 0.16), ((0, 0, 4.5), 0.1)], seg=12, sub=1)
+    beam = tube("beam", [((-2.2, 0, 4.4), 0.08), ((2.2, 0, 4.6), 0.08)], seg=10, sub=1)
+    parts += [post, beam]
+    for o in (post, beam):
+        o.data.materials.append(mg)
+    for sx, z in ((-1, 4.4), (1, 4.6)):
+        for k in range(3):
+            a = k / 3 * math.tau
+            c = tube("cord", [((sx * 2.2, 0, z), 0.015), ((sx * 2.2 + math.cos(a) * 0.6, math.sin(a) * 0.6, z - 2.0), 0.015)], seg=5, sub=1)
+            c.data.materials.append(mg)
+            parts.append(c)
+        pan = lathe("pan", [(0.75, 0.15), (0.6, 0.0), (0.0, 0.0)], steps=24)
+        pan.location = (sx * 2.2, 0, z - 2.05)
+        L.transform_apply(pan)
+        pan.data.materials.append(mg)
+        parts.append(pan)
+    ob = join("Scales", parts)
+    L.bake(ob, size=512)
+    parent(ob, r)
+    L.export_tree("scales", r)
+
 ASSETS = {
     "palm": build_palm, "beach_rocks": build_beach_rocks, "shelter": build_shelter, "driftwood": build_driftwood,
     "seaweed": build_seaweed, "morsel": build_morsel, "gull": build_gull,
@@ -739,6 +1131,9 @@ ASSETS = {
     "deadtree": build_deadtree, "lamp": build_lamp, "beacon": build_beacon, "rift": build_rift,
     "volcano": build_volcano, "spires": build_spires, "burnt_house": build_burnt_house, "burnt_wall": build_burnt_wall,
     "vent": build_vent, "totem": build_totem, "ribs": build_ribs, "burnt_tree": build_burnt_tree,
+    "gold_wall": build_gold_wall, "gold_tower": build_gold_tower, "gold_house": build_gold_house, "gold_gate": build_gold_gate,
+    "gold_pile": build_gold_pile, "crystal": build_crystal, "pylon": build_pylon, "obelisk": build_obelisk,
+    "gold_column": build_gold_column, "throne": build_throne, "workshop": build_workshop, "scales": build_scales,
 }
 
 

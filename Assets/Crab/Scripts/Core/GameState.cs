@@ -12,7 +12,7 @@ namespace Crab.Core
         public int version = 1;
         public string scene = "Prologue";
         public string checkpoint = "";
-        public int organic, mineral, metal;
+        public int organic, mineral, metal, gold, crystal, energy;
         public List<string> items = new List<string>();     // "Pistol:1"
         public string equipped = "None";
         public List<string> blueprints = new List<string>();
@@ -35,8 +35,11 @@ namespace Crab.Core
 
         public bool Knows(ItemId id) => known.Contains(id);
 
-        /// <summary>The crab's level (its evolution): 1 an ordinary crab, 2 a crab-warrior in scrap armour.</summary>
-        public int Level => Items.Has(ItemId.ScrapArmor) ? 2 : 1;
+        /// <summary>The crab's level (its evolution): 1 an ordinary crab, 2 a crab-warrior in scrap armour,
+        /// 3 the armoured crab (heavy armour).</summary>
+        public int Level => Items.Has(ItemId.HeavyArmor) ? 3 : Items.Has(ItemId.ScrapArmor) ? 2 : 1;
+        /// <summary>The crab stands at its workshop (set by the game): complex things can be made.</summary>
+        public bool AtWorkshop;
         public static string LevelTitle(int level) => level switch { 1 => "Обычный краб", 2 => "Краб-воин", 3 => "Бронекраб", 4 => "Краб-маг", 5 => "Киберкраб", 9 => "Повелитель материи", _ => "Краб-архитектор" };
         public IEnumerable<Blueprint> Known => Blueprints.All.Where(b => known.Contains(b.id));
 
@@ -56,7 +59,7 @@ namespace Crab.Core
             return true;
         }
 
-        public enum CreateResult { Done, Unknown, NoMatter, Full }
+        public enum CreateResult { Done, Unknown, NoMatter, Full, NeedWorkshop }
 
         /// <summary>Make one item from matter (the superpower, not a shop).</summary>
         public CreateResult Create(ItemId id)
@@ -64,6 +67,7 @@ namespace Crab.Core
             var b = Blueprints.Get(id);
             if (b == null || !Knows(id)) return CreateResult.Unknown;
             if (Items.Full(id)) return CreateResult.Full;
+            if (b.workshop && !AtWorkshop) return CreateResult.NeedWorkshop;
             if (!Matter.Pay(b.cost)) return CreateResult.NoMatter;
             Items.Add(id, b.yield);
             return CreateResult.Done;
@@ -76,6 +80,9 @@ namespace Crab.Core
             organic = Matter[Core.Matter.Organic],
             mineral = Matter[Core.Matter.Mineral],
             metal = Matter[Core.Matter.Metal],
+            gold = Matter[Core.Matter.Gold],
+            crystal = Matter[Core.Matter.Crystal],
+            energy = Matter[Core.Matter.Energy],
             items = Items.Snapshot().Where(kv => kv.Value > 0).Select(kv => $"{kv.Key}:{kv.Value}").ToList(),
             equipped = Items.Equipped.ToString(),
             blueprints = known.Select(k => k.ToString()).ToList(),
@@ -88,7 +95,7 @@ namespace Crab.Core
         {
             Scene = string.IsNullOrEmpty(s.scene) ? "Prologue" : s.scene;
             Checkpoint = s.checkpoint ?? "";
-            Matter.Set(s.organic, s.mineral, s.metal);
+            Matter.Set(s.organic, s.mineral, s.metal, s.gold, s.crystal, s.energy);
             var items = new List<KeyValuePair<ItemId, int>>();
             foreach (var e in s.items ?? new List<string>())
             {

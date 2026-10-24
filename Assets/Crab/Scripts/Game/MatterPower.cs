@@ -114,6 +114,10 @@ namespace Crab.Game
                     Story.Hint($"Не хватает материи: нужно {bp.cost}");
                     Sfx.Play("click", null, 1, 0.5f);
                     break;
+                case GameState.CreateResult.NeedWorkshop:
+                    Story.Hint($"{bp.title}: это собирается только в мастерской");
+                    Sfx.Play("click", null, 1, 0.5f);
+                    break;
                 case GameState.CreateResult.Full:
                     Story.Hint(bp.stack ? $"{bp.title}: больше не унести" : $"{bp.title} уже есть");
                     break;

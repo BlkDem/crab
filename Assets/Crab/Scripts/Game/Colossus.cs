@@ -329,7 +329,7 @@ namespace Crab.Game
 
         IEnumerator Fireball(Vector3 from, Vector3 to, float flight, float radius, float dmg)
         {
-            var mark = Marker(to, radius);
+            var mark = BossFx.Marker(to, radius, new Color(1f, 0.35f, 0.1f, 0.6f));
             var ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             ball.name = "fireball";
             Destroy(ball.GetComponent<Collider>());
@@ -346,7 +346,7 @@ namespace Crab.Game
                 float k = t / flight;
                 ball.transform.position = Vector3.Lerp(from, to, k) + Vector3.up * Mathf.Sin(k * Mathf.PI) * 9;
                 if (UnityEngine.Random.value < 0.6f) Fx.Burst(ball.transform.position, new Color(1f, 0.5f, 0.15f), 2, 0.5f, 0.25f, 0.5f, true, -0.5f);
-                Pulse(mark, k);
+                BossFx.Pulse(mark, k);
                 yield return null;
             }
             Destroy(ball);
@@ -371,34 +371,6 @@ namespace Crab.Game
             else if (Flat(d).magnitude < radius * 3) hero.Cam.Shake(0.4f);
         }
 
-        /// <summary>A glowing ring on the ground where something is about to fall.</summary>
-        static GameObject Marker(Vector3 at, float radius)
-        {
-            var go = new GameObject("marker");
-            go.transform.position = at + Vector3.up * 0.12f;
-            var lr = go.AddComponent<LineRenderer>();
-            lr.sharedMaterial = Library.Current ? Library.Current.tracer : null;
-            lr.loop = true;
-            lr.useWorldSpace = false;
-            lr.positionCount = 40;
-            for (int i = 0; i < 40; i++)
-            {
-                float a = i / 40f * Mathf.PI * 2;
-                lr.SetPosition(i, new Vector3(Mathf.Cos(a) * radius, 0, Mathf.Sin(a) * radius));
-            }
-            lr.startWidth = lr.endWidth = 0.12f;
-            lr.startColor = lr.endColor = new Color(1f, 0.35f, 0.1f, 0.6f);
-            return go;
-        }
-
-        static void Pulse(GameObject mark, float k)
-        {
-            var lr = mark.GetComponent<LineRenderer>();
-            float w = Mathf.Lerp(0.1f, 0.3f, k) * (1 + 0.3f * Mathf.Sin(Time.time * 20));
-            lr.startWidth = lr.endWidth = w;
-            mark.transform.localScale = Vector3.one * Mathf.Lerp(1.2f, 1f, k);
-        }
-
         IEnumerator LavaWave()
         {
             var hero = Hero.Instance;
@@ -416,49 +388,12 @@ namespace Crab.Game
             int rings = Phase == 3 ? 2 : 1;
             for (int i = 0; i < rings; i++)
             {
-                StartCoroutine(Ring(at, Phase == 1 ? 8 : 10.5f));
+                StartCoroutine(BossFx.Ring(at, Phase == 1 ? 8 : 10.5f, arenaRadius * 1.4f, new Color(1f, 0.45f, 0.1f, 0.9f), 24));
                 yield return new WaitForSeconds(0.9f);
             }
             armLGoal = Quaternion.identity;
             bodyGoal = Quaternion.identity;
             yield return new WaitForSeconds(1.2f);
-        }
-
-        IEnumerator Ring(Vector3 at, float speed)
-        {
-            var go = new GameObject("lava wave");
-            var lr = go.AddComponent<LineRenderer>();
-            lr.sharedMaterial = Library.Current ? Library.Current.tracer : null;
-            lr.loop = true;
-            lr.positionCount = 90;
-            lr.startWidth = lr.endWidth = 0.45f;
-            lr.startColor = lr.endColor = new Color(1f, 0.45f, 0.1f, 0.9f);
-            var hero = Hero.Instance;
-            bool hit = false;
-            for (float r = 0.5f; r < arenaRadius * 1.4f; r += Time.deltaTime * speed)
-            {
-                for (int i = 0; i < 90; i++)
-                {
-                    float a = i / 90f * Mathf.PI * 2;
-                    lr.SetPosition(i, at + new Vector3(Mathf.Cos(a) * r, 0.2f, Mathf.Sin(a) * r));
-                }
-                if (UnityEngine.Random.value < 0.5f)
-                {
-                    float a = UnityEngine.Random.Range(0, Mathf.PI * 2);
-                    Fx.Burst(at + new Vector3(Mathf.Cos(a) * r, 0.2f, Mathf.Sin(a) * r), new Color(1f, 0.5f, 0.15f), 3, 1.5f, 0.12f, 0.4f, true, 1);
-                }
-                if (!hit && hero && hero.Alive)
-                {
-                    float d = Vector3.Distance(Flat(hero.transform.position), Flat(at));
-                    if (Mathf.Abs(d - r) < 0.6f && hero.Controller.Grounded)
-                    {
-                        hit = true;
-                        hero.Hurt(24, hero.transform.position, hero.transform.position - at);
-                    }
-                }
-                yield return null;
-            }
-            Destroy(go);
         }
 
         IEnumerator Eruption()
@@ -473,10 +408,10 @@ namespace Crab.Game
                 float a = UnityEngine.Random.Range(0, Mathf.PI * 2);
                 spots.Add(GroundAt(hero.transform.position + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * UnityEngine.Random.Range(2.5f, 7f)));
             }
-            var marks = spots.ConvertAll(s => Marker(s, 1.6f));
+            var marks = spots.ConvertAll(s => BossFx.Marker(s, 1.6f, new Color(1f, 0.35f, 0.1f, 0.6f)));
             for (float t = 0; t < 1.3f; t += Time.deltaTime)
             {
-                foreach (var m in marks) Pulse(m, t / 1.3f);
+                foreach (var m in marks) BossFx.Pulse(m, t / 1.3f);
                 foreach (var s in spots) if (UnityEngine.Random.value < 0.15f) Fx.Burst(s, new Color(1f, 0.5f, 0.15f), 2, 1, 0.08f, 0.4f, true, -1);
                 yield return null;
             }

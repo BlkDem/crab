@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Crab.Core
 {
-    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone }
+    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank }
 
     public enum WeaponKind { None, Melee, Throw, Gun }
 
@@ -27,6 +27,14 @@ namespace Crab.Core
         public bool armor;
         /// <summary>Becomes a companion beside the crab (a drone).</summary>
         public bool companion;
+        /// <summary>Too complex to make on the go: only at the workshop.</summary>
+        public bool workshop;
+        /// <summary>What a gun fires (bullets for the scrap guns, cells for the energy rifle).</summary>
+        public ItemId ammo = ItemId.Ammo;
+        /// <summary>Energy shots go through golden armour and shields.</summary>
+        public bool energy;
+        /// <summary>A gear ability rather than a thing in the claw (the shield).</summary>
+        public bool gear;
     }
 
     public static class Blueprints
@@ -48,6 +56,12 @@ namespace Crab.Core
                 kind = WeaponKind.Gun, damage = 9, range = 45, cooldown = 0.09f, auto = true },
             new Blueprint { id = ItemId.ScrapArmor, title = "Броня из металлолома", hint = "Пластины на панцирь. Удары держит втрое легче… ну, почти.", cost = new Cost(0, 2, 12), armor = true },
             new Blueprint { id = ItemId.ScoutDrone, title = "Дрон-разведчик SCOUT", hint = "Маленький, летучий, мой. Стреляет по тем, кто рядом.", cost = new Cost(1, 2, 8), companion = true },
+            new Blueprint { id = ItemId.HeavyArmor, title = "Тяжёлая броня", hint = "Сталь, золото и кристальные вставки. Бронекраб.", cost = new Cost(0, 4, 14, 6, 3), armor = true, workshop = true },
+            new Blueprint { id = ItemId.EnergyRifle, title = "Энергоружьё", hint = "Кристалл фокусирует энергию в луч. Пробивает золотую броню.", cost = new Cost(0, 2, 8, 2, 4, 2),
+                kind = WeaponKind.Gun, damage = 30, range = 60, cooldown = 0.25f, ammo = ItemId.EnergyCell, energy = true, workshop = true },
+            new Blueprint { id = ItemId.EnergyCell, title = "Энергоячейки", hint = "Десять зарядов из одной единицы энергии.", cost = new Cost(0, 0, 0, 0, 0, 1), yield = 10, stack = true },
+            new Blueprint { id = ItemId.EnergyShield, title = "Энергощит", hint = "Купол на несколько секунд (Q). Ничто не пройдёт.", cost = new Cost(0, 2, 6, 2, 4, 3), gear = true, workshop = true },
+            new Blueprint { id = ItemId.Tank, title = "Робот TANK", hint = "Тяжёлый, упрямый, мой. Идёт впереди и бьёт.", cost = new Cost(0, 4, 18, 6, 4, 6), companion = true, workshop = true },
         };
 
         public static Blueprint Get(ItemId id) => All.FirstOrDefault(b => b.id == id);

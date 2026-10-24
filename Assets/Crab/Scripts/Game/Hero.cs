@@ -44,20 +44,38 @@ namespace Crab.Game
         }
 
         GameObject armor;
+        ItemId armorId;
         public Drone Drone { get; private set; }
+        public TankBot Tank { get; private set; }
+        public EnergyShield Shield { get; private set; }
 
-        /// <summary>What the crab wears and who flies with it: the scrap armour on the shell, the drone.</summary>
+        /// <summary>What the crab wears and who goes with it: armour on the shell (heavy over scrap),
+        /// the shield, the drone, the TANK.</summary>
         void RefreshGear()
         {
             var lib = Library.Current;
-            bool wear = State.Items.Has(ItemId.ScrapArmor);
-            if (wear && !armor && lib && lib.armor && Rig.body)
+            var wear = State.Items.Has(ItemId.HeavyArmor) ? ItemId.HeavyArmor : State.Items.Has(ItemId.ScrapArmor) ? ItemId.ScrapArmor : ItemId.None;
+            if (armor && armorId != wear) Destroy(armor);
+            var model = !lib ? null : wear == ItemId.HeavyArmor ? lib.heavyArmor : wear == ItemId.ScrapArmor ? lib.armor : null;
+            if (wear != ItemId.None && (!armor || armorId != wear) && model && Rig.body)
             {
-                armor = Instantiate(lib.armor, Rig.body, false);
+                armor = Instantiate(model, Rig.body, false);
                 armor.name = "Armor";
+                armorId = wear;
                 foreach (var c in armor.GetComponentsInChildren<Collider>()) Destroy(c);
             }
-            if (!wear && armor) Destroy(armor);
+            if (State.Items.Has(ItemId.EnergyShield) && !Shield)
+            {
+                Shield = gameObject.AddComponent<EnergyShield>();
+                Shield.hero = this;
+            }
+            if (State.Items.Has(ItemId.Tank) && !Tank && lib && lib.tank)
+            {
+                var go = Instantiate(lib.tank, transform.position - transform.forward * 2 + transform.right, transform.rotation);
+                go.name = "TANK";
+                Tank = go.GetComponent<TankBot>();
+                if (Tank) Tank.hero = this;
+            }
             bool fly = State.Items.Has(ItemId.ScoutDrone);
             if (fly && !Drone && lib && lib.drone)
             {
@@ -70,7 +88,7 @@ namespace Crab.Game
         }
 
         /// <summary>The armour takes a share of every blow.</summary>
-        public float Armor => State.Items.Has(ItemId.ScrapArmor) ? 0.65f : 1f;
+        public float Armor => State.Items.Has(ItemId.HeavyArmor) ? 0.45f : State.Items.Has(ItemId.ScrapArmor) ? 0.65f : 1f;
 
         public void ShowSpark(bool on)
         {
@@ -80,6 +98,8 @@ namespace Crab.Game
         void Update()
         {
             iframes -= Time.deltaTime;
+            // in the crab's own eyes the armour would sit over the camera
+            if (armor && armor.activeSelf == Combat.firstPerson) armor.SetActive(!Combat.firstPerson);
             if (sparkLight && sparkLight.enabled) sparkLight.intensity = 0.6f + 0.25f * Mathf.Sin(Time.time * 3);
             if (transform.position.y < -30 && Alive) Hurt(1000, transform.position, Vector3.zero);
         }
@@ -93,6 +113,7 @@ namespace Crab.Game
         public void Hurt(float damage, Vector3 point, Vector3 dir)
         {
             if (!Alive || iframes > 0 || Invulnerable) return;
+            if (Shield && Shield.Absorb(point)) return;
             iframes = 0.45f;
             bool died = State.Health.Hurt(damage * Armor);
             dir.y = 0;

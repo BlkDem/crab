@@ -45,7 +45,7 @@ namespace Crab.Game
             {
                 st.SetFlag("circle2_done");
                 Story.Task("");
-                Story.Title("КОНЕЦ II КРУГА", "III. Круг жадности — скоро");
+                Story.Title("КОНЕЦ II КРУГА", "Впереди — круг жадности");
             };
             if (st.Flag("colossus")) colossus.gameObject.SetActive(false);
             hero.Died += () => StartCoroutine(Respawn());

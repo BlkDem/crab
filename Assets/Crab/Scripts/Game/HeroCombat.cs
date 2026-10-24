@@ -120,11 +120,11 @@ namespace Crab.Game
                     pendingThrow = 0.25f;
                     break;
                 case WeaponKind.Gun:
-                    if (items.Count(ItemId.Ammo) <= 0)
+                    if (items.Count(bp.ammo) <= 0)
                     {
                         cooldown = 0.3f;
                         Sfx.Play("click", null, 1, 0.6f);
-                        Story.Hint("Нет патронов — создай из металла (Tab)");
+                        Story.Hint(bp.ammo == ItemId.EnergyCell ? "Нет энергоячеек — создай из энергии (Tab)" : "Нет патронов — создай из металла (Tab)");
                         break;
                     }
                     cooldown = bp.cooldown;
@@ -142,6 +142,12 @@ namespace Crab.Game
             // is turned onto the target (whatever way the model's nodes are rotated)
             if (held && muzzle && (Aiming || firstPerson))
             {
+                // in the crab's eyes the gun is held low and to the right of the view, like in a shooter
+                if (firstPerson && hero.Cam.cam)
+                {
+                    var c = hero.Cam.cam.transform;
+                    held.transform.position = c.position + c.right * 0.17f - c.up * 0.16f + c.forward * 0.32f;
+                }
                 var dir = AimPoint(80, out _) - held.transform.position;
                 var cur = muzzle.position - held.transform.position;
                 if (dir.sqrMagnitude > 0.01f && cur.sqrMagnitude > 1e-6f)
@@ -231,19 +237,25 @@ namespace Crab.Game
 
         void Shoot(Blueprint bp)
         {
-            State.Items.Take(ItemId.Ammo);
+            State.Items.Take(bp.ammo);
             var from = muzzle ? muzzle.position : (hero.Rig.gripRight ? hero.Rig.gripRight.position : transform.position + Vector3.up * 0.4f);
             var point = AimPoint(bp.range, out var col);
-            Fx.Tracer(from, point, new Color(1f, 0.85f, 0.5f));
-            Fx.Flash(from, new Color(1f, 0.75f, 0.4f), 4, 5);
-            Fx.Burst(from, new Color(1f, 0.8f, 0.4f), 6, 3, 0.05f, 0.15f);
-            Sfx.Play("shot", from, 0.9f);
+            var tint = bp.energy ? new Color(0.45f, 0.9f, 1f) : new Color(1f, 0.85f, 0.5f);
+            Fx.Tracer(from, point, tint, bp.energy ? 0.06f : 0.03f, bp.energy ? 0.12f : 0.07f);
+            Fx.Flash(from, tint, 4, 5);
+            Fx.Burst(from, tint, 6, 3, 0.05f, 0.15f);
+            Sfx.Play("shot", from, 0.9f, bp.energy ? 1.6f : 1);
             hero.Cam.Shake(0.2f);
             hero.Cam.Kick(3);
             hero.Rig.Play(ClawPose.Aim, 0.3f);
             hero.Controller.faceView = true;
             var h = Hits.Of(col);
-            if (h != null && h.Alive) h.Hit(bp.damage, point, (point - from).normalized, hero.gameObject);
+            if (h != null && h.Alive)
+            {
+                Hits.Energy = bp.energy;
+                h.Hit(bp.damage, point, (point - from).normalized, hero.gameObject);
+                Hits.Energy = false;
+            }
             Fx.Burst(point, h != null ? new Color(0.6f, 1f, 0.7f) : new Color(0.8f, 0.75f, 0.7f), 10, 2.5f, 0.05f, 0.35f, h != null, 0.8f);
         }
     }

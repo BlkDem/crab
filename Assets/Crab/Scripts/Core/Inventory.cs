@@ -1,4 +1,4 @@
-// What the crab carries: one of each tool, stacks of stones and ammo, the item in its claw.
+// What the crab carries: one of each tool, stacks of stones, ammo and energy cells, the item in its claw.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +11,7 @@ namespace Crab.Core
         public ItemId Equipped { get; private set; }
         public event Action Changed;
 
-        public const int MaxStones = 8, MaxAmmo = 120;
+        public const int MaxStones = 8, MaxAmmo = 120, MaxCells = 60;
 
         public int Count(ItemId id) => counts.TryGetValue(id, out int n) ? n : 0;
         public bool Has(ItemId id) => Count(id) > 0;
@@ -19,7 +19,7 @@ namespace Crab.Core
         /// <summary>Weapons in the order the claw cycles through them.</summary>
         public IEnumerable<ItemId> Weapons => Blueprints.All.Where(b => b.kind != WeaponKind.None && Has(b.id)).Select(b => b.id);
 
-        public int Limit(ItemId id) => id == ItemId.Stone ? MaxStones : id == ItemId.Ammo ? MaxAmmo : 1;
+        public int Limit(ItemId id) => id == ItemId.Stone ? MaxStones : id == ItemId.Ammo ? MaxAmmo : id == ItemId.EnergyCell ? MaxCells : 1;
 
         /// <summary>Whether making this now would be a waste (a tool already held, a full stack).</summary>
         public bool Full(ItemId id) => Count(id) >= Limit(id);

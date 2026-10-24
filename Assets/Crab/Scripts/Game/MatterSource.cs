@@ -33,11 +33,37 @@ namespace Crab.Game
         {
             Matter.Organic => new Color(0.55f, 1f, 0.45f),
             Matter.Mineral => new Color(0.75f, 0.85f, 1f),
+            Matter.Gold => new Color(1f, 0.82f, 0.25f),
+            Matter.Crystal => new Color(0.35f, 0.9f, 1f),
+            Matter.Energy => new Color(0.75f, 0.5f, 1f),
             _ => new Color(1f, 0.7f, 0.35f),
         };
 
         public override string Prompt => $"[E] Втянуть материю — {MatterStore.Title(kind).ToLower()} ({left})";
         public override bool Usable => left > 0;
+        public int Left => left;
+
+        /// <summary>Put matter back (the Usurer's hoards fill up again).</summary>
+        public void Refill(int n)
+        {
+            if (n <= 0) return;
+            bool was = left > 0;
+            left = Mathf.Min(amount, left + n);
+            transform.localScale = scale0 * Mathf.Lerp(0.35f, 1, left / (float)amount);
+            if (!was)
+            {
+                foreach (var c in cols) c.enabled = true;
+                foreach (var r in rends) r.enabled = true;
+            }
+        }
+
+        static string FirstTaste(Matter m) => m switch
+        {
+            Matter.Gold => "Золото. Тяжёлое, мягкое… и как же оно тянет к себе. Понимаю демонов. Почти.",
+            Matter.Crystal => "Кристалл. В нём всё выстроено по линиям — он держит и направляет энергию.",
+            Matter.Energy => "Чистая энергия. Без формы. Из неё можно сделать… заряд. Или щит.",
+            _ => null,
+        };
         public override bool Hold => true;
 
         public override bool Channel(Hero hero, float dt)
@@ -52,6 +78,7 @@ namespace Crab.Game
                 return true;
             }
             left--;
+            if (st.SetFlag("met_" + kind) && FirstTaste(kind) != null) Story.Think(FirstTaste(kind), 5);
             Fx.Stream(Point, hero.Core, ColorOf(kind), 5);
             Sfx.Play("absorb", Point, 0.4f, 0.9f + 0.3f * (1 - left / (float)amount));
             transform.localScale = scale0 * Mathf.Lerp(0.35f, 1, left / (float)amount);
