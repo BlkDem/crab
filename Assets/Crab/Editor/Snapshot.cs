@@ -18,6 +18,8 @@ namespace Crab.EditorTools
             Scene("Prologue", new[] { ("start", (Vector3?)null, Vector3.zero), ("beach", new Vector3(-12, 5, -8), new Vector3(2, 1, 8)), ("shelter", new Vector3(5, 1.6f, 0.5f), new Vector3(8, 0.6f, 4.5f)) });
             Scene("Limbo", new[] { ("start", (Vector3?)null, Vector3.zero), ("street", new Vector3(0, 3, -16), new Vector3(0, 2, 10)), ("town", new Vector3(-30, 25, -30), new Vector3(0, 0, 25)),
                 ("rift", new Vector3(-24, 2.5f, 20), new Vector3(-30, 1.8f, 16)), ("square", new Vector3(0, 3, 56), new Vector3(0, 4, 74)) });
+            Scene("Wrath", new[] { ("start", (Vector3?)null, Vector3.zero), ("river", new Vector3(-6, 4, -26), new Vector3(4, 0, -8)), ("town", new Vector3(-30, 22, -14), new Vector3(0, 0, 22)),
+                ("vent", new Vector3(-34, 3, 14), new Vector3(-40, 1, 22)), ("lake", new Vector3(0, 5, 58), new Vector3(0, 7, 106)), ("sky", new Vector3(40, 50, -60), new Vector3(0, 0, 40)) });
             Scene("Menu", new[] { ("title", (Vector3?)null, Vector3.zero) });
             Debug.Log("Snapshots rendered");
         }

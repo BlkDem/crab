@@ -138,7 +138,127 @@ def build_pistol():
     L.export_tree("pistol", ob)
 
 
-ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar, "knife": build_knife, "pistol": build_pistol}
+def build_machinegun():
+    """Three scrap pipes bound into a barrel cluster on an iron body, an ammo box hanging under it."""
+    m_pipe = mat_iron("mg_pipe", base="#4a4846", rust="#6a3416", amount=0.45)
+    m_body = mat_iron("mg_body", base="#3a3836", rust="#7a3a18", amount=0.6)
+    m_wood = L.mat_wood("mg_wood", base="#5a3a22", dark="#2a180a", light="#7a5838", rings=30, along="Y")
+    parts = []
+    for k in range(3):
+        a = k / 3 * math.tau
+        off = Vector((math.cos(a) * 0.022, 0, 0.07 + math.sin(a) * 0.022))
+        bpy.ops.mesh.primitive_cylinder_add(vertices=14, radius=0.013, depth=0.36, location=Vector((0, -0.2, 0)) + off, rotation=(math.pi / 2, 0, 0))
+        b = bpy.context.active_object
+        b.data.materials.append(m_pipe)
+        parts.append(b)
+    for y in (-0.08, -0.25, -0.36):
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.042, minor_radius=0.006, location=(0, y, 0.07), rotation=(math.pi / 2, 0, 0))
+        r = bpy.context.active_object
+        r.data.materials.append(m_body)
+        parts.append(r)
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0.02, 0.06))
+    box = bpy.context.active_object
+    box.scale = (0.06, 0.16, 0.07)
+    L.mod(box, "BEVEL", width=0.008, segments=2)
+    box.data.materials.append(m_body)
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0.0, -0.02, -0.02))
+    ammo = bpy.context.active_object
+    ammo.scale = (0.07, 0.08, 0.07)
+    L.mod(ammo, "BEVEL", width=0.006, segments=2)
+    ammo.data.materials.append(m_body)
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1)
+    for v in bm.verts:
+        v.co = Vector((v.co.x * 0.03, v.co.y * 0.045, v.co.z * 0.12))
+    bmesh.ops.transform(bm, matrix=Matrix.Translation((0, 0.08, -0.02)) @ Matrix.Rotation(-0.3, 4, "X"), verts=bm.verts)
+    grip = L.from_bmesh("grip", bm, smooth=False)
+    L.mod(grip, "BEVEL", width=0.006, segments=2)
+    grip.data.materials.append(m_wood)
+    ob = join("MachineGun", parts + [box, ammo, grip])
+    L.bake(ob, size=512)
+    empty("Muzzle", (0, -0.39, 0.07), ob)
+    L.export_tree("machinegun", ob)
+
+
+def build_armor():
+    """Scrap armour for the crab (level 2, "Краб-воин"): riveted plates following the shell,
+    built in the hero model's own units so it sits on the Body as it is."""
+    H = 0.062
+    m = L.mat_metal("armor_scrap", base="#6a6660", patina="#7a3a18", patina_amt=0.55, rough=0.45, metal_max=0.85)
+    m2 = L.mat_metal("armor_bolt", base="#3a3836", patina="#5a3a20", patina_amt=0.3, rough=0.4)
+    plates = []
+    for i, (y0, y1) in enumerate(((-0.07, -0.025), (-0.02, 0.03), (0.035, 0.08))):
+        bm = bmesh.new()
+        bmesh.ops.create_grid(bm, x_segments=10, y_segments=4, size=0.5)
+        for v in bm.verts:
+            x = v.co.x * 0.2 * (1 - 0.15 * i)
+            y = y0 + (v.co.y + 0.5) * (y1 - y0)
+            z = H + 0.034 - 0.9 * x * x - 0.6 * (y + 0.01) ** 2
+            v.co = Vector((x, y, z))
+        pl = L.from_bmesh(f"plate{i}", bm)
+        L.mod(pl, "SOLIDIFY", thickness=0.004, offset=1)
+        L.apply_all(pl)
+        pl.data.materials.append(m)
+        plates.append(pl)
+        for sx in (-1, 1):
+            for yy in (y0 + 0.008, y1 - 0.008):
+                x = sx * 0.07 * (1 - 0.15 * i)
+                bolt = uv_sphere("bolt", 0.0035, (x, yy, H + 0.038 - 0.9 * x * x - 0.6 * (yy + 0.01) ** 2), seg=8, rings=6)
+                bolt.data.materials.append(m2)
+                plates.append(bolt)
+    for sx in (-1, 1):   # shoulder spikes
+        b = Vector((sx * 0.07, -0.05, H + 0.03))
+        sp = tube("spike", [(b, 0.006), (b + Vector((sx * 0.012, -0.005, 0.02)), 0.001)], seg=8, sub=1)
+        sp.data.materials.append(m2)
+        plates.append(sp)
+    ob = join("Armor", plates)
+    L.bake(ob, size=512)
+    L.export_tree("armor", ob)
+
+
+def build_drone():
+    """SCOUT, the first companion: a small round drone with a ring of four rotors and a blue eye."""
+    m_shell = L.mat_metal("drone_shell", base="#8a8e94", patina="#3a3e44", patina_amt=0.25, rough=0.3, metal_max=0.9)
+    m_dark = L.mat_metal("drone_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.4)
+    body = uv_sphere("Body", 0.12, (0, 0, 0), scale=(1, 1, 0.85), seg=28, rings=18)
+    body.data.materials.append(m_shell)
+    cap = uv_sphere("cap", 0.07, (0, 0.02, 0.09), scale=(1, 1, 0.5), seg=18, rings=10)
+    cap.data.materials.append(m_dark)
+    ant = tube("antenna", [((0.03, 0.05, 0.1), 0.004), ((0.05, 0.08, 0.2), 0.002)], seg=6, sub=1)
+    ant.data.materials.append(m_dark)
+    gun = tube("gun", [((0, -0.08, -0.06), 0.012), ((0, -0.17, -0.07), 0.01)], seg=8, sub=1)
+    gun.data.materials.append(m_dark)
+    body = join("Body", [body, cap, ant, gun])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.21, minor_radius=0.012, location=(0, 0, 0))
+    ring = bpy.context.active_object
+    ring.name = "Ring"
+    ring.data.materials.append(m_dark)
+    struts = [ring]
+    for k in range(4):
+        a = k / 4 * math.tau + math.pi / 4
+        p = Vector((math.cos(a) * 0.21, math.sin(a) * 0.21, 0))
+        st = tube("strut", [(p * 0.5, 0.008), (p, 0.008)], seg=6, sub=1)
+        st.data.materials.append(m_dark)
+        struts.append(st)
+        bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.055, depth=0.006, location=p + Vector((0, 0, 0.02)))
+        r = bpy.context.active_object
+        r.data.materials.append(m_shell)
+        struts.append(r)
+    ring = join("Ring", struts)
+    set_origin(ring, (0, 0, 0))
+    parent(ring, body)
+    parts.append(ring)
+    L.bake_group(parts, "drone", size=512, ao_dist=0.03)
+    eye = uv_sphere("GlowEye", 0.04, (0, -0.105, 0.0), scale=(1, 0.5, 1), seg=14, rings=10)
+    eye.data.materials.append(L.mat_plain("drone_eye", "#4ab8ff", rough=0.2, emission=("#4ab8ff", 12.0)))
+    parent(eye, body)
+    L.export_tree("drone", body)
+
+
+ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar, "knife": build_knife, "pistol": build_pistol,
+          "machinegun": build_machinegun, "armor": build_armor, "drone": build_drone}
 
 
 def main():

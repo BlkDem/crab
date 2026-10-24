@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Crab.Game
 {
-    public sealed class Guardian : MonoBehaviour, IHittable
+    public sealed class Guardian : MonoBehaviour, IHittable, IBoss
     {
         public float maxHealth = 600;
         public float arenaRadius = 15, triggerRadius = 11;
@@ -35,6 +35,7 @@ namespace Crab.Game
         readonly List<Enemy> summoned = new List<Enemy>();
 
         public bool Alive => health != null && !health.Dead;
+        public string Title => "СТРАЖ ЛИМБА";
         public bool Fighting => fighting;
         public float Health01 => health == null ? 1 : health.Value / health.Max;
         public int Phase => phase;
@@ -423,13 +424,5 @@ namespace Crab.Game
                 if (light) light.intensity = 0;
             }
         }
-    }
-
-    /// <summary>The Guardian's weak point: blows here go to its heart in full.</summary>
-    public sealed class GuardianHeart : MonoBehaviour, IHittable
-    {
-        public Guardian guardian;
-        public bool Alive => guardian && guardian.Alive;
-        public void Hit(float damage, Vector3 point, Vector3 dir, GameObject by) => guardian.HitHeart(damage, point);
     }
 }

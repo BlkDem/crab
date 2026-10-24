@@ -10,6 +10,14 @@ namespace Crab.Game
         bool Alive { get; }
     }
 
+    /// <summary>A boss: the interface shows its name and health bar while it fights.</summary>
+    public interface IBoss
+    {
+        string Title { get; }
+        bool Fighting { get; }
+        float Health01 { get; }
+    }
+
     public static class Hits
     {
         public static IHittable Of(Collider c) => c ? c.GetComponentInParent<IHittable>() : null;

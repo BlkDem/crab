@@ -20,7 +20,8 @@ namespace Crab.Game
         float flashA, flashFade = 1, hurtA;
         Color flashColor = Color.white;
         Hero hero;
-        Guardian guardian;
+        IBoss guardian;
+        Label levelText;
         float lastHp = -1;
 
         static VisualElement E(string cls = null, VisualElement parent = null)
@@ -63,6 +64,7 @@ namespace Crab.Game
             var bar = E("hp-bar", hpRow);
             hpFill = E("hp-fill", bar);
             hpText = L("", "hp-text", hpRow);
+            levelText = L("", "level", status);
             var mrow = E("matter-row", status);
             foreach (var m in MatterStore.Kinds)
             {
@@ -135,7 +137,7 @@ namespace Crab.Game
         void Start()
         {
             hero = Hero.Instance;
-            guardian = FindAnyObjectByType<Guardian>();
+            guardian = FindObjectsByType<MonoBehaviour>().OfType<IBoss>().FirstOrDefault();
             if (hero)
             {
                 hero.Power.MenuToggled += ShowCreate;
@@ -202,6 +204,7 @@ namespace Crab.Game
                 hpText.text = $"{Mathf.CeilToInt(hp)}";
             }
             foreach (var kv in matterLabels) kv.Value.text = st.Matter[kv.Key].ToString();
+            levelText.text = st.Flag("spark") ? $"Уровень {st.Level} — {GameState.LevelTitle(st.Level)}" : "";
             var eq = Blueprints.Get(st.Items.Equipped);
             weaponName.text = eq != null ? eq.title : st.Flag("spark") ? "Голые клешни" : "";
             weaponCount.text = eq?.kind == WeaponKind.Gun ? $"патроны: {st.Items.Count(ItemId.Ammo)}" : eq?.kind == WeaponKind.Throw ? $"камней: {st.Items.Count(ItemId.Stone)}" : "";
@@ -210,7 +213,8 @@ namespace Crab.Game
             prompt.style.display = string.IsNullOrEmpty(Story.Prompt) ? DisplayStyle.None : DisplayStyle.Flex;
             bool aim = hero.Combat && (hero.Combat.Aiming || hero.Combat.firstPerson);
             crosshair.style.display = aim ? DisplayStyle.Flex : DisplayStyle.None;
-            bool fight = guardian && guardian.Fighting;
+            bool fight = guardian != null && guardian.Fighting;
+            if (fight) bossName.text = guardian.Title;
             boss.style.display = fight ? DisplayStyle.Flex : DisplayStyle.None;
             if (fight) bossFill.style.width = Length.Percent(100 * guardian.Health01);
             if (create.style.display == DisplayStyle.Flex) RefreshCreate();

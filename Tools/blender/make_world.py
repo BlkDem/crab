@@ -15,6 +15,7 @@ import random
 import sys
 import bmesh
 import bpy
+from mathutils.bvhtree import BVHTree
 from mathutils import Vector, Matrix, noise
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -95,8 +96,9 @@ def wall(name, length, height, thick, mat, holes=(), seed=0, broken=0.6, keep_le
     return ob
 
 
-def ruin_stone(name, base="#7c807d", dark="#2e3331", light="#a3a7a2", moss=0.25):
-    return L.mat_stone(name, base=base, dark=dark, light=light, block=2.6, stretch=(1, 1, 1.9), mortar=0.035, moss=moss, dirt=0.85)
+def ruin_stone(name, base="#73776f", dark="#4f534d", light="#8d918a", moss=0.25):
+    """Weathered masonry: big blocks close in tone (the voronoi of mat_stone, calmed down)."""
+    return L.mat_stone(name, base=base, dark=dark, light=light, block=1.7, stretch=(1, 1, 2.2), mortar=0.03, moss=moss, dirt=0.55)
 
 
 # ----------------------------------------------------------------------------- the beach
@@ -540,12 +542,203 @@ def build_rift():
     L.export_tree("rift", r)
 
 
+# ----------------------------------------------------------------------------- the second circle: Wrath
+def charred_stone(name):
+    """Masonry blackened by fire, the joints still glowing faintly."""
+    return L.mat_stone(name, base="#3a302c", dark="#1c1614", light="#5a4a42", block=1.7, stretch=(1, 1, 2.2), mortar=0.03, moss=0.0, dirt=0.9)
+
+
+def mat_magma(name):
+    t = NT(name)
+    n = t.noise(t.vec(), 1.2, detail=6, rough=0.7, distortion=0.4)
+    col = t.ramp(n, [(0.25, C("#100a08")), (0.55, C("#2c2220")), (0.85, C("#4a3a32"))])
+    cr = t.voronoi(t.vec(), 1.5, feature="DISTANCE_TO_EDGE")
+    col = t.mix(t.ramp(cr, [(0.0, 1.0), (0.035, 0.0)]), col, C("#ff6a10"))
+    col = t.mix(t.math("MULTIPLY", t.ramp(cr, [(0.0, 1.0), (0.08, 0.0)]), 0.45), col, C("#8a2408"))
+    return t.finish(col, rough=0.8, normal=t.bump(n, 1.0, 0.05))
+
+
+def build_volcano():
+    """A volcano for the horizon: a jagged cone with a glowing crater and lava streaks."""
+    r = root("volcano")
+    m = mat_magma("volcano_rock")
+    cone = lathe("cone", [(60, 0), (48, 6), (30, 20), (16, 34), (11, 40), (9, 39), (0, 33)], steps=64)
+    L.mod(cone, "SUBSURF", levels=2)
+    L.apply_all(cone)
+    for v in cone.data.vertices:
+        nz = noise.noise(v.co * 0.08) * 6 + noise.noise(v.co * 0.25) * 1.5
+        d = Vector((v.co.x, v.co.y, 0))
+        if d.length > 1:
+            v.co += d.normalized() * nz * (1 - v.co.z / 45)
+    cone.data.materials.append(m)
+    L.bake(cone, size=1024, metal=False)
+    cone.name = "Volcano"
+    parent(cone, r)
+    crater = uv_sphere("GlowCrater", 9.5, (0, 0, 37), scale=(1, 1, 0.12), seg=24, rings=10)
+    crater.data.materials.append(glow("crater", "#ff7a1a", 20.0))
+    parent(crater, cone)
+    # lava running down from the crater: glowing tubes that follow the slope (a ray down onto the cone)
+    bvh = BVHTree.FromObject(cone, bpy.context.evaluated_depsgraph_get())
+    streaks = []
+    for k in range(6):
+        a = k / 6 * math.tau + random.uniform(-0.3, 0.3)
+        pts = []
+        for j in range(14):
+            f = j / 13
+            rr = 9 + f * 50
+            aa = a + math.sin(f * 7 + k) * 0.06
+            x, y = math.cos(aa) * rr, math.sin(aa) * rr
+            hit = bvh.ray_cast(Vector((x, y, 60)), Vector((0, 0, -1)))
+            if hit[0] is None:
+                break
+            pts.append((hit[0] + hit[1] * 0.4, 0.5 + f * 1.4 * (1 - f * 0.6)))
+        if len(pts) > 3:
+            streaks.append(tube("streak", pts, seg=8, sub=2))
+    if streaks:
+        st = join("GlowStreaks", streaks)
+        st.data.materials.append(glow("lava_streak", "#ff5a14", 8.0))
+        parent(st, cone)
+    L.export_tree("volcano", r)
+
+
+def build_spires():
+    r = root("spires")
+    m = L.mat_basalt("obsidian", moss=0.0)
+    for k in range(4):
+        h = random.uniform(3.5, 8)
+        ob = L.craggy(f"Spire{k}", 1.0, 90 + k, (0.6, 0.6, h / 2), m)
+        for v in ob.data.vertices:   # taper to a point
+            f = max(0.15, 1 - max(0.0, v.co.z) / (h * 0.55))
+            v.co.x *= f
+            v.co.y *= f
+        place(ob, (0, 0, h * 0.45))
+        L.bake(ob, size=512, metal=False)
+        parent(ob, r)
+    for k in range(3):
+        ob = L.craggy(f"Rock{k}", random.uniform(0.8, 1.6), 100 + k, (1.2, 1.0, 0.7), m)
+        L.bake(ob, size=512, metal=False)
+        parent(ob, r)
+    L.export_tree("spires", r)
+
+
+def build_burnt_house():
+    r = root("burnt_house")
+    m = charred_stone("burnt_stone")
+    W, D, H, T = 6.5, 5.5, 4.8, 0.45
+    win = lambda x: (x, 1.4, 1.0, 1.1, True)  # noqa: E731
+    front = wall("front", W, H, T, m, holes=[(0.0, 0.0, 1.5, 1.8, True), win(-2.0), win(2.0)], seed=201, broken=0.7, keep_left=0.5)
+    place(front, (0, -D / 2, 0))
+    back = wall("back", W, H, T, m, holes=[win(0)], seed=202, broken=0.8)
+    place(back, (0, D / 2, 0), (0, 0, math.pi))
+    left = wall("left", D - T, H, T, m, holes=[win(0.5)], seed=203, broken=0.5, keep_left=0.7)
+    place(left, (-W / 2 + T / 2, 0, 0), (0, 0, math.pi / 2))
+    rubble = []
+    m_r = L.mat_basalt("burnt_rubble", moss=0.0)
+    for k in range(10):
+        b = L.rock_obj("rb", random.uniform(0.25, 0.5), 210 + k, (1.2, 1.0, 0.7), 0.3, m_r, sub=3)
+        place(b, (W / 2 - random.uniform(0.3, 2.0), random.uniform(-D / 2 + 0.5, D / 2 - 0.5), 0.15))
+        rubble.append(b)
+    ob = join("BurntHouse", [front, back, left] + rubble)
+    L.bake(ob, size=2048, metal=False)
+    parent(ob, r)
+    L.export_tree("burnt_house", r)
+
+
+def build_burnt_wall():
+    r = root("burnt_wall")
+    w = wall("BurntWall", 8.0, 4.2, 0.6, charred_stone("burnt_wall_stone"), holes=[(0.0, 0.0, 2.2, 2.2, True)], seed=220, broken=0.55, keep_left=0.5)
+    L.bake(w, size=1024, metal=False)
+    parent(w, r)
+    L.export_tree("burnt_wall", r)
+
+
+def build_vent():
+    """A fire vent: a ring of magma rocks around a hole in the ground (the game draws the fire)."""
+    r = root("vent")
+    m = mat_magma("vent_rock")
+    parts = []
+    n = 11
+    for k in range(n):
+        a = k / n * math.tau
+        s = random.uniform(0.5, 0.9)
+        b = L.craggy("rk", s, 300 + k, (0.8, 0.8, 1.5), m)
+        place(b, (math.cos(a) * 2.0, math.sin(a) * 2.0, s * 0.6), (random.uniform(-0.3, 0.3), random.uniform(-0.3, 0.3), a))
+        parts.append(b)
+    ob = join("Vent", parts)
+    L.bake(ob, size=1024, metal=False)
+    parent(ob, r)
+    L.export_tree("vent", r)
+
+
+def build_totem():
+    """A demon totem: a pillar of stacked stones crowned with a horned skull."""
+    r = root("totem")
+    m = charred_stone("totem_stone")
+    mb = L.mat_plain("totem_bone", "#cbbd9a", rough=0.6)
+    parts = []
+    z = 0
+    for k in range(4):
+        s = 0.6 - 0.08 * k
+        b = L.rock_obj("st", s, 320 + k, (1, 1, 0.6), 0.15, m, sub=3)
+        place(b, (0, 0, z + s * 0.5), (0, 0, k))
+        z += s * 0.95
+        parts.append(b)
+    skull = uv_sphere("skull", 0.35, (0, -0.05, z + 0.25), scale=(1, 1.15, 0.9), seg=20, rings=14)
+    skull.data.materials.append(mb)
+    parts.append(skull)
+    for sx in (-1, 1):
+        h = tube("horn", [((sx * 0.25, 0, z + 0.4), 0.09), ((sx * 0.6, 0.1, z + 0.6), 0.06), ((sx * 0.7, 0.0, z + 1.1), 0.01)], seg=8, sub=3)
+        h.data.materials.append(mb)
+        parts.append(h)
+    ob = join("Totem", parts)
+    L.bake(ob, size=1024, metal=False)
+    parent(ob, r)
+    L.export_tree("totem", r)
+
+
+def build_ribs():
+    """The ribcage of some giant beast, half buried in the sand."""
+    r = root("ribs")
+    m = L.mat_plain("bone", "#d6c8a4", rough=0.7)
+    paths = [[((-4.5, 0, 0.3), 0.35), ((0, 0, 0.6), 0.4), ((4.5, 0, 0.3), 0.3)]]
+    for k in range(9):
+        x = -3.8 + k * 0.95
+        for sx in (-1, 1):
+            paths.append([((x, 0, 0.5), 0.14), ((x + 0.2, sx * 1.6, 2.4), 0.11), ((x + 0.4, sx * 2.6, 1.0), 0.07), ((x + 0.45, sx * 2.7, -0.3), 0.04)])
+    ob = sweep("Ribs", paths, seg=8, sub=4)
+    t = NT("ribs_bone")
+    n = t.noise(t.vec(), 6, detail=5)
+    col = t.ramp(n, [(0.3, C("#8a7a5a")), (0.7, C("#e0d4b4"))])
+    ob.data.materials.append(t.finish(col, rough=0.65, normal=t.bump(n, 0.4, 0.02)))
+    L.bake(ob, size=1024, metal=False)
+    parent(ob, r)
+    L.export_tree("ribs", r)
+
+
+def build_burnt_tree():
+    r = root("burnt_tree")
+    paths = [[((0, 0, 0), 0.25), ((0.1, 0, 1.4), 0.2), ((-0.15, 0.1, 2.8), 0.12), ((0.1, 0.0, 3.6), 0.04)]]
+    for k in range(5):
+        h = random.uniform(1.4, 3.0)
+        a = random.uniform(0, math.tau)
+        d = Vector((math.cos(a), math.sin(a), 0))
+        b = Vector((0, 0, h))
+        paths.append([(tuple(b), 0.08), (tuple(b + d * 0.6 + UP * 0.3), 0.05), (tuple(b + d * 1.2 + UP * random.uniform(0.0, 0.6)), 0.012)])
+    ob = sweep("BurntTree", paths, seg=8, sub=4)
+    ob.data.materials.append(L.mat_driftwood("burnt_wood", base="#2a2220", dark="#0c0806", light="#4a3a32", moss=0.0))
+    L.bake(ob, size=512, metal=False)
+    parent(ob, r)
+    L.export_tree("burnt_tree", r)
+
+
 ASSETS = {
     "palm": build_palm, "beach_rocks": build_beach_rocks, "shelter": build_shelter, "driftwood": build_driftwood,
     "seaweed": build_seaweed, "morsel": build_morsel, "gull": build_gull,
     "house0": lambda: build_house(0), "house1": lambda: build_house(1), "tower": build_tower, "wall": build_wall,
     "column": build_column, "rubble": build_rubble, "planks": build_planks, "scrap": build_scrap,
     "deadtree": build_deadtree, "lamp": build_lamp, "beacon": build_beacon, "rift": build_rift,
+    "volcano": build_volcano, "spires": build_spires, "burnt_house": build_burnt_house, "burnt_wall": build_burnt_wall,
+    "vent": build_vent, "totem": build_totem, "ribs": build_ribs, "burnt_tree": build_burnt_tree,
 }
 
 

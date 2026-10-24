@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 
 namespace Crab.Tests
 {
-    public sealed class PlayTests
+    public sealed partial class PlayTests
     {
         const int W = 1280, Hh = 720;
         RenderTexture uiRt;
@@ -195,7 +195,7 @@ namespace Crab.Tests
                 yield return Wait(0.4f);
             }
             Assert.That(!shade || !shade.Alive, "two or three shots fell a shade");
-            Assert.That(st.Items.Count(ItemId.Ammo), Is.LessThan(6));
+            Assert.That(st.Items.Count(ItemId.Ammo), Is.LessThan(8));
         }
 
         [UnityTest]

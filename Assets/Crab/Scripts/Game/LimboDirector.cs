@@ -46,7 +46,7 @@ namespace Crab.Game
                 st.SetFlag("circle1_done");
                 st.Scene = "Limbo";
                 Story.Task("");
-                Story.Title("КОНЕЦ I КРУГА", "II. Круг гнева — скоро");
+                Story.Title("КОНЕЦ I КРУГА", "Впереди — круг гнева");
             };
             if (st.Flag("guardian")) { guardian.gameObject.SetActive(false); }
             hero.Died += () => StartCoroutine(Respawn());

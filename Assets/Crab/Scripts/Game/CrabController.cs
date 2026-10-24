@@ -19,6 +19,9 @@ namespace Crab.Game
         [System.NonSerialized] public bool faceView;
         /// <summary>Slowed (channelling, creating).</summary>
         [System.NonSerialized] public float speedScale = 1;
+        /// <summary>Movement input from a script instead of the player (tests, cutscenes).</summary>
+        [System.NonSerialized] public Vector2? autopilot;
+        [System.NonSerialized] public bool autopilotRun;
 
         CharacterController cc;
         Vector3 velocity, knock;
@@ -49,13 +52,13 @@ namespace Crab.Game
         {
             float dt = Time.deltaTime;
             if (dt <= 0) return;
-            Vector2 input = frozen ? Vector2.zero : Controls.Move.ReadValue<Vector2>();
+            Vector2 input = frozen ? Vector2.zero : autopilot ?? Controls.Move.ReadValue<Vector2>();
             input = Vector2.ClampMagnitude(input, 1);
             float viewYaw = cam ? cam.Yaw : yaw;
             var fwd = Quaternion.Euler(0, viewYaw, 0) * Vector3.forward;
             var right = Quaternion.Euler(0, viewYaw, 0) * Vector3.right;
             var wish = fwd * input.y + right * input.x;
-            bool running = !frozen && Controls.Sprint.IsPressed() && !faceView;
+            bool running = !frozen && (autopilot.HasValue ? autopilotRun : Controls.Sprint.IsPressed()) && !faceView;
             float speed = (running ? run : walk) * speedScale;
             var horiz = Vector3.MoveTowards(new Vector3(velocity.x, 0, velocity.z), wish * speed, (cc.isGrounded ? 30 : 8) * dt);
 

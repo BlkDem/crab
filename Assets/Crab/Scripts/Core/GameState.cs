@@ -34,6 +34,10 @@ namespace Crab.Core
         public event Action<string> FlagSet;
 
         public bool Knows(ItemId id) => known.Contains(id);
+
+        /// <summary>The crab's level (its evolution): 1 an ordinary crab, 2 a crab-warrior in scrap armour.</summary>
+        public int Level => Items.Has(ItemId.ScrapArmor) ? 2 : 1;
+        public static string LevelTitle(int level) => level switch { 1 => "Обычный краб", 2 => "Краб-воин", 3 => "Бронекраб", 4 => "Краб-маг", 5 => "Киберкраб", 9 => "Повелитель материи", _ => "Краб-архитектор" };
         public IEnumerable<Blueprint> Known => Blueprints.All.Where(b => known.Contains(b.id));
 
         public void Learn(ItemId id)

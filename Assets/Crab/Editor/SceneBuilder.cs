@@ -1,5 +1,5 @@
-// Builds the game's scenes from code (Crab > Build Scenes): the menu, the prologue's beach and
-// Limbo. Models come from Tools/blender (GLB through glTFast); the ground, materials, prefabs of
+// Builds the game's scenes from code (Crab > Build Scenes): the menu, the prologue's beach,
+// Limbo and the circle of Wrath. Models come from Tools/blender (GLB through glTFast); the ground, materials, prefabs of
 // the creatures, lights, fog, sky and post-processing are made here. Running it again rebuilds
 // everything — changes that should last belong in this file.
 using System;
@@ -38,8 +38,9 @@ namespace Crab.EditorTools
             lib = BuildLibrary();
             BuildPrologue();
             BuildLimbo();
+            BuildWrath();
             BuildMenu();
-            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
+            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log("Crab scenes built");
         }
@@ -90,20 +91,27 @@ namespace Crab.EditorTools
             if (!l) { l = ScriptableObject.CreateInstance<Library>(); AssetDatabase.CreateAsset(l, path); }
             l.hero = Glb("Hero/hero");
             l.items = new List<Library.Named>();
-            foreach (var (id, file) in new[] { (ItemId.Stick, "stick"), (ItemId.Stone, "stone"), (ItemId.Crowbar, "crowbar"), (ItemId.Knife, "knife"), (ItemId.Pistol, "pistol") })
+            foreach (var (id, file) in new[] { (ItemId.Stick, "stick"), (ItemId.Stone, "stone"), (ItemId.Crowbar, "crowbar"), (ItemId.Knife, "knife"), (ItemId.Pistol, "pistol"), (ItemId.MachineGun, "machinegun") })
                 l.items.Add(new Library.Named { name = id.ToString(), model = Glb("Items/" + file) });
             l.stone = Glb("Items/stone");
             l.gull = Glb("World/gull");
             l.morsel = Glb("World/morsel");
             l.guardian = Glb("Enemies/guardian");
+            l.colossus = Glb("Enemies/colossus");
+            l.armor = Glb("Items/armor");
+            l.drone = Glb("Items/drone");
             l.particle = Mat("ParticleSoft", "Crab/Soft");
             l.particleAdditive = Mat("ParticleGlow", "Crab/Glow", m => m.SetFloat("_Round", 1));
             l.tracer = Mat("Tracer", "Crab/Glow", m => m.SetFloat("_Round", 0));
             l.beam = Mat("Beam", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(0.7f, 1f, 0.85f, 0.85f)); });
             l.rift = Mat("Rift", "Crab/Rift");
             l.water = Mat("Sea", "Crab/Water");
+            l.fire = Mat("Fire", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(1f, 0.55f, 0.15f, 1f)); });
             l.shade = EnemyPrefab<Shade>("Shade", Glb("Enemies/shade"), 0.35f, 1.8f, e => { e.maxHealth = 40; e.speed = 1.8f; e.attackRange = 1.7f; e.damage = 9; e.windup = 0.7f; e.attackCooldown = 1.5f; });
             l.crawler = EnemyPrefab<Crawler>("Crawler", Glb("Enemies/crawler"), 0.35f, 0.6f, e => { e.maxHealth = 28; e.speed = 3.6f; e.attackRange = 1.1f; e.damage = 8; e.windup = 0.35f; e.attackCooldown = 1.2f; });
+            l.imp = EnemyPrefab<Imp>("Imp", Glb("Enemies/imp"), 0.35f, 1.3f, e => { e.maxHealth = 45; e.speed = 3.4f; e.attackRange = 1.4f; e.damage = 11; e.windup = 0.4f; e.attackCooldown = 1.1f; e.aggro = 16; });
+            l.brute = EnemyPrefab<Brute>("Brute", Glb("Enemies/brute"), 0.8f, 3.0f, e => { e.maxHealth = 220; e.speed = 1.7f; e.attackRange = 2.6f; e.damage = 26; e.windup = 1.0f; e.attackCooldown = 2.4f; e.aggro = 14; });
+            l.burrower = EnemyPrefab<Burrower>("Burrower", Glb("Enemies/burrower"), 0.5f, 0.9f, e => { e.maxHealth = 70; e.speed = 1.6f; e.attackRange = 1.6f; e.damage = 14; e.windup = 0.5f; e.attackCooldown = 1.6f; e.aggro = 15; });
             EditorUtility.SetDirty(l);
             return l;
         }
@@ -302,7 +310,7 @@ namespace Crab.EditorTools
             return l;
         }
 
-        static void Environment(Color skyTint, Color ground, float exposure, Color ambSky, Color ambEq, Color ambGround, Color fog, float fogDensity, float sunSize = 0.04f)
+        static void Environment(Color skyTint, Color ground, float exposure, Color ambSky, Color ambEq, Color ambGround, Color fog, float fogDensity, float sunSize = 0.04f, float atmosphere = 0.85f)
         {
             var sky = Mat($"Sky_{EditorSceneManager.GetActiveScene().name}", "Skybox/Procedural", m =>
             {
@@ -310,7 +318,7 @@ namespace Crab.EditorTools
                 m.SetColor("_GroundColor", ground);
                 m.SetFloat("_Exposure", exposure);
                 m.SetFloat("_SunSize", sunSize);
-                m.SetFloat("_AtmosphereThickness", 0.85f);
+                m.SetFloat("_AtmosphereThickness", atmosphere);
             });
             RenderSettings.skybox = sky;
             RenderSettings.ambientMode = AmbientMode.Trilight;
@@ -712,7 +720,7 @@ namespace Crab.EditorTools
             dir.guardian = guardian;
             dir.square = square;
             var exit = RiftAt(root, 0, 88, 180, "exit");
-            exit.leadsTo = "Menu";
+            exit.leadsTo = "Wrath";
             exit.delay = 6;
             exit.membrane.sharedMaterial = Mat("RiftFire", "Crab/Rift", m => { m.SetColor("_Color", new Color(1f, 0.45f, 0.15f)); m.SetColor("_Core", new Color(0.08f, 0.01f, 0)); });
             exit.glow.color = new Color(1f, 0.5f, 0.2f);
@@ -738,6 +746,314 @@ namespace Crab.EditorTools
             r.maxAlive = 3;
             r.spawnEvery = 6;
             return r;
+        }
+
+        // ------------------------------------------------------------------ Wrath
+        const float LavaLevel = -0.3f;
+        static readonly Vector3 LakeIsland = new Vector3(0, 0, 88);
+
+        /// <summary>Where the lava river runs (its middle line, z for a given x).</summary>
+        static float RiverZ(float x) => -12 + 4 * Mathf.Sin(x * 0.06f);
+
+        static float WrathHeight(float x, float z)
+        {
+            // big dunes and ripples on them
+            float h = (Mathf.PerlinNoise(x * 0.03f + 11, z * 0.03f + 5) - 0.5f) * 3.2f;
+            h += (Mathf.PerlinNoise(x * 0.09f + 2, z * 0.09f) - 0.5f) * 0.8f;
+            h += (Mathf.PerlinNoise(x * 0.3f, z * 0.3f) - 0.5f) * 0.1f;
+            // the burnt town and the start lie on calmer ground
+            float town = Mathf.Clamp01(1 - Mathf.Max(Mathf.Abs(x) - 26, Mathf.Abs(z - 22) - 22) / 8f);
+            float start = Mathf.Clamp01(1 - (new Vector2(x, z + 44).magnitude - 6) / 6f);
+            h = Mathf.Lerp(h, h * 0.25f + 0.4f, Mathf.Max(town, start));
+            h = Mathf.Max(h, LavaLevel + 0.35f);   // dry land stays above the lava
+            // the river, with a land bridge at x ≈ 5.5
+            float dr = Mathf.Abs(z - RiverZ(x));
+            float bridge = Mathf.Clamp01((Mathf.Abs(x - 5.5f) - 2.2f) / 2f);
+            h = Mathf.Lerp(h, -1.0f, Mathf.Clamp01((4.6f - dr) / 2f) * bridge);
+            // the lake around the island, crossed by a causeway from the south
+            float dl = new Vector2(x - LakeIsland.x, z - LakeIsland.z).magnitude;
+            float causeway = z > LakeIsland.z ? 1 : Mathf.Clamp01((Mathf.Abs(x) - 2.6f) / 1.5f);
+            float lake = Mathf.Clamp01((dl - 17.5f) / 2.5f) * Mathf.Clamp01((30 - dl) / 4f) * causeway;
+            h = Mathf.Lerp(h, -1.3f, lake);
+            h = Mathf.Lerp(h, 0.3f + (Mathf.PerlinNoise(x * 0.2f, z * 0.2f) - 0.5f) * 0.15f, Mathf.Clamp01((17 - dl) / 2.5f));
+            // the land ends in a sea of lava
+            float ex = Mathf.Max(0, Mathf.Abs(x) - 80), ez = Mathf.Max(0, Mathf.Max(-56 - z, z - 128));
+            h -= (ex + ez) * 0.35f;
+            return h;
+        }
+
+        static void BuildWrath()
+        {
+            var scene = NewScene("Wrath");
+            ground = WrathHeight;
+            var (dc, dn) = TextureGen.Dunes();
+            var dunes = Mat("Dunes", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", dc);
+                m.SetTexture("_BumpMap", dn);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetFloat("_Smoothness", 0.12f);
+            });
+            var lava = Mat("Lava", "Crab/Lava");
+            var root = Group("Wrath");
+            Ground("WrathGround", new Rect(-95, -70, 190, 210), dunes, 0.2f).transform.SetParent(root, false);
+            // one lava surface under everything: it shows wherever the ground dips below it
+            var lavaGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            lavaGo.name = "Lava";
+            UnityEngine.Object.DestroyImmediate(lavaGo.GetComponent<Collider>());
+            lavaGo.transform.SetParent(root, false);
+            lavaGo.transform.SetPositionAndRotation(new Vector3(0, LavaLevel, 30), Quaternion.Euler(90, 0, 0));
+            lavaGo.transform.localScale = new Vector3(900, 900, 1);
+            lavaGo.GetComponent<Renderer>().sharedMaterial = lava;
+            lavaGo.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            lavaGo.AddComponent<LavaZone>().level = LavaLevel;
+            Environment(new Color(1f, 0.5f, 0.28f), new Color(0.22f, 0.08f, 0.04f), 1.35f, new Color(0.78f, 0.52f, 0.42f), new Color(0.74f, 0.46f, 0.3f), new Color(0.36f, 0.18f, 0.1f), new Color(0.66f, 0.38f, 0.24f), 0.0055f, 0.07f, 1.6f);
+            var wrathSun = Sun(new Color(1f, 0.72f, 0.5f), 1.8f, new Vector3(28, 150, 0));
+            RenderSettings.skybox = Mat("Sky_Wrath_Gradient", "Crab/Sky", m =>
+            {
+                m.SetColor("_Top", new Color(0.32f, 0.1f, 0.07f));
+                m.SetColor("_Horizon", new Color(0.95f, 0.5f, 0.27f));
+                m.SetColor("_Bottom", new Color(0.3f, 0.1f, 0.05f));
+                m.SetColor("_Sun", new Color(1f, 0.7f, 0.4f));
+                m.SetVector("_SunDir", -wrathSun.transform.forward);
+            });
+            Post("Wrath", 0.25f, 8, new Color(1f, 0.95f, 0.88f), 1.2f, 0.3f, 12);
+            // the lava's glow from below
+            AddLight(root, "LakeGlow", LakeIsland + new Vector3(0, 1, 24), new Color(1f, 0.45f, 0.15f), 4, 40);
+
+            // the horizon: volcanoes in the lava sea
+            var volcano = Glb("World/volcano");
+            foreach (var (x, z, s) in new[] { (-150f, 190f, 1.4f), (170f, 140f, 1.1f), (40f, 260f, 1.8f), (-190f, 20f, 1.0f), (200f, -40f, 0.9f) })
+            {
+                var v = Place(volcano, root, x, z, R(0, 360), s, collider: "none", sink: 0);
+                v.transform.position = new Vector3(x, LavaLevel - 2, z);
+                AddLight(v.transform, "Crater", new Vector3(x, LavaLevel + 40 * s, z), new Color(1f, 0.45f, 0.15f), 6, 90 * s);
+                Smoke(v.transform, new Vector3(x, LavaLevel + 38 * s, z), s);
+            }
+
+            var props = Group("Scenery", root);
+            var spires = Glb("World/spires");
+            // places that stay open: the start, the beacons, the vents, the way north
+            var clear = new[] { new Vector2(0, -46), new Vector2(3, -43), new Vector2(0, 10), new Vector2(3, 54), new Vector2(-40, 22), new Vector2(42, 30), new Vector2(-14, 48) };
+            bool Clear(float x, float z) => clear.All(c => (c - new Vector2(x, z)).magnitude > 9) && Mathf.Abs(x - 4) > 5;
+            for (int i = 0; i < 26; i++)
+            {
+                float x = R(-75, 75), z = R(-50, 70);
+                if (Mathf.Abs(x) < 30 && z > -6 && z < 48) continue;   // not in the town
+                if (Mathf.Abs(z - RiverZ(x)) < 6 || !Clear(x, z)) continue;
+                Variant(spires, $"Spire{rnd.Next(4)}", props, x, z, R(0, 360), R(0.8f, 1.6f));
+            }
+            // black spires ring the lake
+            for (int i = 0; i < 14; i++)
+            {
+                float a = i / 14f * Mathf.PI * 2 + R(-0.1f, 0.1f);
+                if (Mathf.Abs(Mathf.Sin(a) + 1) < 0.3f) continue;   // the causeway comes from the south
+                float r = R(32, 38);
+                Variant(spires, $"Spire{rnd.Next(4)}", props, LakeIsland.x + Mathf.Cos(a) * r, LakeIsland.z + Mathf.Sin(a) * r, R(0, 360), R(1.2f, 2.2f));
+            }
+            for (int i = 0; i < 8; i++)
+            {
+                float a = i / 8f * Mathf.PI * 2 + 0.3f;
+                if (Mathf.Abs(Mathf.Sin(a) + 1) < 0.4f) continue;
+                Variant(spires, $"Rock{rnd.Next(3)}", props, LakeIsland.x + Mathf.Cos(a) * 15.5f, LakeIsland.z + Mathf.Sin(a) * 15.5f, R(0, 360), R(0.8f, 1.2f));
+            }
+            var btree = Glb("World/burnt_tree");
+            for (int i = 0; i < 18; i++)
+            {
+                float x = R(-70, 70), z = R(-50, 65);
+                if (Mathf.Abs(z - RiverZ(x)) < 6 || !Clear(x, z)) continue;
+                Place(btree, props, x, z, R(0, 360), R(0.8f, 1.3f), collider: "box");
+            }
+            var totem = Glb("World/totem");
+            foreach (var (x, z) in new[] { (-4f, -30f), (5f, -24f), (-3f, 50f), (4f, 55f), (-3.5f, 58f) })
+                Place(totem, props, x, z, R(0, 360), R(0.9f, 1.1f), collider: "box");
+
+            // the burnt town
+            var town = Group("Town", root);
+            var bh = Glb("World/burnt_house");
+            var bw = Glb("World/burnt_wall");
+            foreach (var (x, z, yaw) in new[] { (-12f, 4f, 90f), (13f, 8f, -90f), (-14f, 18f, 85f), (12f, 22f, -95f), (-13f, 33f, 95f), (14f, 36f, -80f), (-24f, 12f, 30f), (25f, 28f, -20f), (-22f, 40f, 160f) })
+                Place(bh, town, x + R(-1, 1), z + R(-1, 1), yaw + R(-8, 8), 1, sink: 0.15f);
+            foreach (var (x, z, yaw) in new[] { (-6f, -2f, 15f), (7f, 14f, -70f), (-28f, 26f, 90f), (28f, 14f, 80f), (-7f, 42f, 5f), (8f, 44f, -10f) })
+                Place(bw, town, x, z, yaw, 1, sink: 0.15f);
+
+            // start, beacons, director
+            var start = Group("Start", root);
+            start.position = new Vector3(0, H(0, -46), -46);
+            var hero = BuildHero(start.position, 0, out _);
+            Setup("Wrath", start);
+            var dir = new GameObject("Wrath").AddComponent<WrathDirector>();
+            dir.beacons.Add(BeaconAt(root, 3, -43, -30, "wrath_gate"));
+            dir.beacons.Add(BeaconAt(root, 0, 10, 180, "wrath_town"));
+            dir.beacons.Add(BeaconAt(root, 3, 54, 180, "wrath_lake"));
+            foreach (var (x, z) in new[] { (-3f, -27f), (4f, -25f), (0f, -21f) })
+            {
+                var s = (GameObject)PrefabUtility.InstantiatePrefab(lib.imp);
+                s.transform.position = new Vector3(x, H(x, z), z);
+                s.transform.rotation = Quaternion.Euler(0, 180, 0);
+                dir.firstImps.Add(s.GetComponent<Enemy>());
+            }
+
+            // matter: scrap in the town (teaches the machine gun), stone, bones (organic)
+            void Source(GameObject model, float x, float z, Matter kind, int amount, float regrow, ItemId[] teaches, string thought, float scale = 1, float reach = 2.6f)
+            {
+                var go = Place(model, root, x, z, R(0, 360), scale, collider: "none", sink: 0.05f);
+                var ms = go.AddComponent<MatterSource>();
+                ms.kind = kind;
+                ms.amount = amount;
+                ms.regrow = regrow;
+                ms.teaches = teaches.ToList();
+                ms.firstThought = thought;
+                ms.reach = reach;
+            }
+            const string scrapT = "Здесь металла — горы. Я вижу оружие, которое не умолкает. Пулемёт!";
+            var scrap = Glb("World/scrap");
+            var rubble = Glb("World/rubble");
+            foreach (var (x, z) in new[] { (-5f, 6f), (6f, 3f), (-8f, 20f), (8f, 28f), (-4f, 36f), (20f, 18f), (-19f, 30f), (2f, -32f) })
+                Source(scrap, x, z, Matter.Metal, 9, 40, new[] { ItemId.MachineGun }, scrapT);
+            foreach (var (x, z) in new[] { (-7f, -36f), (9f, -6f), (-10f, 12f), (16f, 40f), (-30f, 50f), (34f, 44f) })
+                Source(rubble, x, z, Matter.Mineral, 6, 40, new ItemId[0], null);
+            foreach (var (x, z, yaw) in new[] { (-20f, -30f, 30f), (24f, -2f, -50f), (-36f, 36f, 80f) })
+            {
+                var ribs = Place(Glb("World/ribs"), root, x, z, yaw, 1, collider: "none", sink: 0.2f);
+                var ms = ribs.AddComponent<MatterSource>();
+                ms.kind = Matter.Organic;
+                ms.amount = 10;
+                ms.regrow = 45;
+                ms.reach = 4;
+            }
+            // more for the boss fight, on the island
+            foreach (var (x, z) in new[] { (-9f, 82f), (9f, 82f), (-6f, 96f), (7f, 95f) }) Source(scrap, x, z, Matter.Metal, 6, 20, new ItemId[0], null);
+            foreach (var (x, z) in new[] { (0f, 75f), (-12f, 90f), (12f, 89f) }) Source(rubble, x, z, Matter.Mineral, 4, 22, new ItemId[0], null);
+
+            // the fire vents
+            dir.vents.Add(VentAt(root, -40, 22, "west", new[] { lib.imp, lib.imp, lib.burrower }));
+            dir.vents.Add(VentAt(root, 42, 30, "east", new[] { lib.imp, lib.burrower, lib.brute }));
+            dir.vents.Add(VentAt(root, -14, 48, "north", new[] { lib.imp, lib.brute, lib.burrower, lib.imp }));
+
+            // the Colossus stands in the lava north of the island
+            var c = (GameObject)PrefabUtility.InstantiatePrefab(lib.colossus);
+            var cRoot = new GameObject("Colossus");
+            cRoot.transform.position = new Vector3(LakeIsland.x, H(LakeIsland.x, LakeIsland.z + 24), LakeIsland.z + 24);
+            cRoot.transform.rotation = Quaternion.Euler(0, 180, 0);
+            c.transform.SetParent(cRoot.transform, false);
+            var capsule = cRoot.AddComponent<CapsuleCollider>();
+            capsule.center = new Vector3(0, 7, 0);
+            capsule.height = 10;
+            capsule.radius = 1.5f;   // the chest core (0.75 m) stands out in front of it
+            var colossus = cRoot.AddComponent<Colossus>();
+            colossus.model = c.transform;
+            var arena = Group("Arena", root);
+            arena.position = new Vector3(LakeIsland.x, H(LakeIsland.x, LakeIsland.z), LakeIsland.z);
+            colossus.arena = arena;
+            colossus.glow = AddLight(cRoot.transform, "CoreGlow", cRoot.transform.position + new Vector3(0, 8, -3), new Color(1f, 0.55f, 0.2f), 3, 25);
+            dir.colossus = colossus;
+            var exit = RiftAt(root, 0, LakeIsland.z + 9, 180, "wrath_exit");
+            exit.leadsTo = "Menu";
+            exit.delay = 6;
+            exit.membrane.sharedMaterial = Mat("RiftGold", "Crab/Rift", m => { m.SetColor("_Color", new Color(1f, 0.8f, 0.3f)); m.SetColor("_Core", new Color(0.1f, 0.05f, 0)); });
+            exit.glow.color = new Color(1f, 0.8f, 0.35f);
+            dir.exit = exit;
+            Ui<GameUI>();
+            SaveScene(scene, "Wrath");
+        }
+
+        /// <summary>A slow column of dark smoke over a volcano.</summary>
+        static void Smoke(Transform parent, Vector3 at, float scale)
+        {
+            var go = new GameObject("Smoke");
+            go.transform.SetParent(parent, false);
+            go.transform.SetPositionAndRotation(at, Quaternion.Euler(-90, 0, 0));
+            var ps = go.AddComponent<ParticleSystem>();
+            var main = ps.main;
+            main.loop = true;
+            main.prewarm = true;
+            main.startLifetime = 40;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(3f * scale, 5f * scale);
+            main.startSize = new ParticleSystem.MinMaxCurve(14 * scale, 24 * scale);
+            main.startRotation = new ParticleSystem.MinMaxCurve(0, Mathf.PI * 2);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.16f, 0.1f, 0.08f, 0.7f), new Color(0.3f, 0.2f, 0.16f, 0.5f));
+            main.maxParticles = 120;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            var em = ps.emission;
+            em.rateOverTime = 2.5f;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 8;
+            shape.radius = 5 * scale;
+            var vel = ps.velocityOverLifetime;
+            vel.enabled = true;
+            vel.space = ParticleSystemSimulationSpace.World;
+            vel.x = new ParticleSystem.MinMaxCurve(2.5f, 4f);
+            vel.y = new ParticleSystem.MinMaxCurve(0f, 0f);
+            vel.z = new ParticleSystem.MinMaxCurve(0.5f, 1f);
+            var size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1, AnimationCurve.Linear(0, 0.6f, 1, 2.5f));
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            var g = new Gradient();
+            g.SetKeys(new[] { new GradientColorKey(new Color(0.9f, 0.5f, 0.3f), 0), new GradientColorKey(Color.white, 0.15f), new GradientColorKey(Color.white, 1) },
+                new[] { new GradientAlphaKey(0, 0), new GradientAlphaKey(1, 0.1f), new GradientAlphaKey(0.6f, 0.6f), new GradientAlphaKey(0, 1) });
+            col.color = g;
+            go.GetComponent<ParticleSystemRenderer>().sharedMaterial = lib.particle;
+        }
+
+        static Rift VentAt(Transform parent, float x, float z, string id, GameObject[] pool)
+        {
+            var go = Place(Glb("World/vent"), parent, x, z, R(0, 360), 0.85f);
+            var v = go.AddComponent<Rift>();
+            v.id = id;
+            v.reach = 3.6f;
+            v.pool = pool;
+            v.sealWord = "Заглушить огненное жерло";
+            v.tint = new Color(1f, 0.55f, 0.2f);
+            v.spawnAhead = 0;
+            v.pointHeight = 0.8f;
+            v.budget = 9;
+            v.maxAlive = 3;
+            v.spawnEvery = 5.5f;
+            v.wakeRange = 24;
+            v.glow = AddLight(go.transform, "Glow", go.transform.position + Vector3.up * 1.5f, new Color(1f, 0.5f, 0.18f), 2.5f, 14);
+            v.fire = Fire(go.transform);
+            return v;
+        }
+
+        /// <summary>A column of fire and sparks going up from a vent.</summary>
+        static ParticleSystem Fire(Transform parent)
+        {
+            var go = new GameObject("Fire");
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = new Vector3(0, 0.2f, 0);
+            go.transform.rotation = Quaternion.Euler(-90, 0, 0);
+            var ps = go.AddComponent<ParticleSystem>();
+            var main = ps.main;
+            main.loop = true;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.6f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(2.5f, 5f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.4f, 1.1f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.6f, 0.2f, 0.9f), new Color(1f, 0.3f, 0.08f, 0.7f));
+            main.maxParticles = 400;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.gravityModifier = -0.15f;
+            var em = ps.emission;
+            em.rateOverTime = 45;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 12;
+            shape.radius = 0.7f;
+            var size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1, AnimationCurve.EaseInOut(0, 1, 1, 0.1f));
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            var g = new Gradient();
+            g.SetKeys(new[] { new GradientColorKey(new Color(1f, 0.85f, 0.4f), 0), new GradientColorKey(new Color(1f, 0.35f, 0.08f), 0.5f), new GradientColorKey(new Color(0.3f, 0.1f, 0.05f), 1) },
+                new[] { new GradientAlphaKey(0, 0), new GradientAlphaKey(1, 0.1f), new GradientAlphaKey(0.6f, 0.6f), new GradientAlphaKey(0, 1) });
+            col.color = g;
+            var r = go.GetComponent<ParticleSystemRenderer>();
+            r.sharedMaterial = lib.particleAdditive;
+            return ps;
         }
 
         // ------------------------------------------------------------------ menu

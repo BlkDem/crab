@@ -1,5 +1,5 @@
-// Ground textures made in code: the warm rippled sand of the beach and the grey ash of Limbo with
-// old cobbles showing through; each with a normal map. Saved as PNG assets (tileable).
+// Ground textures made in code: the warm rippled sand of the beach, the grey ash of Limbo with
+// old cobbles showing through, the orange dunes of Wrath; each with a normal map. Saved as PNG assets (tileable).
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -91,6 +91,26 @@ namespace Crab.EditorTools
             c = Color.Lerp(c, new Color(0.16f, 0.24f, 0.18f), moss * 0.6f);
             return (c, h);
         }, 2.2f);
+
+        public static (Texture2D albedo, Texture2D normal) Dunes() => Make("dunes", 1024, (u, v) =>
+        {
+            // wind ripples on orange sand; in patches the sand gives way to cracked, scorched clay
+            float n = Fbm(u, v, 5, 61, 6);
+            float ripple = Mathf.Sin((u * 14 + v * 6 + Fbm(u, v, 3, 67, 3) * 2.5f) * Mathf.PI * 2) * 0.5f + 0.5f;
+            float grain = Hash((int)(u * 1024), (int)(v * 1024), 71);
+            float edge = Cells(u, v, 9, 73, out float id);
+            float crack = 1 - Mathf.SmoothStep(0.0f, 0.05f, edge);
+            float clay = Mathf.SmoothStep(0.5f, 0.66f, Fbm(u, v, 3, 79, 2));
+            float h = Mathf.Lerp(n * 0.5f + ripple * 0.35f + grain * 0.15f, 0.7f - crack * 0.6f + n * 0.15f, clay);
+            var sand = Color.Lerp(new Color(0.62f, 0.33f, 0.17f), new Color(0.86f, 0.55f, 0.3f), n * 0.6f + ripple * 0.4f);
+            sand = Color.Lerp(sand, new Color(0.4f, 0.2f, 0.12f), grain > 0.94f ? 0.6f : 0);
+            var dry = Color.Lerp(new Color(0.42f, 0.22f, 0.14f), new Color(0.6f, 0.34f, 0.2f), id * 0.5f + n * 0.5f);
+            dry = Color.Lerp(dry, new Color(0.12f, 0.06f, 0.04f), crack);
+            var c = Color.Lerp(sand, dry, clay);
+            float soot = Mathf.SmoothStep(0.64f, 0.8f, Fbm(u, v, 4, 83, 4));
+            c = Color.Lerp(c, new Color(0.14f, 0.1f, 0.09f), soot * 0.55f);
+            return (c, h);
+        }, 1.8f);
 
         static (Texture2D, Texture2D) Make(string name, int size, System.Func<float, float, (Color, float)> f, float bump)
         {

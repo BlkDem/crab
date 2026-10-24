@@ -460,6 +460,43 @@ namespace Crab.Game
                     return Pad(new[] { new[] { 0, 4, 7, 11 }, new[] { -3, 0, 4, 7 }, new[] { 5, 9, 12, 16 }, new[] { 2, 5, 9, 12 } }, 57, 4, false);
                 case "music_limbo":
                     return Pad(new[] { new[] { 0, 3, 7 }, new[] { -2, 3, 5 }, new[] { 0, 3, 8 }, new[] { -4, 0, 3 } }, 45, 6, true);
+                case "music_wrath":
+                {
+                    // the dark pad of Limbo a step lower, in the Phrygian, under slow war drums
+                    d = Pad(new[] { new[] { 0, 3, 7 }, new[] { 1, 5, 8 }, new[] { 0, 3, 7 }, new[] { -2, 1, 5 } }, 40, 4, true);
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        float beat = t % 2f, b2 = (t + 0.75f) % 2f;
+                        d[i] += Mathf.Sin(2 * Mathf.PI * (48 - 40 * beat) * beat) * Env(beat, 0.003f, 0.3f) * 0.45f
+                              + Mathf.Sin(2 * Mathf.PI * (52 - 40 * b2) * b2) * Env(b2, 0.003f, 0.2f) * 0.25f;
+                    }
+                    Normalize(d, 0.55f);
+                    return d;
+                }
+                case "lava":
+                {
+                    // a low rumble with bubbles bursting in it
+                    d = Buf(6);
+                    var lp = new LP();
+                    var bp = new BP();
+                    float pop = -1, pf = 200;
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        if (pop < 0 && rng.NextDouble() < 3.0 / Rate) { pop = 0; pf = 120 + (float)rng.NextDouble() * 260; }
+                        float b = 0;
+                        if (pop >= 0)
+                        {
+                            b = Mathf.Sin(2 * Mathf.PI * pf * (1 + pop * 6) * pop) * Env(pop, 0.002f, 0.06f);
+                            pop += 1f / Rate;
+                            if (pop > 0.25f) pop = -1;
+                        }
+                        d[i] = lp.Run(N(), 120) * 3 + bp.Run(N(), 400, 2) * 0.2f + b * 0.5f;
+                    }
+                    Normalize(d, 0.6f);
+                    return Seamless(d);
+                }
                 case "music_boss":
                 {
                     d = Buf(8);

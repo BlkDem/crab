@@ -11,7 +11,7 @@ namespace Crab.Core
         public ItemId Equipped { get; private set; }
         public event Action Changed;
 
-        public const int MaxStones = 8, MaxAmmo = 60;
+        public const int MaxStones = 8, MaxAmmo = 120;
 
         public int Count(ItemId id) => counts.TryGetValue(id, out int n) ? n : 0;
         public bool Has(ItemId id) => Count(id) > 0;

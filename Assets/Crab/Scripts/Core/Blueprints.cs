@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Crab.Core
 {
-    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo }
+    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone }
 
     public enum WeaponKind { None, Melee, Throw, Gun }
 
@@ -21,6 +21,12 @@ namespace Crab.Core
         public bool stack;
         public WeaponKind kind;
         public float damage, range, cooldown;
+        /// <summary>Fires while the button is held.</summary>
+        public bool auto;
+        /// <summary>Worn on the body (armour) rather than held.</summary>
+        public bool armor;
+        /// <summary>Becomes a companion beside the crab (a drone).</summary>
+        public bool companion;
     }
 
     public static class Blueprints
@@ -37,7 +43,11 @@ namespace Crab.Core
                 kind = WeaponKind.Melee, damage = 16, range = 1.0f, cooldown = 0.3f },
             new Blueprint { id = ItemId.Pistol, title = "Самодельный пистолет", hint = "Стреляет тем, что я из металла сделаю.", cost = new Cost(1, 2, 5),
                 kind = WeaponKind.Gun, damage = 22, range = 40, cooldown = 0.32f },
-            new Blueprint { id = ItemId.Ammo, title = "Патроны", hint = "Шесть штук из одного куска металла.", cost = new Cost(0, 0, 1), yield = 6, stack = true },
+            new Blueprint { id = ItemId.Ammo, title = "Патроны", hint = "Восемь штук из одного куска металла.", cost = new Cost(0, 0, 1), yield = 8, stack = true },
+            new Blueprint { id = ItemId.MachineGun, title = "Пулемёт", hint = "Настоящее оружие. Держи — и он стреляет, пока есть патроны.", cost = new Cost(1, 4, 10),
+                kind = WeaponKind.Gun, damage = 9, range = 45, cooldown = 0.09f, auto = true },
+            new Blueprint { id = ItemId.ScrapArmor, title = "Броня из металлолома", hint = "Пластины на панцирь. Удары держит втрое легче… ну, почти.", cost = new Cost(0, 2, 12), armor = true },
+            new Blueprint { id = ItemId.ScoutDrone, title = "Дрон-разведчик SCOUT", hint = "Маленький, летучий, мой. Стреляет по тем, кто рядом.", cost = new Cost(1, 2, 8), companion = true },
         };
 
         public static Blueprint Get(ItemId id) => All.FirstOrDefault(b => b.id == id);

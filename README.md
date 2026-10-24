@@ -9,6 +9,7 @@ Blender-скриптов, образы — по концепт-листу (`Docs
 |---|---|
 | 0. Основа | проект, git + LFS, конвейер Blender → GLB → Unity (glTFast), сцены собираются кодом |
 | 1. Пролог и I круг — Лимб | пляж: еда, чайка (спрятаться под плитой), волна, гроза, Божья Искра, первые мысли, втягивание материи, первая палка, разлом. Лимб: мёртвый город в тумане, тени и падальщики, создание предметов (палка, камень, лом, нож, пистолет, патроны) из органики, минерала и металла, три разлома, маяки-сохранения, Страж Лимба — бой от первого лица (луч фонаря, удар с ударной волной, призыв теней, сердце-уязвимость) |
+| 2. II круг — Гнев | оранжевые дюны, реки и озеро лавы (обжигает и отбрасывает), вулканы с потоками лавы и дымом, сгоревший город. Бесы (прыжок, удар когтями), землерои (идут под песком, выныривают и кусают), громилы (удар по земле). Пулемёт (автоматический огонь), броня из металлолома (уровень 2 — Краб-воин), дрон SCOUT — первый спутник, сам стреляет по демонам. Три огненных жерла. Огненный Колосс — бой от первого лица: три ядра раскаляются после его атак, залпы огненных шаров с метками на земле, лавовая волна, извержения, призыв бесов |
 
 ## Управление
 
@@ -23,13 +24,14 @@ Tab — создать (круг чертежей) · 1–5, X/Z — оружи�
 Assets/Crab/
   Scripts/Core/   ядро без Unity: материя, чертежи, инвентарь, здоровье, сохранение (тесты EditMode)
   Scripts/Game/   краб (CrabRig — процедурная анимация частей, CrabController, CameraRig, HeroCombat,
-                  MatterPower), враги (Shade, Crawler, Rift, Guardian), сюжет (Prologue, Limbo),
+                  MatterPower), враги (Shade, Crawler, Imp, Brute, Burrower, Rift, Guardian, Colossus),
+                  спутник (Drone), лава (LavaZone), сюжет (Prologue, Limbo, Wrath),
                   интерфейс (GameUI, MainMenu), звук (Sfx — синтез), эффекты (Fx)
   Editor/         SceneBuilder (Crab → Build Scenes), TextureGen, GroundMesh, Snapshot
-  Shaders/        Water, Rift, Glow, Soft
+  Shaders/        Water, Rift, Glow, Soft, Lava, Sky
   UI/             стили (Crab.uss), шрифты Russo One и Nunito (OFL)
   Models/         GLB из Tools/blender
-  Tests/          EditMode (ядро) и PlayMode (пролог, бой, разлом, Страж — в настоящих сценах)
+  Tests/          EditMode (ядро) и PlayMode (пролог, бой, разлом, Страж, пулемёт, жерла, дрон, Колосс — в настоящих сценах)
 Tools/blender/    lib.py (общие помощники, запекание процедурных материалов в PBR), make_hero.py,
                   make_items.py, make_enemies.py, make_world.py, preview.py
 ```
@@ -37,7 +39,7 @@ Tools/blender/    lib.py (общие помощники, запекание пр
 - Модели: `blender -b -P Tools/blender/make_world.py -- Assets/Crab/Models/World [имя ...]` (так же hero, items,
   enemies). Каждый ассет — процедурная геометрия + процедурные материалы, запечённые в текстуры (цвет с AO,
   нормали, шероховатость). У существ части с началом координат в суставах — их двигает код.
-- Сцены (`Menu`, `Prologue`, `Limbo`) строит `Crab → Build Scenes` (или `-executeMethod Crab.EditorTools.SceneBuilder.BuildAll`);
+- Сцены (`Menu`, `Prologue`, `Limbo`, `Wrath`) строит `Crab → Build Scenes` (или `-executeMethod Crab.EditorTools.SceneBuilder.BuildAll`);
   руками сцены не правятся — правки вносятся в генератор.
 - Снимки: `-executeMethod Crab.EditorTools.Snapshot.All` → `Docs/shots`.
 - Тесты: `-runTests -testPlatform EditMode` и `PlayMode` (PlayMode пишет снимки с интерфейсом в `Docs/shots/play-*.png`).

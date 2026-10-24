@@ -40,7 +40,7 @@ namespace Crab.Tests
             s.Learn(ItemId.Stone);
             s.Matter.Set(0, 30, 30);
             s.Create(ItemId.Ammo);
-            Assert.That(s.Items.Count(ItemId.Ammo), Is.EqualTo(6));
+            Assert.That(s.Items.Count(ItemId.Ammo), Is.EqualTo(8));
             for (int i = 0; i < 12; i++) s.Create(ItemId.Stone);
             Assert.That(s.Items.Count(ItemId.Stone), Is.EqualTo(Inventory.MaxStones));
             Assert.That(s.Matter[Matter.Mineral], Is.EqualTo(30 - Inventory.MaxStones));
@@ -82,6 +82,20 @@ namespace Crab.Tests
             Assert.That(copy.Items.Count(ItemId.Ammo), Is.EqualTo(12));
             Assert.That(copy.Items.Equipped, Is.EqualTo(ItemId.Pistol));
             Assert.That(copy.Health.Value, Is.EqualTo(70).Within(0.01));
+        }
+
+        [Test]
+        public void ArmourMakesAWarrior()
+        {
+            var s = new GameState();
+            Assert.That(s.Level, Is.EqualTo(1));
+            s.Learn(ItemId.ScrapArmor);
+            s.Matter.Set(0, 10, 20);
+            Assert.That(s.Create(ItemId.ScrapArmor), Is.EqualTo(GameState.CreateResult.Done));
+            Assert.That(s.Level, Is.EqualTo(2));
+            Assert.That(GameState.LevelTitle(2), Is.EqualTo("Краб-воин"));
+            Assert.That(s.Items.Equipped, Is.EqualTo(ItemId.None), "armour is worn, not held");
+            Assert.That(s.Create(ItemId.ScrapArmor), Is.EqualTo(GameState.CreateResult.Full));
         }
 
         [Test]

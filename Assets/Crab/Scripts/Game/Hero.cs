@@ -34,7 +34,43 @@ namespace Crab.Game
         void Start()
         {
             ShowSpark(State.Flag("spark"));
+            State.Items.Changed += RefreshGear;
+            RefreshGear();
         }
+
+        void OnDestroy()
+        {
+            if (GameSession.Instance) State.Items.Changed -= RefreshGear;
+        }
+
+        GameObject armor;
+        public Drone Drone { get; private set; }
+
+        /// <summary>What the crab wears and who flies with it: the scrap armour on the shell, the drone.</summary>
+        void RefreshGear()
+        {
+            var lib = Library.Current;
+            bool wear = State.Items.Has(ItemId.ScrapArmor);
+            if (wear && !armor && lib && lib.armor && Rig.body)
+            {
+                armor = Instantiate(lib.armor, Rig.body, false);
+                armor.name = "Armor";
+                foreach (var c in armor.GetComponentsInChildren<Collider>()) Destroy(c);
+            }
+            if (!wear && armor) Destroy(armor);
+            bool fly = State.Items.Has(ItemId.ScoutDrone);
+            if (fly && !Drone && lib && lib.drone)
+            {
+                var go = Instantiate(lib.drone, transform.position + Vector3.up * 1.2f + transform.right * 0.6f, Quaternion.identity);
+                go.name = "SCOUT";
+                foreach (var c in go.GetComponentsInChildren<Collider>()) Destroy(c);
+                Drone = go.AddComponent<Drone>();
+                Drone.hero = this;
+            }
+        }
+
+        /// <summary>The armour takes a share of every blow.</summary>
+        public float Armor => State.Items.Has(ItemId.ScrapArmor) ? 0.65f : 1f;
 
         public void ShowSpark(bool on)
         {
@@ -58,7 +94,7 @@ namespace Crab.Game
         {
             if (!Alive || iframes > 0 || Invulnerable) return;
             iframes = 0.45f;
-            bool died = State.Health.Hurt(damage);
+            bool died = State.Health.Hurt(damage * Armor);
             dir.y = 0;
             Controller.Knock(dir.normalized * (died ? 2 : 4) + Vector3.up * 0.5f);
             Rig.Play(ClawPose.Hurt, 0.4f);
@@ -81,10 +117,14 @@ namespace Crab.Game
         {
             var setup = FindAnyObjectByType<SceneSetup>();
             Transform at = setup ? setup.start : null;
-            foreach (var b in FindObjectsByType<Beacon>(FindObjectsSortMode.None))
+            foreach (var b in FindObjectsByType<Beacon>())
                 if (b.id == State.Checkpoint) at = b.transform;
             var pos = at ? at.position + at.forward * 1.6f : Vector3.zero;
             Controller.Teleport(pos, at ? at.eulerAngles.y : 0);
+            // a boss fight may have left the view in the crab's eyes
+            Combat.firstPerson = false;
+            Controller.faceView = false;
+            Cam.SetMode(CamMode.Third);
             Cam.Face(at ? at.eulerAngles.y : 0);
             State.Health.Reset(100);
             Controller.frozen = false;

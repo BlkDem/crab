@@ -24,7 +24,7 @@ namespace Crab.Game
             s.State.Health.Heal(1000);
             s.Save();
             Sfx.Play("beacon", transform.position);
-            Fx.Burst(transform.position + Vector3.up * 1.4f, new Color(0.5f, 1f, 0.7f), 40, 2f, 0.12f);
+            Fx.Burst(transform.position + Vector3.up * 1.4f, glow ? glow.color : new Color(0.5f, 1f, 0.7f), 40, 2f, 0.12f);
             Story.Hint(first ? "Маяк зажжён. Здесь я вернусь, если паду." : "Силы восстановлены. Игра сохранена.");
         }
 

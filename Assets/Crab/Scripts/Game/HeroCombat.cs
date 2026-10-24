@@ -7,6 +7,8 @@ using UnityEngine;
 
 namespace Crab.Game
 {
+    // after the rig has posed the claws, so the held gun can be turned onto the target
+    [DefaultExecutionOrder(100)]
     public sealed class HeroCombat : MonoBehaviour
     {
         public Hero hero;
@@ -89,7 +91,8 @@ namespace Crab.Game
                 pendingThrow -= dt;
                 if (pendingThrow < 0) ThrowStone(pendingBp);
             }
-            if (Controls.Attack.WasPressedThisFrame()) Fire();
+            // automatic weapons fire while the button is held
+            if (bp != null && bp.auto ? Controls.Attack.IsPressed() : Controls.Attack.WasPressedThisFrame()) Fire();
         }
 
         /// <summary>Strike, throw or shoot with what is in the claw (the attack button; tests call it too).</summary>
@@ -135,6 +138,15 @@ namespace Crab.Game
         {
             // after a strike the crab may turn back to walking sideways
             if (!Aiming && cooldown < -0.2f && pendingHit < 0 && pendingThrow < 0 && !firstPerson) hero.Controller.faceView = false;
+            // a gun in the claw points where the crab aims: the line from the grip to the muzzle
+            // is turned onto the target (whatever way the model's nodes are rotated)
+            if (held && muzzle && (Aiming || firstPerson))
+            {
+                var dir = AimPoint(80, out _) - held.transform.position;
+                var cur = muzzle.position - held.transform.position;
+                if (dir.sqrMagnitude > 0.01f && cur.sqrMagnitude > 1e-6f)
+                    held.transform.rotation = Quaternion.FromToRotation(cur, dir) * held.transform.rotation;
+            }
         }
 
         void SetAim(bool on)

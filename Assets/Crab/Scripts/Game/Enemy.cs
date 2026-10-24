@@ -14,6 +14,10 @@ namespace Crab.Game
         public float maxHealth = 40, speed = 2, aggro = 14, attackRange = 1.6f, damage = 9, attackCooldown = 1.4f, windup = 0.5f;
         public Transform model;
         public event Action<Enemy> Died;
+        /// <summary>Every live demon (the drone picks its targets here).</summary>
+        public static readonly System.Collections.Generic.List<Enemy> All = new System.Collections.Generic.List<Enemy>();
+        protected virtual void OnEnable() => All.Add(this);
+        protected virtual void OnDisable() => All.Remove(this);
 
         protected Health health;
         protected CharacterController cc;
@@ -23,7 +27,12 @@ namespace Crab.Game
         protected bool hunting;
         protected Hero Target => Hero.Instance;
         public bool Alive => health != null && !health.Dead;
+        /// <summary>Can be seen and shot (a burrower under the sand cannot).</summary>
+        public virtual bool Visible => true;
         float dieT = -1;
+        // getting unstuck: when it wants to move but stays put, it goes around for a while
+        Vector3 lastPos, detour;
+        float stuckT, detourT;
 
         protected virtual void Awake()
         {
@@ -34,7 +43,7 @@ namespace Crab.Game
             if (!model && transform.childCount > 0) model = transform.GetChild(0);
         }
 
-        public void Hit(float dmg, Vector3 point, Vector3 dir, GameObject by)
+        public virtual void Hit(float dmg, Vector3 point, Vector3 dir, GameObject by)
         {
             if (!Alive) return;
             hunting = true;
@@ -108,6 +117,21 @@ namespace Crab.Game
                 }
                 var to = Flat(wanderTo - transform.position);
                 if (to.magnitude > 0.3f) { wish = Steer(to.normalized) * 0.4f; FaceTowards(to, dt); }
+            }
+            if (wish.sqrMagnitude > 0.01f)
+            {
+                if (detourT > 0) { detourT -= dt; wish = detour; }
+                stuckT += dt;
+                if (stuckT > 1)
+                {
+                    if (Vector3.Distance(Flat(transform.position), Flat(lastPos)) < 0.25f * speed)
+                    {
+                        detourT = UnityEngine.Random.Range(0.8f, 1.6f);
+                        detour = Quaternion.Euler(0, UnityEngine.Random.value < 0.5f ? 80 : -80, 0) * wish.normalized;
+                    }
+                    stuckT = 0;
+                    lastPos = transform.position;
+                }
             }
             Move(wish * speed * (hurtT > 0 ? 0.3f : 1), dt);
             Animate(dt, new Vector3(velocity.x, 0, velocity.z).magnitude, windT >= 0 ? windT / windup : -1);

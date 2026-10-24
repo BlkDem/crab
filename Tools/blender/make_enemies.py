@@ -320,7 +320,284 @@ def build_guardian():
     L.export_tree("guardian", body)
 
 
-ASSETS = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian}
+# ----------------------------------------------------------------------------- the second circle: Wrath
+def mat_demon(name, base="#8a1c0c", dark="#2a0604", vein="#ff7a1a", veins=0.5, scale=6.0):
+    """Demon hide: dark crimson, scaled, cracked with glowing veins of fire (baked in the colour)."""
+    t = NT(name)
+    n = t.noise(t.vec(), scale, detail=6, rough=0.6)
+    scales = t.voronoi(t.vec(), scale * 5, out="Distance")
+    col = t.ramp(t.math("ADD", t.math("MULTIPLY", n, 0.7), t.math("MULTIPLY", scales, 0.3)), [(0.25, C(dark)), (0.6, C(base)), (0.85, C("#c4401c"))])
+    cr = t.voronoi(t.vec(), scale * 1.4, feature="DISTANCE_TO_EDGE")
+    vein_m = t.math("MULTIPLY", t.ramp(cr, [(0.0, 1.0), (0.03, 0.0)]), veins)
+    col = t.mix(vein_m, col, C(vein))
+    col = t.mix(t.math("MULTIPLY", t.math("SUBTRACT", 1.0, t.ao(0.15)), 0.7), col, C("#100302"))
+    return t.finish(col, rough=0.55, normal=t.bump(t.math("ADD", scales, t.math("MULTIPLY", n, 0.5)), 0.6, 0.01))
+
+
+def mat_horn(name):
+    t = NT(name)
+    z = t.sep(t.coord)[2]
+    col = t.ramp(t.noise(t.vec(scale=(1, 1, 4)), 20, detail=4), [(0.3, C("#1a1410")), (0.7, C("#4a3a2a"))])
+    return t.finish(col, rough=0.35)
+
+
+def limb(name, pts, radius_pairs, mat, origin):
+    """A tapered limb along pts [(co, r)], origin at `origin`."""
+    ob = tube(name, pts, seg=12, sub=3)
+    ob.data.materials.append(mat)
+    set_origin(ob, origin)
+    return ob
+
+
+def build_imp():
+    m = mat_demon("imp_hide")
+    mh = mat_horn("imp_horn")
+    torso = uv_sphere("torso", 1.0, (0, 0, 0), seg=24, rings=16)
+    for v in torso.data.vertices:
+        x, y, z = v.co
+        v.co = Vector((x * 0.24 * (1 + 0.25 * max(0, z)), y * 0.18, z * 0.3)) + Vector((0, 0.02, 0.95))
+    pelvis = uv_sphere("pelvis", 1.0, (0, 0.02, 0.66), scale=(0.18, 0.14, 0.12), seg=16, rings=10)
+    tail = tube("tail", [((0, 0.12, 0.65), 0.06), ((0, 0.4, 0.5), 0.04), ((0, 0.62, 0.62), 0.025), ((0, 0.72, 0.8), 0.006)], seg=8, sub=3)
+    for o in (torso, pelvis, tail):
+        o.data.materials.append(m)
+    body = join("Body", [torso, pelvis, tail])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    skull = uv_sphere("skull", 1.0, (0, 0, 0), seg=20, rings=14)
+    for v in skull.data.vertices:
+        x, y, z = v.co
+        v.co = Vector((x * 0.13, y * 0.15 * (1 + 0.3 * max(0, -y)), z * 0.13)) + Vector((0, -0.04, 1.36))
+    skull.data.materials.append(m)
+    horns = []
+    for sx in (-1, 1):
+        b = Vector((sx * 0.08, 0.0, 1.45))
+        h = tube("horn", [(b, 0.035), (b + Vector((sx * 0.1, 0.05, 0.1)), 0.025), (b + Vector((sx * 0.12, 0.14, 0.22)), 0.004)], seg=8, sub=3)
+        h.data.materials.append(mh)
+        horns.append(h)
+    jaw = tube("jaw", [((-0.08, -0.12, 1.28), 0.025), ((0, -0.2, 1.27), 0.03), ((0.08, -0.12, 1.28), 0.025)], seg=8, sub=2)
+    jaw.data.materials.append(m)
+    head = join("Head", [skull, jaw] + horns)
+    set_origin(head, (0, 0, 1.22))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 0.26, 0, 1.12))
+        el = sh + Vector((sx * 0.1, -0.1, -0.28))
+        wr = el + Vector((0, -0.18, -0.2))
+        arm = tube("arm", [(sh, 0.06), (el, 0.05), (wr, 0.045)], seg=10, sub=3)
+        arm.data.materials.append(m)
+        claws = []
+        for k in range(3):
+            d = Vector((sx * 0.06 * (k - 1), -1, -0.5)).normalized()
+            p0 = wr + Vector((sx * 0.03 * (k - 1), -0.02, 0))
+            c = tube("claw", [(p0, 0.016), (p0 + d * 0.1, 0.012), (p0 + d * 0.17 + Vector((0, 0, -0.04)), 0.002)], seg=6, sub=2)
+            c.data.materials.append(mh)
+            claws.append(c)
+        a = join("Arm" + side, [arm] + claws)
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+        hip = Vector((sx * 0.12, 0.02, 0.66))
+        knee = hip + Vector((sx * 0.03, -0.12, -0.3))
+        ank = knee + Vector((0, 0.14, -0.26))
+        toe = ank + Vector((0, -0.12, -0.08))
+        leg = tube("leg", [(hip, 0.07), (knee, 0.055), (ank, 0.04), (toe, 0.03)], seg=10, sub=3)
+        leg.data.materials.append(m)
+        leg = join("Leg" + side, [leg])
+        set_origin(leg, hip)
+        parent(leg, body)
+        parts.append(leg)
+    for o in parts:
+        L.shade_smooth(o, 55)
+    L.bake_group(parts, "imp", size=1024, ao_dist=0.1)
+    eyes = [uv_sphere("e", 0.022, (sx * 0.05, -0.17, 1.4), scale=(1.3, 0.6, 0.8), seg=10, rings=8) for sx in (-1, 1)]
+    for e in eyes:
+        e.data.materials.append(glow("imp_eyes", "#ffcf3a", 10.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, body)
+    L.export_tree("imp", body)
+
+
+def build_brute():
+    m = mat_demon("brute_hide", base="#5a1a10", dark="#1a0603", veins=0.8, scale=3.0)
+    mh = mat_horn("brute_horn")
+    torso = L.blob("torso", 1.0, seed=21, squash=(0.95, 0.7, 0.9), rough=0.12, sub=4)
+    for v in torso.data.vertices:
+        v.co = Vector((v.co.x * 1.0, v.co.y, v.co.z)) + Vector((0, 0.1, 2.0))
+    belly = L.blob("belly", 0.7, seed=22, squash=(1.0, 0.9, 0.8), rough=0.1, sub=4)
+    for v in belly.data.vertices:
+        v.co += Vector((0, 0.0, 1.3))
+    for o in (torso, belly):
+        o.data.materials.append(m)
+    body = join("Body", [torso, belly])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    skull = L.blob("skull", 0.38, seed=23, squash=(1.0, 1.1, 0.9), rough=0.1, sub=3)
+    for v in skull.data.vertices:
+        v.co += Vector((0, -0.45, 2.75))
+    skull.data.materials.append(m)
+    horns = []
+    for sx in (-1, 1):
+        b = Vector((sx * 0.25, -0.4, 2.95))
+        h = tube("horn", [(b, 0.11), (b + Vector((sx * 0.35, 0.05, 0.05)), 0.08), (b + Vector((sx * 0.45, -0.1, 0.35)), 0.012)], seg=10, sub=3)
+        h.data.materials.append(mh)
+        horns.append(h)
+    head = join("Head", [skull] + horns)
+    set_origin(head, (0, -0.3, 2.6))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 1.05, 0, 2.45))
+        el = sh + Vector((sx * 0.3, -0.2, -0.8))
+        wr = el + Vector((0, -0.35, -0.6))
+        arm = tube("arm", [(sh, 0.3), (el, 0.26), (wr, 0.24)], seg=14, sub=3)
+        fist = L.blob("fist", 0.38, seed=24 + sx, squash=(1, 1.1, 0.95), rough=0.12, sub=3)
+        for v in fist.data.vertices:
+            v.co += wr + Vector((0, -0.1, -0.15))
+        for o in (arm, fist):
+            o.data.materials.append(m)
+        a = join("Arm" + side, [arm, fist])
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+        hip = Vector((sx * 0.45, 0.1, 1.05))
+        knee = hip + Vector((sx * 0.1, -0.15, -0.5))
+        foot = knee + Vector((0, 0.05, -0.55))
+        leg = tube("leg", [(hip, 0.3), (knee, 0.27), (foot, 0.3)], seg=12, sub=2)
+        leg.data.materials.append(m)
+        leg = join("Leg" + side, [leg])
+        set_origin(leg, hip)
+        parent(leg, body)
+        parts.append(leg)
+    for o in parts:
+        L.shade_smooth(o, 50)
+    L.bake_group(parts, "brute", size=1024, ao_dist=0.3)
+    core = uv_sphere("GlowCore", 0.22, (0, -0.62, 2.0), scale=(1.2, 0.5, 1.3), seg=16, rings=10)
+    core.data.materials.append(glow("brute_core", "#ff8a1a", 10.0))
+    parent(core, body)
+    eyes = [uv_sphere("e", 0.05, (sx * 0.13, -0.78, 2.8), seg=10, rings=8) for sx in (-1, 1)]
+    for e in eyes:
+        e.data.materials.append(glow("brute_eyes", "#ffd040", 10.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, head)
+    L.export_tree("brute", body)
+
+
+def build_burrower():
+    m = mat_demon("burrower_hide", base="#a0562a", dark="#3a1a0a", vein="#ffb040", veins=0.25, scale=5.0)
+    mh = mat_horn("burrower_fang")
+    segs = []
+    for i in range(7):
+        y = -0.4 + i * 0.28
+        r = 0.32 - 0.03 * i
+        sg = uv_sphere("seg", 1.0, (0, y, r * 0.9), scale=(r, 0.2, r * 0.85), seg=18, rings=12)
+        sg.data.materials.append(m)
+        segs.append(sg)
+        for sx in (-1, 1):   # spiny ridges
+            sp = tube("spine", [(Vector((sx * r * 0.5, y, r * 1.6)), 0.04), (Vector((sx * r * 0.7, y + 0.06, r * 2.1)), 0.004)], seg=6, sub=1)
+            sp.data.materials.append(mh)
+            segs.append(sp)
+    head = uv_sphere("head", 1.0, (0, -0.68, 0.34), scale=(0.34, 0.32, 0.3), seg=20, rings=14)
+    head.data.materials.append(m)
+    body = join("Body", segs + [head])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    for side, sx in (("L", 1), ("R", -1)):
+        b = Vector((sx * 0.16, -0.92, 0.3))
+        j = tube("mandible", [(b, 0.07), (b + Vector((sx * 0.12, -0.18, 0.02)), 0.05), (b + Vector((sx * 0.02, -0.38, 0.0)), 0.006)], seg=8, sub=3)
+        j.data.materials.append(mh)
+        j = join("Jaw" + side, [j])
+        set_origin(j, b)
+        parent(j, body)
+        parts.append(j)
+    for o in parts:
+        L.shade_smooth(o, 55)
+    L.bake_group(parts, "burrower", size=1024, ao_dist=0.12)
+    eyes = [uv_sphere("e", 0.03, (sx * 0.14 + dx, -0.9, 0.45), seg=8, rings=6) for sx in (-1, 1) for dx in (0.0, 0.05 * sx)]
+    for e in eyes:
+        e.data.materials.append(glow("burrower_eyes", "#ffe08a", 9.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, body)
+    L.export_tree("burrower", body)
+
+
+def mat_magma_rock(name):
+    """Black volcanic rock split by cracks full of magma (bright in the colour)."""
+    t = NT(name)
+    n = t.noise(t.vec(), 1.5, detail=6, rough=0.7, distortion=0.4)
+    col = t.ramp(n, [(0.25, C("#0e0a09")), (0.55, C("#2a2220")), (0.85, C("#4a3a34"))])
+    cr = t.voronoi(t.vec(), 1.6, feature="DISTANCE_TO_EDGE")
+    crack = t.ramp(cr, [(0.0, 1.0), (0.04, 0.0)])
+    col = t.mix(crack, col, C("#ff6a10"))
+    col = t.mix(t.math("MULTIPLY", t.ramp(cr, [(0.0, 1.0), (0.08, 0.0)]), 0.5), col, C("#a02a08"))
+    return t.finish(col, rough=0.8, normal=t.bump(t.math("ADD", n, t.math("MULTIPLY", crack, -0.6)), 1.0, 0.05))
+
+
+def build_colossus():
+    m = mat_magma_rock("colossus_rock")
+    mh = mat_horn("colossus_horn")
+
+    def chunk(name, r, loc, squash, seed):
+        b = L.blob(name, r, seed=seed, squash=squash, rough=0.22, sub=4)
+        for v in b.data.vertices:
+            v.co += Vector(loc)
+        b.data.materials.append(m)
+        return b
+    torso = [chunk("chest", 2.2, (0, 0, 8.2), (1.2, 0.85, 1.0), 31), chunk("waist", 1.6, (0, 0.2, 6.2), (1.0, 0.8, 0.8), 32),
+             chunk("hip", 1.7, (0, 0.1, 5.0), (1.2, 0.9, 0.6), 33)]
+    for k in range(5):
+        torso.append(chunk("plate", 0.8, (math.cos(k) * 1.6, -0.9 + 0.2 * k, 7 + k * 0.5), (1, 0.6, 0.8), 40 + k))
+    body = join("Body", torso)
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    skull = chunk("skull", 1.0, (0, -0.6, 10.9), (0.9, 1.0, 0.9), 50)
+    horns = []
+    for sx in (-1, 1):
+        b = Vector((sx * 0.7, -0.4, 11.4))
+        h = tube("horn", [(b, 0.32), (b + Vector((sx * 0.8, 0.3, 0.6)), 0.22), (b + Vector((sx * 1.0, 0.9, 1.7)), 0.04)], seg=10, sub=3)
+        h.data.materials.append(mh)
+        horns.append(h)
+    head = join("Head", [skull] + horns)
+    set_origin(head, (0, -0.3, 10.2))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 2.7, 0, 9.0))
+        el = sh + Vector((sx * 0.8, -0.6, -2.4))
+        wr = el + Vector((0, -1.0, -1.8))
+        up = [chunk("u", 1.1, sh + Vector((sx * 0.3, 0, -0.6)), (0.9, 0.9, 1.3), 60 + sx), chunk("u2", 0.9, (sh + el) / 2, (0.9, 0.9, 1.3), 62 + sx)]
+        a0 = join(f"Arm{side}_0", up)
+        fo = [chunk("f", 0.85, (el + wr) / 2, (0.9, 0.9, 1.3), 64 + sx), chunk("fist", 1.1, wr + Vector((0, -0.3, -0.4)), (1, 1.1, 0.9), 66 + sx)]
+        a1 = join(f"Arm{side}_1", fo)
+        set_origin(a0, sh)
+        set_origin(a1, el)
+        parent(a0, body)
+        parent(a1, a0)
+        parts += [a0, a1]
+        hip = Vector((sx * 1.3, 0.2, 4.6))
+        leg = join(f"Leg{side}", [chunk("thigh", 1.2, hip + Vector((sx * 0.2, 0, -1.4)), (0.9, 0.9, 1.4), 70 + sx),
+                                  chunk("shin", 1.1, hip + Vector((sx * 0.3, -0.2, -3.4)), (0.9, 1.0, 1.2), 72 + sx)])
+        set_origin(leg, hip)
+        parent(leg, body)
+        parts.append(leg)
+    for o in parts:
+        L.shade_smooth(o, 40)
+    L.bake_group(parts, "colossus", size=2048, ao_dist=1.0)
+    g = glow("colossus_core", "#ffb04a", 12.0)
+    for name, loc, par in (("CoreChest", (0, -1.95, 8.3), body), ("CoreL", (2.7, -0.9, 9.5), parts[2]), ("CoreR", (-2.7, -0.9, 9.5), parts[5])):
+        c = uv_sphere(name, 0.55, loc, scale=(1, 0.6, 1), seg=18, rings=12)
+        c.data.materials.append(g)
+        parent(c, par)
+    eyes = [uv_sphere("e", 0.16, (sx * 0.38, -1.45, 11.0), scale=(1.4, 0.6, 0.7), seg=12, rings=8) for sx in (-1, 1)]
+    for e in eyes:
+        e.data.materials.append(glow("colossus_eyes", "#ffe070", 14.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, head)
+    L.export_tree("colossus", body)
+
+
+ASSETS = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian,
+          "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus}
 
 
 def main():

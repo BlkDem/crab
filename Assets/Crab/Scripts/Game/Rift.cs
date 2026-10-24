@@ -17,6 +17,14 @@ namespace Crab.Game
         public float spawnEvery = 6, wakeRange = 22;
         public int maxAlive = 3, budget = 8;
         [Range(0, 1)] public float crawlerShare = 0.4f;
+        [Tooltip("What comes out (instead of shades and scavengers)")]
+        public GameObject[] pool;
+        [Tooltip("Words for sealing (a rift in Limbo, a fire vent in the circle of Wrath)")]
+        public string sealWord = "Запечатать разлом";
+        public Color tint = new Color(0.5f, 1f, 0.7f);
+        [Tooltip("Fire that goes out when it is sealed (a vent)")]
+        public ParticleSystem fire;
+        public float spawnAhead = 1.6f, pointHeight = 1.75f;
         [Tooltip("A passage to another scene instead of a source of demons")]
         public string leadsTo;
         public bool open = true;
@@ -31,10 +39,10 @@ namespace Crab.Game
 
         public override string Prompt => !string.IsNullOrEmpty(leadsTo)
             ? "[E] Войти в разлом"
-            : $"[E] Запечатать разлом — держать{(sealT > 0 ? $" {Mathf.RoundToInt(SealProgress * 100)}%" : "")}";
+            : $"[E] {sealWord} — держать{(sealT > 0 ? $" {Mathf.RoundToInt(SealProgress * 100)}%" : "")}";
         public override bool Usable => open;
         public override bool Hold => string.IsNullOrEmpty(leadsTo);
-        public override Vector3 Point => transform.position + Vector3.up * 1.75f;
+        public override Vector3 Point => transform.position + Vector3.up * pointHeight;
 
         public override void Use(Hero hero)
         {
@@ -78,8 +86,9 @@ namespace Crab.Game
             open = false;
             Sfx.Play("slam", Point, 0.8f, 1.4f);
             Sfx.Play("create", Point, 0.8f, 0.7f);
-            Fx.Burst(Point, new Color(0.6f, 1f, 0.75f), 80, 5, 0.15f, 1.2f);
-            Fx.Flash(Point, new Color(0.7f, 1f, 0.8f), 10, 14, 0.6f);
+            Fx.Burst(Point, Color.Lerp(tint, Color.white, 0.2f), 80, 5, 0.15f, 1.2f);
+            Fx.Flash(Point, Color.Lerp(tint, Color.white, 0.3f), 10, 14, 0.6f);
+            if (fire) fire.Stop();
             Sealed?.Invoke(this);
         }
 
@@ -116,14 +125,14 @@ namespace Crab.Game
         public Enemy Spawn(bool crawler)
         {
             var lib = Library.Current;
-            var prefab = lib ? (crawler ? lib.crawler : lib.shade) : null;
+            var prefab = pool != null && pool.Length > 0 ? pool[UnityEngine.Random.Range(0, pool.Length)] : lib ? (crawler ? lib.crawler : lib.shade) : null;
             if (!prefab) return null;
-            var pos = transform.position + transform.forward * 1.6f + transform.right * UnityEngine.Random.Range(-0.8f, 0.8f);
+            var pos = transform.position + transform.forward * spawnAhead + transform.right * UnityEngine.Random.Range(-0.8f, 0.8f);
             var go = Instantiate(prefab, pos, Quaternion.LookRotation(transform.forward));
             var e = go.GetComponent<Enemy>();
             budget--;
             alive.Add(e);
-            Fx.Burst(pos + Vector3.up, new Color(0.5f, 1f, 0.7f), 25, 2, 0.12f, 0.8f);
+            Fx.Burst(pos + Vector3.up, tint, 25, 2, 0.12f, 0.8f);
             Sfx.Play("rift", pos, 0.5f, 1.4f);
             return e;
         }
