@@ -30,7 +30,7 @@ namespace Crab.Game
         {
             if (!hero) { Destroy(gameObject); return; }
             float dt = Time.deltaTime;
-            var goal = hero.transform.position - hero.transform.forward * 1.5f - hero.transform.right * 1.6f;
+            var goal = Squad.Station(hero, -hero.transform.forward * 1.5f - hero.transform.right * 1.6f);
             var to = goal - transform.position;
             to.y = 0;
             var wish = to.magnitude > 0.8f ? to.normalized * speed * (to.magnitude > 8 ? 2 : 1) : Vector3.zero;

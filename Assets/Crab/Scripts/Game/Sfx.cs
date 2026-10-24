@@ -474,6 +474,45 @@ namespace Crab.Game
                     Normalize(d, 0.55f);
                     return d;
                 }
+                case "music_violence":
+                {
+                    // war drums: a heavy march in four, low brass fifths over it
+                    d = Buf(12);
+                    var lp = new LP();
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        float b = t % 0.6f, b2 = (t + 0.3f) % 1.2f;
+                        float kick = Mathf.Sin(2 * Mathf.PI * (55 - 50 * b) * b) * Env(b, 0.002f, 0.18f);
+                        float snare = lp.Run(N(), 2500) * Env(b2, 0.002f, 0.09f) * 0.4f;
+                        int bar = (int)(t / 2.4f);
+                        float root = 38 + (bar % 4 == 3 ? 3 : bar % 4 == 2 ? -2 : 0);
+                        float f = 440 * Mathf.Pow(2, (root - 69) / 12f);
+                        float brass = ((2 * ((f * t) % 1) - 1) + (2 * ((f * 1.5f * t) % 1) - 1) * 0.7f) * 0.22f;
+                        d[i] = kick + snare + brass * (0.6f + 0.4f * Mathf.Sin(t * 1.3f));
+                    }
+                    Normalize(d, 0.6f);
+                    return Seamless(d, 0.5f);
+                }
+                case "battle":
+                {
+                    // a battle far off: rumbling, distant booms and clashes
+                    d = Buf(8);
+                    var lp = new LP();
+                    var rng3 = new System.Random(23);
+                    for (int i = 0; i < d.Length; i++) d[i] = lp.Run(N(), 90) * 2.5f;
+                    for (int k = 0; k < 7; k++)
+                    {
+                        int at = rng3.Next(0, d.Length - Rate);
+                        for (int i = 0; i < Rate; i++)
+                        {
+                            float t = i / (float)Rate;
+                            d[at + i] += Mathf.Sin(2 * Mathf.PI * (45 - 20 * t) * t) * Env(t, 0.01f, 0.3f) * 0.6f;
+                        }
+                    }
+                    Normalize(d, 0.5f);
+                    return Seamless(d);
+                }
                 case "music_betrayal":
                 {
                     // mechanical and uneasy: a ticking pulse, a low ostinato in 7, a tritone above

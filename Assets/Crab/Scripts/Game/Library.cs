@@ -25,7 +25,9 @@ namespace Crab.Game
         public GameObject dweller, envious, sparkCore;
         public GameObject wraith, devourer, cyberFrame, hunter;
         public GameObject engineer, mageOrb, turret, legionary, janus, guide;
-        public Material particle, particleAdditive, rift, beam, tracer, water, fire, gold, shield, mirror;
+        public GameObject battleBot, warlord;
+        public GameObject liar, mimic;
+        public Material particle, particleAdditive, rift, beam, tracer, water, fire, gold, shield, mirror, bridge;
         public Mesh quad;
 
         public GameObject Item(ItemId id) => items.Find(i => i.name == id.ToString())?.model;

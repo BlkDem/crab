@@ -565,12 +565,20 @@ def bake(ob, size=TEX, ao_strength=0.55, metal=True):
     return ob
 
 
+# Textures go into the GLB as JPEG (quality 90) from the circle of Violence on: several times
+# smaller than PNG, and the repository's LFS space is limited. Set CRAB_PNG=1 to export PNG.
+IMAGE_FORMAT = "AUTO" if os.environ.get("CRAB_PNG") else "JPEG"
+
+
 def export(name, obs):
     select_only(*obs)
     path = os.path.join(OUT, name + ".glb")
-    bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", use_selection=True, export_yup=True,
-                              export_apply=True, export_texcoords=True, export_normals=True,
-                              export_materials="EXPORT", export_image_format="AUTO")
+    kw = dict(filepath=path, export_format="GLB", use_selection=True, export_yup=True,
+              export_apply=True, export_texcoords=True, export_normals=True,
+              export_materials="EXPORT", export_image_format=IMAGE_FORMAT)
+    if IMAGE_FORMAT == "JPEG":
+        kw["export_jpeg_quality"] = 90
+    bpy.ops.export_scene.gltf(**kw)
     print("WROTE", name, os.path.getsize(path))
 
 

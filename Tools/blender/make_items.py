@@ -679,12 +679,49 @@ def box_item(name, size, loc, mat):
     b.data.materials.append(mat)
     return b
 
+
+# ---------------------------------------------------------------------- level 7 (circle of Violence)
+def build_battlebot():
+    """A battle robot of the crab's army (about 1.1 m): a boxy blue-grey torso with a shoulder gun
+    (Gun), a sensor head with a blue eye, two legs. Body > Gun, LegL, LegR, GlowEye."""
+    m = mat_steel("bb_steel")
+    mb = L.mat_plain("bb_blue", "#3a6a9a", rough=0.5)
+    md = L.mat_metal("bb_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.45, metal_max=0.6)
+    torso = box_item("torso", (0.6, 0.45, 0.5), (0, 0, 0.75), mb)
+    head = box_item("head", (0.3, 0.3, 0.22), (0, -0.05, 1.12), m)
+    body = join("Body", [torso, head])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    gun = tube("gun", [((0.34, -0.1, 0.92), 0.06), ((0.34, -0.55, 0.92), 0.05)], seg=8, sub=1)
+    gun.data.materials.append(md)
+    g = join("Gun", [gun])
+    set_origin(g, (0.34, -0.55, 0.92))
+    parent(g, body)
+    parts.append(g)
+    for side, sx in (("L", 1), ("R", -1)):
+        hip = Vector((sx * 0.18, 0, 0.5))
+        leg = tube("leg", [(hip, 0.07), (hip + Vector((0, -0.05, -0.25)), 0.06), (hip + Vector((0, 0.02, -0.45)), 0.06)], seg=8, sub=1)
+        leg.data.materials.append(md)
+        foot = box_item("foot", (0.14, 0.24, 0.07), hip + Vector((0, -0.04, -0.46)), m)
+        lg = join("Leg" + side, [leg, foot])
+        set_origin(lg, hip)
+        parent(lg, body)
+        parts.append(lg)
+    for o in parts:
+        L.shade_smooth(o, 30)
+    L.bake_group(parts, "battlebot", size=256, ao_dist=0.04)
+    eye = uv_sphere("GlowEye", 0.05, (0, -0.21, 1.13), scale=(1.6, 0.4, 0.6), seg=10, rings=6)
+    eye.data.materials.append(L.mat_plain("bb_eye", "#5ac8ff", rough=0.2, emission=("#5ac8ff", 10.0)))
+    parent(eye, body)
+    L.export_tree("battlebot", body)
+
 ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar, "knife": build_knife, "pistol": build_pistol,
           "machinegun": build_machinegun, "armor": build_armor, "drone": build_drone,
           "heavy_armor": build_heavy_armor, "energy_rifle": build_energy_rifle, "tank": build_tank,
           "energy_blade": build_energy_blade, "gravity_gun": build_gravity_gun, "spark_core": build_spark_core,
           "cyber_frame": build_cyber_frame, "hunter": build_hunter,
-          "engineer": build_engineer, "mage_orb": build_mage_orb, "turret": build_turret}
+          "engineer": build_engineer, "mage_orb": build_mage_orb, "turret": build_turret,
+          "battlebot": build_battlebot}
 
 
 def main():

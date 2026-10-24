@@ -49,7 +49,7 @@ namespace Crab.Game
                 foreach (var e in Enemy.All)
                 {
                     if (!e || !e.Alive || !e.Visible || hitList.Contains(e)) continue;
-                    float d = Vector3.Distance(e.transform.position, from);
+                    float d = Vector3.Distance(e.transform.position, from) - (i == 0 && e == Squad.OrderTarget() ? range : 0);
                     if (d < bd) { bd = d; best = e; }
                 }
                 if (!best) break;

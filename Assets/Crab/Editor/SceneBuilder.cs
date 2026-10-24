@@ -43,8 +43,9 @@ namespace Crab.EditorTools
             BuildEnvy();
             BuildGloom();
             BuildBetrayal();
+            BuildViolence();
             BuildMenu();
-            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy", "Gloom", "Betrayal" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
+            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy", "Gloom", "Betrayal", "Violence" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log("Crab scenes built");
         }
@@ -130,6 +131,7 @@ namespace Crab.EditorTools
             l.turret = Glb("Items/turret");
             l.janus = Glb("Enemies/janus");
             l.guide = Glb("Enemies/guide");
+            l.warlord = Glb("Enemies/warlord");
             l.particle = Mat("ParticleSoft", "Crab/Soft");
             l.particleAdditive = Mat("ParticleGlow", "Crab/Glow", m => m.SetFloat("_Round", 1));
             l.tracer = Mat("Tracer", "Crab/Glow", m => m.SetFloat("_Round", 0));
@@ -159,6 +161,7 @@ namespace Crab.EditorTools
             l.tank = TankPrefab(Glb("Items/tank"));
             l.legionary = EnemyPrefab<GoldGuard>("Legionary", Glb("Enemies/legionary"), 0.45f, 2.0f, e => { e.maxHealth = 90; e.speed = 2.4f; e.attackRange = 2.0f; e.damage = 13; e.windup = 0.6f; e.attackCooldown = 1.5f; e.aggro = 16; });
             l.engineer = CompanionPrefab<EngineerBot>("Engineer", Glb("Items/engineer"), 0.3f, 0.9f);
+            l.battleBot = CompanionPrefab<BattleBot>("BattleBot", Glb("Items/battlebot"), 0.3f, 1.1f);
             l.wraith = EnemyPrefab<Wraith>("Wraith", Glb("Enemies/wraith"), 0.4f, 1.8f, e => { e.maxHealth = 60; e.speed = 2.2f; e.attackRange = 1.6f; e.damage = 6; e.windup = 0.6f; e.attackCooldown = 1.8f; e.aggro = 11; });
             l.envious = EnemyPrefab<Envious>("Envious", Glb("Enemies/envious"), 0.35f, 1.6f, e => { e.maxHealth = 80; e.speed = 3.0f; e.attackRange = 1.5f; e.damage = 14; e.windup = 0.45f; e.attackCooldown = 1.3f; e.aggro = 18; });
             EditorUtility.SetDirty(l);
@@ -2117,13 +2120,239 @@ namespace Crab.EditorTools
             janus.backLight = AddLight(jRoot.transform, "BackLight", jRoot.transform.position + new Vector3(0, 8, 2.5f), new Color(1f, 0.3f, 0.2f), 3, 12);
             dir.janus = janus;
             var exit = RiftAt(root, 0, Heart.z + 14, 180, "betrayal_exit");
-            exit.leadsTo = "Menu";
+            exit.leadsTo = "Violence";
             exit.delay = 6;
             exit.membrane.sharedMaterial = Mat("RiftFire", "Crab/Rift");
             exit.glow.color = new Color(1f, 0.55f, 0.3f);
             dir.exit = exit;
             Ui<GameUI>();
             SaveScene(scene, "Betrayal");
+        }
+
+        // ------------------------------------------------------------------ Violence
+        // a battlefield: the crab comes from the south, the legion's forge to the west, the siege
+        // engines in the middle and the east, the Warlord's field to the north
+        static readonly Vector3 WarField = new Vector3(0, 0, 84);
+        static readonly Vector2[] Craters = { new Vector2(12, -40), new Vector2(-20, -10), new Vector2(30, -18), new Vector2(-8, 22), new Vector2(26, 48), new Vector2(-34, 58), new Vector2(48, -50), new Vector2(-52, -46) };
+
+        static float ViolenceHeight(float x, float z)
+        {
+            float h = (Mathf.PerlinNoise(x * 0.02f + 41, z * 0.02f + 9) - 0.5f) * 5f;
+            h += (Mathf.PerlinNoise(x * 0.1f + 7, z * 0.1f) - 0.5f) * 0.6f;
+            foreach (var c in Craters)
+            {
+                float d = new Vector2(x - c.x, z - c.y).magnitude;
+                h -= Mathf.Clamp01(1 - d / 6f) * 2.2f;            // the pit
+                h += Mathf.Clamp01(1 - Mathf.Abs(d - 6.5f) / 1.5f) * 0.6f;   // the rim
+            }
+            // a trench across the field
+            float tr = Mathf.Abs(z - (5 + Mathf.Sin(x * 0.08f) * 4));
+            if (Mathf.Abs(x) > 6) h -= Mathf.Clamp01(1 - tr / 1.6f) * 1.4f;
+            float field = Mathf.Clamp01(1 - (new Vector2(x - WarField.x, z - WarField.z).magnitude - 22) / 6f);
+            return Mathf.Lerp(h, 0, field);
+        }
+
+        static void BuildViolence()
+        {
+            var scene = NewScene("Violence");
+            ground = ViolenceHeight;
+            var (ac, an) = TextureGen.Ash();
+            var mud = Mat("BattleMud", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", ac);
+                m.SetTexture("_BumpMap", an);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetColor("_BaseColor", new Color(0.75f, 0.55f, 0.45f));
+                m.SetFloat("_Smoothness", 0.2f);
+            });
+            var root = Group("Violence");
+            Ground("BattleGround", new Rect(-110, -110, 220, 230), mud, 0.2f).transform.SetParent(root, false);
+            var sun = Sun(new Color(1f, 0.65f, 0.45f), 1.3f, new Vector3(25, 160, 0));
+            Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.45f, 0.38f, 0.38f), new Color(0.42f, 0.32f, 0.28f), new Color(0.16f, 0.12f, 0.1f), new Color(0.38f, 0.26f, 0.22f), 0.009f, 0.04f);
+            RenderSettings.skybox = Mat("Sky_Violence", "Crab/Sky", m =>
+            {
+                m.SetColor("_Top", new Color(0.18f, 0.1f, 0.1f));
+                m.SetColor("_Horizon", new Color(0.62f, 0.32f, 0.2f));
+                m.SetColor("_Bottom", new Color(0.2f, 0.1f, 0.08f));
+                m.SetColor("_Sun", new Color(1f, 0.55f, 0.3f));
+                m.SetVector("_SunDir", -sun.transform.forward);
+            });
+            Post("Violence", 0.2f, -8, new Color(1f, 0.9f, 0.82f), 1.1f, 0.35f, 16);
+
+            // the debris of war
+            var props = Group("Scenery", root);
+            var barricade = Glb("World/barricade");
+            var wreck = Glb("World/wreck");
+            var banner = Glb("World/war_banner");
+            for (int i = 0; i < 26; i++)
+            {
+                float x = R(-90, 90), z = R(-90, 100);
+                if (new Vector2(x - WarField.x, z - WarField.z).magnitude < 26 || new Vector2(x, z + 80).magnitude < 10) continue;
+                Place(barricade, props, x, z, R(0, 360), R(0.9f, 1.2f), collider: "box");
+            }
+            for (int i = 0; i < 16; i++)
+            {
+                float x = R(-85, 85), z = R(-85, 100);
+                if (new Vector2(x - WarField.x, z - WarField.z).magnitude < 24) continue;
+                var w = Place(wreck, props, x, z, R(0, 360), R(0.9f, 1.4f), collider: "box");
+                var ms = w.AddComponent<MatterSource>();
+                ms.kind = Matter.Metal;
+                ms.amount = 8;
+                ms.regrow = 60;
+                ms.reach = 3.2f;
+            }
+            for (int i = 0; i < 18; i++)
+            {
+                float x = R(-90, 90), z = R(-60, 110);
+                Place(banner, props, x, z, R(0, 360), R(0.9f, 1.3f), collider: "box");
+            }
+            foreach (var (x, z) in new[] { (-75f, 30f), (80f, 60f), (-70f, -70f), (85f, -40f), (0f, 120f) }) Place(Glb("World/machine_tower"), props, x, z, R(0, 360), R(1, 1.4f));
+
+            // start, beacons, director
+            var start = Group("Start", root);
+            start.position = new Vector3(0, H(0, -82), -82);
+            var hero = BuildHero(start.position, 0, out _);
+            Setup("Violence", start);
+            var dir = new GameObject("Violence").AddComponent<ViolenceDirector>();
+            dir.beacons.Add(BeaconAt(root, 5, -78, -30, "violence_camp"));
+            dir.beacons.Add(BeaconAt(root, -24, -36, 60, "violence_forge"));
+            dir.beacons.Add(BeaconAt(root, 6, 56, 180, "violence_front"));
+
+            // the legion's forge and, beside it, the place for the crab's factory
+            var forgeGo = Place(Glb("World/workshop"), root, -32, -30, 90, 1.3f, collider: "none", sink: 0);
+            var forge = forgeGo.AddComponent<Workshop>();
+            forge.title = "свою кузницу";
+            forge.cost = new Cost(0, 6, 12, 0);
+            forge.build = CrabRig.Find(forgeGo.transform, "Build");
+            forge.reach = 5;
+            forge.area = 9;
+            forge.forgeLight = AddLight(forgeGo.transform, "Forge", forgeGo.transform.position + Vector3.up * 1.4f, new Color(1f, 0.55f, 0.2f), 3, 10);
+            dir.forge = forge;
+            Place(Glb("World/machine_tower"), root, -42, -24, 0, 0.8f);
+            var facGo = Place(Glb("World/factory"), root, -32, -46, 0, 1, sink: 0.05f);
+            var fac = facGo.AddComponent<RobotFactory>();
+            fac.door = CrabRig.Find(facGo.transform, "Door");
+            dir.factory = fac;
+            var guard = new GameObject("ForgeGuard").AddComponent<LegionBand>();
+            guard.transform.SetPositionAndRotation(new Vector3(-24, 0, -32), Quaternion.Euler(0, 120, 0));
+            guard.ranks = 2;
+            guard.files = 2;
+            guard.trigger = 18;
+            dir.bands.Add(guard);
+
+            // the siege engines, each with a band of the legion
+            SiegeEngine Engine(string model, SiegeEngine.Kind kind, float x, float z, float yaw)
+            {
+                var go = Place(Glb("World/" + model), root, x, z, yaw, 1, collider: "none", sink: 0);
+                var col = go.AddComponent<BoxCollider>();
+                var b = Bounds(go);
+                col.center = go.transform.InverseTransformPoint(b.center);
+                col.size = b.size;
+                var e = go.AddComponent<SiegeEngine>();
+                e.name = model + $"_{x:0}_{z:0}";
+                e.kind = kind;
+                e.arm = CrabRig.Find(go.transform, "Arm");
+                e.maxHealth = kind == SiegeEngine.Kind.Tower ? 600 : 400;
+                var band = new GameObject("EngineGuard").AddComponent<LegionBand>();
+                band.transform.SetPositionAndRotation(go.transform.position + go.transform.forward * 5, go.transform.rotation);
+                band.ranks = 1;
+                band.files = 3;
+                band.trigger = 22;
+                dir.bands.Add(band);
+                return e;
+            }
+            dir.engines.Add(Engine("catapult", SiegeEngine.Kind.Catapult, 40, 12, 230));
+            dir.engines.Add(Engine("catapult", SiegeEngine.Kind.Catapult, -46, 34, 150));
+            var tower = Engine("siege_tower", SiegeEngine.Kind.Tower, 12, 46, 200);
+            tower.rollTo = new Vector3(0, 0, 10);
+            dir.engines.Add(tower);
+
+            // the field's other demons
+            foreach (var (x, z) in new[] { (-12f, -50f), (14f, -30f), (-6f, -6f), (20f, 26f), (-24f, 14f) })
+            {
+                var imp = (GameObject)PrefabUtility.InstantiatePrefab(lib.imp);
+                imp.transform.position = new Vector3(x, H(x, z), z);
+            }
+            foreach (var (x, z) in new[] { (30f, -4f), (-30f, 50f) })
+            {
+                var br = (GameObject)PrefabUtility.InstantiatePrefab(lib.brute);
+                br.transform.position = new Vector3(x, H(x, z), z);
+            }
+
+            // matter
+            void Source(GameObject model, string variant, float x, float z, Matter kind, int amount, float regrow)
+            {
+                var go = variant != null ? Variant(model, variant, root, x, z, R(0, 360), 1, collider: "none") : Place(model, root, x, z, R(0, 360), 1, collider: "none", sink: 0.02f);
+                var ms = go.AddComponent<MatterSource>();
+                ms.kind = kind;
+                ms.amount = amount;
+                ms.regrow = regrow;
+                ms.reach = 2.6f;
+            }
+            foreach (var (x, z) in new[] { (-6f, -74f), (8f, -66f), (-38f, -38f), (-26f, -22f), (-40f, -18f) }) Source(Glb("World/scrap"), null, x, z, Matter.Metal, 9, 45);
+            foreach (var (x, z) in new[] { (6f, -76f), (-22f, -40f), (-36f, -44f), (10f, 0f) }) Source(Glb("World/rubble"), null, x, z, Matter.Mineral, 8, 45);
+            foreach (var (x, z) in new[] { (-44f, -30f), (-20f, -48f), (20f, 60f) }) Source(Glb("World/crystal"), "Crystal2", x, z, Matter.Crystal, 8, 45);
+            foreach (var (x, z) in new[] { (-28f, -54f), (-44f, -40f), (24f, -60f) }) Source(Glb("World/pylon"), null, x, z, Matter.Energy, 8, 40);
+            foreach (var (x, z) in new[] { (-18f, -30f), (-40f, -50f) }) Source(Glb("World/gold_pile"), "Pile1", x, z, Matter.Gold, 8, 45);
+
+            // the sky: two flying fortresses; the low one bombs when called
+            var ff = Place(Glb("World/flying_fortress"), root, 0, 0, 0, 1.2f, collider: "none", sink: 0);
+            var fort = ff.AddComponent<FlyingFortress>();
+            fort.center = new Vector3(0, 0, 40);
+            fort.radius = 70;
+            fort.height = 45;
+            fort.speed = 4;
+            fort.every = 18;
+            fort.bombing = false;
+            ff.transform.position = fort.center + new Vector3(fort.radius, fort.height, 0);
+            AddLight(ff.transform, "Belly", ff.transform.position + Vector3.down * 14, new Color(1f, 0.45f, 0.15f), 6, 40);
+            dir.fortress = fort;
+            var ff2 = Place(Glb("World/flying_fortress"), root, 0, 0, 0, 1.8f, collider: "none", sink: 0);
+            var fort2 = ff2.AddComponent<FlyingFortress>();
+            fort2.center = new Vector3(20, 0, 60);
+            fort2.radius = 110;
+            fort2.height = 70;
+            fort2.speed = -3;
+            ff2.transform.position = fort2.center + new Vector3(0, fort2.height, fort2.radius);
+
+            // the Warlord's field
+            var arena = Group("Arena", root);
+            arena.position = new Vector3(WarField.x, H(WarField.x, WarField.z), WarField.z);
+            for (int i = 0; i < 12; i++)
+            {
+                float a = i / 12f * Mathf.PI * 2;
+                if (Mathf.Abs(Mathf.Sin(a) + 1) < 0.15f) continue;
+                Place(banner, root, WarField.x + Mathf.Cos(a) * 24, WarField.z + Mathf.Sin(a) * 24, R(0, 360), 1.4f, collider: "box");
+            }
+            var w0 = (GameObject)PrefabUtility.InstantiatePrefab(lib.warlord);
+            var wRoot = new GameObject("Warlord");
+            wRoot.transform.SetPositionAndRotation(arena.position + Vector3.forward * 10, Quaternion.Euler(0, 180, 0));
+            w0.transform.SetParent(wRoot.transform, false);
+            var cap = wRoot.AddComponent<CapsuleCollider>();
+            cap.center = new Vector3(0, 3.2f, 0);
+            cap.height = 6.4f;
+            cap.radius = 1.6f;
+            var wl = wRoot.AddComponent<Warlord>();
+            wl.model = w0.transform;
+            wl.arena = arena;
+            wl.fortress = fort;
+            var auraGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            auraGo.name = "Aura";
+            UnityEngine.Object.DestroyImmediate(auraGo.GetComponent<Collider>());
+            auraGo.transform.SetParent(wRoot.transform, false);
+            auraGo.transform.localPosition = Vector3.up * 3;
+            auraGo.GetComponent<Renderer>().sharedMaterial = Mat("GuardAura", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(1f, 0.25f, 0.15f, 0.5f)); });
+            wl.aura = auraGo.transform;
+            wl.auraLight = AddLight(wRoot.transform, "AuraLight", wRoot.transform.position + Vector3.up * 3, new Color(1f, 0.3f, 0.2f), 0, 14);
+            dir.warlord = wl;
+            var exit = RiftAt(root, 0, WarField.z + 16, 180, "violence_exit");
+            exit.leadsTo = "Menu";
+            exit.delay = 6;
+            exit.membrane.sharedMaterial = Mat("RiftPale", "Crab/Rift");
+            exit.glow.color = new Color(0.8f, 0.85f, 1f);
+            dir.exit = exit;
+            Ui<GameUI>();
+            SaveScene(scene, "Violence");
         }
 
         // ------------------------------------------------------------------ menu

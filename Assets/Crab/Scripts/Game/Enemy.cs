@@ -27,10 +27,19 @@ namespace Crab.Game
         protected bool hunting;
         protected Hero Target => Hero.Instance;
         /// <summary>A companion that struck this demon draws it away from the crab for a while.</summary>
-        protected TankBot provoker;
+        protected MonoBehaviour provoker;
+        IHittable provokerHit;
         float provokedT;
-        public void Provoke(TankBot by) { provoker = by; provokedT = 5; hunting = true; }
-        protected bool Provoked => provoker && provoker.Alive && provokedT > 0;
+        /// <summary>An ally of the crab (the TANK, a battle robot) struck it: it turns on that one.</summary>
+        public void Provoke(MonoBehaviour by)
+        {
+            if (!(by is IHittable h)) return;
+            provoker = by;
+            provokerHit = h;
+            provokedT = 5;
+            hunting = true;
+        }
+        protected bool Provoked => provoker && provokerHit != null && provokerHit.Alive && provokedT > 0;
         /// <summary>Runs away from the crab instead of fighting (the gold collectors).</summary>
         protected virtual bool Flees => false;
         public bool Alive => health != null && !health.Dead;
@@ -164,7 +173,7 @@ namespace Crab.Game
         {
             if (Provoked)
             {
-                if (dist <= attackRange * 1.25f) provoker.Hit(damage, provoker.transform.position + Vector3.up * 0.6f, provoker.transform.position - transform.position, gameObject);
+                if (dist <= attackRange * 1.25f) provokerHit.Hit(damage, provoker.transform.position + Vector3.up * 0.6f, provoker.transform.position - transform.position, gameObject);
                 return;
             }
             if (!hero || dist > attackRange * 1.25f) return;

@@ -29,5 +29,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Crab/Scenes/Betrayal.unity
     guid: 80108e8cb1d0e9a4a947fe93746f94b5
+  - enabled: 1
+    path: Assets/Crab/Scenes/Violence.unity
+    guid: 3070e711c604916409c9f92075e744b1
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

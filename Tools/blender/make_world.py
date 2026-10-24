@@ -1665,6 +1665,212 @@ def build_machine_tower():
     parent(fur, ob)
     L.export_tree("machine_tower", r)
 
+
+# ---------------------------------------------------------------------- VII. the circle of Violence
+def build_barricade():
+    """A field barricade: sharpened stakes leaning out over a bank of sandbags."""
+    r = root("barricade")
+    mw = L.mat_wood("barr_wood", base="#4a3a2a", dark="#1e140c", light="#6a5640", rings=8, along="Z")
+    ms = L.mat_canvas("barr_sack", base="#6a5a40", dark="#2a2218", moss=0.1)
+    parts = []
+    for k in range(9):
+        x = -3.2 + k * 0.8
+        parts.append(tube("stake", [((x, 0.2, 0), 0.1), ((x + random.uniform(-0.1, 0.1), -0.8, 1.6), 0.02)], seg=6, sub=1))
+        parts[-1].data.materials.append(mw)
+    parts.append(tube("rail", [((-3.4, 0.0, 0.7), 0.08), ((3.4, 0.0, 0.7), 0.08)], seg=6, sub=1))
+    parts[-1].data.materials.append(mw)
+    for k in range(10):
+        b = L.blob("sack", 0.35, seed=700 + k, squash=(1.4, 0.8, 0.5), rough=0.05, sub=3)
+        for v in b.data.vertices:
+            v.co += Vector((-3 + (k % 5) * 1.4 + (0.7 if k >= 5 else 0), 0.5, 0.18 + (0.3 if k >= 5 else 0)))
+        b.data.materials.append(ms)
+        parts.append(b)
+    ob = join("Barricade", parts)
+    L.bake(ob, size=512, metal=False)
+    parent(ob, r)
+    L.export_tree("barricade", r)
+
+
+def build_wreck():
+    """The burnt wreck of a war machine: a broken hull, a wheel, a snapped beam, charred plates."""
+    r = root("wreck")
+    mi = L.mat_metal("wreck_iron", base="#3a3634", patina="#6a3a1c", patina_amt=0.7, rough=0.6, metal_max=0.5)
+    mw = L.mat_wood("wreck_wood", base="#2a2018", dark="#0a0806", light="#4a3a2a", rings=6, along="X")
+    parts = [box("hull", (3.6, 2.2, 1.4), (0, 0, 0.6), mi, 0.08, rot=(0.15, 0.25, 0.3))]
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.9, minor_radius=0.14, location=(2.2, 0.8, 0.35), rotation=(1.3, 0.2, 0))
+    w = bpy.context.active_object
+    w.data.materials.append(mi)
+    parts.append(w)
+    parts.append(tube("beam", [((-1.5, -0.5, 0.8), 0.18), ((-3.8, -1.6, 0.2), 0.15)], seg=6, sub=1))
+    parts[-1].data.materials.append(mw)
+    for k in range(4):
+        parts.append(box("plate", (random.uniform(0.6, 1.2), 0.08, random.uniform(0.5, 0.9)), (random.uniform(-2, 2), random.uniform(-1.5, 1.5), 0.2), mi, 0.02, rot=(random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(0, 3))))
+    ob = join("Wreck", parts)
+    L.bake(ob, size=512)
+    parent(ob, r)
+    embers = [uv_sphere("e", 0.08, (random.uniform(-1.5, 1.5), random.uniform(-1, 1), 1.1), seg=6, rings=4) for _ in range(6)]
+    ge = join("GlowEmbers", embers)
+    ge.data.materials.append(glow("wreck_embers", "#ff6a1a", 6.0))
+    parent(ge, ob)
+    L.export_tree("wreck", r)
+
+
+def build_war_banner():
+    """A war banner of the demon army: a black pole with horns and a long red cloth."""
+    r = root("war_banner")
+    md = L.mat_metal("banner_iron", base="#2a2a2c", patina="#4a2a1a", patina_amt=0.3, rough=0.5, metal_max=0.5)
+    mc = L.mat_canvas("banner_cloth", base="#8a1a12", dark="#3a0806", moss=0.0)
+    pole = tube("pole", [((0, 0, 0), 0.07), ((0, 0, 6.5), 0.05)], seg=8, sub=1)
+    pole.data.materials.append(md)
+    bar = tube("bar", [((-0.9, 0, 6.0), 0.04), ((0.9, 0, 6.0), 0.04)], seg=6, sub=1)
+    bar.data.materials.append(md)
+    horns = [tube("horn", [((sx * 0.9, 0, 6.0), 0.05), ((sx * 1.2, 0, 6.5), 0.005)], seg=6, sub=1) for sx in (-1, 1)]
+    for h in horns:
+        h.data.materials.append(md)
+    bm = bmesh.new()
+    rows = []
+    for i in range(9):
+        z = 6.0 - i * 0.45
+        wave = math.sin(i * 0.8) * 0.15
+        rows.append([bm.verts.new((x, wave, z)) for x in (-0.85, 0, 0.85)])
+    for i in range(8):
+        for j in range(2):
+            bm.faces.new((rows[i][j], rows[i][j + 1], rows[i + 1][j + 1], rows[i + 1][j]))
+    cloth = L.from_bmesh("cloth", bm)
+    L.mod(cloth, "SOLIDIFY", thickness=0.02)
+    L.apply_all(cloth)
+    cloth.data.materials.append(mc)
+    ob = join("Banner", [pole, bar, cloth] + horns)
+    L.bake(ob, size=512, metal=False)
+    parent(ob, r)
+    L.export_tree("war_banner", r)
+
+
+def build_catapult():
+    """A demon catapult: a heavy timber frame on wheels and a throwing arm (Arm) with a cup."""
+    r = root("catapult")
+    mw = L.mat_wood("cat_wood", base="#4a3424", dark="#1a100a", light="#6a4c34", rings=10, along="Y")
+    mi = L.mat_metal("cat_iron", base="#3a3634", patina="#6a3a1c", patina_amt=0.5, rough=0.5, metal_max=0.5)
+    parts = []
+    for sx in (-1, 1):
+        parts.append(box("rail", (0.35, 5.0, 0.35), (sx * 1.2, 0, 0.9), mw, 0.03))
+        parts.append(tube("upright", [((sx * 1.2, 0.6, 0.9), 0.18), ((sx * 1.0, 0.2, 3.2), 0.16)], seg=6, sub=1))
+        parts[-1].data.materials.append(mw)
+        for y in (-1.8, 1.8):
+            bpy.ops.mesh.primitive_torus_add(major_radius=0.6, minor_radius=0.1, location=(sx * 1.5, y, 0.6), rotation=(0, math.pi / 2, 0))
+            w = bpy.context.active_object
+            w.data.materials.append(mi)
+            parts.append(w)
+    parts.append(box("axle", (2.8, 0.3, 0.3), (0, 0.2, 3.1), mi, 0.03))
+    parts.append(box("counter", (1.4, 1.0, 1.0), (0, -1.6, 1.3), mi, 0.05))
+    frame = join("Catapult", parts)
+    L.bake(frame, size=512)
+    parent(frame, r)
+    arm = tube("arm", [((0, 0.2, 3.1), 0.14), ((0, -3.2, 3.6), 0.1)], seg=8, sub=1)
+    arm.data.materials.append(mw)
+    cup = lathe("cup", [(0.45, 0.25), (0.35, 0.0), (0.0, 0.0)], steps=12)
+    cup.location = (0, -3.3, 3.65)
+    L.transform_apply(cup)
+    cup.data.materials.append(mi)
+    a = join("Arm", [arm, cup])
+    L.bake(a, size=256)
+    set_origin(a, (0, 0.2, 3.1))
+    parent(a, frame)
+    L.export_tree("catapult", r)
+
+
+def build_siege_tower():
+    """A siege tower: a tall timber frame clad in hides and iron, on four wheels, a ramp at the top."""
+    r = root("siege_tower")
+    mw = L.mat_wood("tow_wood", base="#4a3424", dark="#1a100a", light="#6a4c34", rings=10, along="Z")
+    mh = L.mat_leather("tow_hide", base="#5a3a28", dark="#2a180c")
+    mi = L.mat_metal("tow_iron", base="#3a3634", patina="#6a3a1c", patina_amt=0.5, rough=0.5, metal_max=0.5)
+    parts = []
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            parts.append(tube("post", [((sx * 1.6, sy * 1.6, 0.6), 0.18), ((sx * 1.3, sy * 1.3, 10.0), 0.15)], seg=6, sub=1))
+            parts[-1].data.materials.append(mw)
+            bpy.ops.mesh.primitive_torus_add(major_radius=0.6, minor_radius=0.12, location=(sx * 1.9, sy * 1.3, 0.6), rotation=(0, math.pi / 2, 0))
+            w = bpy.context.active_object
+            w.data.materials.append(mi)
+            parts.append(w)
+    for k in range(3):
+        z = 2.5 + k * 3
+        parts.append(box("hide", (3.0 - k * 0.2, 0.15, 2.6), (0, 1.5 - k * 0.1, z), mh, 0.02))
+        parts.append(box("hide", (0.15, 3.0 - k * 0.2, 2.6), (1.5 - k * 0.1, 0, z), mh, 0.02))
+        parts.append(box("hide", (0.15, 3.0 - k * 0.2, 2.6), (-1.5 + k * 0.1, 0, z), mh, 0.02))
+        parts.append(box("floor", (3.2, 3.2, 0.15), (0, 0, z - 1.3), mw, 0.02))
+    parts.append(box("ramp", (2.4, 0.2, 3.0), (0, -1.9, 9.0), mw, 0.03, rot=(0.35, 0, 0)))
+    parts.append(box("roof", (3.4, 3.4, 0.3), (0, 0, 10.1), mi, 0.04))
+    ob = join("SiegeTower", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    L.export_tree("siege_tower", r)
+
+
+def build_flying_fortress():
+    """A flying fortress: an upturned crag of rock, black towers and walls on top, chains hanging
+    and a glowing furnace in its belly (GlowFurnace)."""
+    r = root("flying_fortress")
+    mr = mat_magma("ff_rock")
+    mi = L.mat_metal("ff_iron", base="#2a2a2e", patina="#5a2a1a", patina_amt=0.4, rough=0.5, metal_max=0.5)
+    crag = lathe("crag", [(0.0, -14), (3.0, -12), (8.0, -6), (13.0, -1), (14.0, 0), (0.0, 0)], steps=20)
+    for v in crag.data.vertices:
+        v.co += Vector((noise.noise(v.co * 0.15) * 2.0, noise.noise(v.co * 0.15 + Vector((9, 0, 0))) * 2.0, noise.noise(v.co * 0.2) * 1.2))
+    crag.data.materials.append(mr)
+    parts = [crag]
+    for k in range(6):
+        a = k / 6 * math.tau
+        tw = lathe("tower", [(1.6, 0), (1.4, 8 + k % 3 * 2), (2.0, 8.5 + k % 3 * 2), (0.0, 12 + k % 3 * 2)], steps=10)
+        tw.location = (math.cos(a) * 8, math.sin(a) * 8, 0)
+        L.transform_apply(tw)
+        tw.data.materials.append(mi)
+        parts.append(tw)
+    keep = lathe("keep", [(4.0, 0), (3.5, 14), (4.2, 15), (0.0, 22)], steps=12)
+    keep.data.materials.append(mi)
+    parts.append(keep)
+    for k in range(8):
+        a = k / 8 * math.tau + 0.2
+        b = Vector((math.cos(a) * 9, math.sin(a) * 9, -3))
+        parts.append(tube("chain", [(b, 0.15), (b + Vector((0, 0, -8 - k % 3 * 3)), 0.12)], seg=5, sub=1))
+        parts[-1].data.materials.append(mi)
+    ob = join("Fortress", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    fur = uv_sphere("GlowFurnace", 2.0, (0, 0, -12), scale=(1, 1, 0.6), seg=12, rings=8)
+    fur.data.materials.append(glow("ff_furnace", "#ff5a1a", 10.0))
+    parent(fur, ob)
+    L.export_tree("flying_fortress", r)
+
+
+def build_factory():
+    """The crab's robot factory: a riveted hall with a big gate (Door marks where robots come out),
+    two chimneys, a conveyor and blue work lights (GlowLights)."""
+    r = root("factory")
+    m = mat_iron_plate("fac_iron", base="#5a6068", rust="#4a3a2a")
+    md = L.mat_metal("fac_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.45, metal_max=0.6)
+    hall = wall("front", 10.0, 6.0, 0.5, m, holes=[(0, 0, 4.0, 3.5, False)], seed=801, broken=0.0)
+    place(hall, (0, -4, 0))
+    back = box("back", (10, 0.5, 6), (0, 4, 3), m, 0.04)
+    sides = [box("side", (0.5, 8, 6), (sx * 5, 0, 3), m, 0.04) for sx in (-1, 1)]
+    roof = box("roof", (10.6, 8.6, 0.4), (0, 0, 6.2), md, 0.05)
+    chim = [tube("chimney", [((sx * 3, 2, 6), 0.5), ((sx * 3, 2, 10), 0.45)], seg=10, sub=1) for sx in (-1, 1)]
+    for c in chim:
+        c.data.materials.append(md)
+    belt = box("belt", (2.0, 5.0, 0.6), (0, -6, 0.3), md, 0.03)
+    ob = join("Factory", [hall, back, roof, belt] + sides + chim)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    lights = [uv_sphere("l", 0.15, (x, -4.3, 4.8), seg=8, rings=6) for x in (-3.5, 3.5)]
+    gl = join("GlowLights", lights)
+    gl.data.materials.append(glow("fac_light", "#6ac8ff", 8.0))
+    parent(gl, ob)
+    door = bpy.data.objects.new("Door", None)
+    L.link(door)
+    door.location = (0, -7.5, 0.2)
+    parent(door, ob)
+    L.export_tree("factory", r)
+
 ASSETS = {
     "palm": build_palm, "beach_rocks": build_beach_rocks, "shelter": build_shelter, "driftwood": build_driftwood,
     "seaweed": build_seaweed, "morsel": build_morsel, "gull": build_gull,
@@ -1682,6 +1888,8 @@ ASSETS = {
     "memory_lamp": build_memory_lamp, "memory_shard": build_memory_shard, "fresco": build_fresco, "ancient_robot": build_ancient_robot,
     "mech_wall": build_mech_wall, "gear": build_gear, "crusher": build_crusher, "mech_gate": build_mech_gate, "lever": build_lever,
     "machine_tower": build_machine_tower,
+    "barricade": build_barricade, "wreck": build_wreck, "war_banner": build_war_banner, "catapult": build_catapult,
+    "siege_tower": build_siege_tower, "flying_fortress": build_flying_fortress, "factory": build_factory,
 }
 
 

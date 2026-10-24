@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Crab.Core
 {
-    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank, SparkCore, EnergyBlade, GravityGun, Portal, CyberFrame, Hunter, Constructor, Engineer, MageOrb, SquadPlating, SquadFire }
+    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank, SparkCore, EnergyBlade, GravityGun, Portal, CyberFrame, Hunter, Constructor, Engineer, MageOrb, SquadPlating, SquadFire, Factory, TruthLens, Bridgework }
 
     public enum WeaponKind { None, Melee, Throw, Gun }
 
@@ -76,6 +76,9 @@ namespace Crab.Core
             new Blueprint { id = ItemId.MageOrb, title = "МАГ", hint = "Сфера из кристалла и энергии: бьёт молнией по нескольким сразу и подпитывает меня энергией.", cost = new Cost(0, 2, 4, 4, 8, 8), companion = true, workshop = true },
             new Blueprint { id = ItemId.SquadPlating, title = "Броня отряда", hint = "Все мои спутники держат удар почти вдвое лучше.", cost = new Cost(0, 4, 16, 4, 4, 0), gear = true, workshop = true },
             new Blueprint { id = ItemId.SquadFire, title = "Огонь отряда", hint = "Все мои спутники бьют в полтора раза сильнее.", cost = new Cost(0, 2, 8, 4, 6, 6), gear = true, workshop = true },
+            new Blueprint { id = ItemId.Factory, title = "Фабрика роботов", hint = "Не одна вещь и не один спутник — поток. Фабрика сама собирает мне армию.", cost = new Cost(0, 10, 24, 8, 8, 10), gear = true, workshop = true },
+            new Blueprint { id = ItemId.TruthLens, title = "Взгляд истины", hint = "Линза ИИ: на миг показывает, что настоящее, а что — ложь (T).", cost = new Cost(0, 2, 4, 2, 6, 6), gear = true },
+            new Blueprint { id = ItemId.Bridgework, title = "Мосты из материи", hint = "Я строю путь там, где его нет (B): плита под лапы, из камня и металла.", cost = new Cost(0, 8, 12, 0, 4, 6), gear = true },
             new Blueprint { id = ItemId.Portal, title = "Портал", hint = "Шаг сквозь пространство (F) — туда, куда смотрю.", cost = new Cost(0, 0, 0, 0, 3, 5), gear = true },
         };
 

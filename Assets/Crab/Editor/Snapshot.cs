@@ -28,6 +28,8 @@ namespace Crab.EditorTools
                 ("machine", new Vector3(8, 4, 42), new Vector3(14, 3, 54)), ("hall", new Vector3(0, 4, 56), new Vector3(0, 6, 90)) });
             Scene("Betrayal", new[] { ("start", (Vector3?)null, Vector3.zero), ("maze", new Vector3(-40, 35, -30), new Vector3(0, 0, 35)), ("corridor", new Vector3(0, 2.5f, -6), new Vector3(0, 2, 10)),
                 ("heart", new Vector3(0, 6, 76), new Vector3(0, 6, 98)) });
+            Scene("Violence", new[] { ("start", (Vector3?)null, Vector3.zero), ("field", new Vector3(-50, 40, -90), new Vector3(0, 0, 10)), ("forge", new Vector3(-20, 4, -30), new Vector3(-32, 2, -38)),
+                ("front", new Vector3(0, 5, 60), new Vector3(0, 5, 94)) });
             Scene("Menu", new[] { ("title", (Vector3?)null, Vector3.zero) });
             Debug.Log("Snapshots rendered");
         }

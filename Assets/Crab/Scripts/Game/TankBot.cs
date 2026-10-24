@@ -74,12 +74,14 @@ namespace Crab.Game
             punchT -= dt;
             if (!Alive) return;
             if (!target || !target.Alive || !target.Visible || Vector3.Distance(target.transform.position, hero.transform.position) > range) target = Nearest();
+            var ordered = Squad.OrderTarget();
+            if (ordered) target = ordered;
             if (Squad.Hacked) target = null;
             Vector3 goal;
             if (Squad.Hacked) goal = hero.transform.position;
             else if (target) goal = target.transform.position;
             else if (boss != null && boss.Alive && bossAt) goal = bossAt.position;
-            else goal = hero.transform.position - hero.transform.forward * 1.8f + hero.transform.right * 1.4f;
+            else goal = Squad.Station(hero, -hero.transform.forward * 1.8f + hero.transform.right * 1.4f);
             var to = goal - transform.position;
             to.y = 0;
             bool atBoss = !target && boss != null && boss.Alive && bossAt;
@@ -89,7 +91,7 @@ namespace Crab.Game
             cc.Move((wish + Vector3.up * vy) * dt);
             if (to.sqrMagnitude > 0.05f) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(to), 1 - Mathf.Exp(-6 * dt));
             // left far behind (a jump, a respawn): it catches up at once
-            if (Vector3.Distance(transform.position, hero.transform.position) > 30) transform.position = hero.transform.position - hero.transform.forward * 2 + Vector3.up;
+            if (Squad.Order == Squad.Orders.Follow && Vector3.Distance(transform.position, hero.transform.position) > 30) transform.position = hero.transform.position - hero.transform.forward * 2 + Vector3.up;
             if (target && to.magnitude < 2.2f && punchT <= 0) Punch();
             if (atBoss && !Squad.Hacked && to.magnitude < 4.5f && punchT <= 0) PunchBoss();
             if (Squad.Hacked && punchT <= 0 && Vector3.Distance(hero.transform.position, transform.position) < 2.2f && hero.Alive)

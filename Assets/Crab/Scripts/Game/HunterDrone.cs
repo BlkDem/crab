@@ -30,6 +30,8 @@ namespace Crab.Game
             var home = hero.transform.position + Vector3.up * (2.6f + Mathf.Sin(t * 0.9f) * 0.15f) - hero.transform.forward * 1.5f - hero.transform.right * 1.0f;
             transform.position = Vector3.Lerp(transform.position, home, 1 - Mathf.Exp(-3 * dt));
             if (!target || !target.Alive || !target.Visible || Vector3.Distance(target.transform.position, transform.position) > range) target = Nearest();
+            var ordered = Squad.OrderTarget();
+            if (ordered && Vector3.Distance(ordered.transform.position, transform.position) < range * 1.5f) target = ordered;
             var look = target ? target.transform.position + Vector3.up * 0.8f : bossPoint ? bossPoint.position : transform.position + hero.transform.forward;
             var d = look - transform.position;
             if (d.sqrMagnitude > 0.01f) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(d), 1 - Mathf.Exp(-5 * dt));

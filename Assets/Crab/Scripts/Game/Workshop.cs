@@ -10,6 +10,8 @@ namespace Crab.Game
     public sealed class Workshop : Interactable
     {
         public Cost cost = new Cost(0, 8, 15, 5);
+        [Tooltip("What building it is called in the prompt (accusative)")]
+        public string title = "мастерскую";
         [Tooltip("The part that appears when it is built (the forge, the anvil, the crane)")]
         public Transform build;
         public Light forgeLight;
@@ -21,7 +23,7 @@ namespace Crab.Game
 
         public override string Prompt => built
             ? "[E] Мастерская — создать сложное"
-            : $"[E] Построить мастерскую ({cost}) — держать{(buildT > 0 ? $" {Mathf.RoundToInt(buildT / BuildTime * 100)}%" : "")}";
+            : $"[E] Построить {title} ({cost}) — держать{(buildT > 0 ? $" {Mathf.RoundToInt(buildT / BuildTime * 100)}%" : "")}";
         public override bool Hold => !built;
         public override Vector3 Point => transform.position + Vector3.up * 1.2f;
 
@@ -41,7 +43,7 @@ namespace Crab.Game
             var st = hero.State;
             if (buildT <= 0 && !st.Matter.CanPay(cost))
             {
-                Story.Hint($"Для мастерской нужно: {cost}");
+                Story.Hint($"Чтобы построить {title}, нужно: {cost}");
                 return true;
             }
             buildT += dt;

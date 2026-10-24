@@ -1377,11 +1377,107 @@ def build_janus():
     parent(back, head)
     L.export_tree("janus", body)
 
+
+# ---------------------------------------------------------------------- VII. the circle of Violence
+def build_warlord():
+    """The Warlord of Slaughter (about 6 m): a giant demon in black-and-bronze plate, horned helm
+    with a glowing slit, a war banner on his back, a huge cleaver in the right hand.
+    Body > Head > GlowEyes, ArmL, ArmR (cleaver), LegL, LegR."""
+    m = mat_demon("warlord_hide", base="#5a140c", dark="#1a0402", veins=0.4, scale=3.0)
+    mi = L.mat_metal("warlord_iron", base="#2a2a2e", patina="#6a2a1a", patina_amt=0.35, rough=0.4, metal_max=0.6)
+    mb = L.mat_metal("warlord_bronze", base="#8a5a2a", patina="#3a4a3a", patina_amt=0.35, rough=0.4, metal_max=0.6)
+    mc = L.mat_canvas("warlord_banner", base="#8a1a12", dark="#3a0806", moss=0.0)
+    chest = lathe("chest", [(0.0, 2.6), (1.0, 2.7), (1.3, 3.5), (1.4, 4.3), (1.1, 4.9), (0.0, 5.0)], steps=20)
+    for v in chest.data.vertices:
+        v.co.y *= 0.75
+    chest.data.materials.append(mi)
+    belt = lathe("belt", [(1.05, 2.5), (1.1, 2.7), (1.05, 2.9)], steps=20)
+    belt.data.materials.append(mb)
+    skirt = lathe("skirt", [(0.0, 2.6), (1.05, 2.6), (1.3, 1.8), (0.0, 1.8)], steps=16)
+    skirt.data.materials.append(mi)
+    pauld = [uv_sphere("pauldron", 0.7, (sx * 1.45, 0, 4.7), scale=(1.1, 1, 0.7), seg=14, rings=8) for sx in (-1, 1)]
+    for p_ in pauld:
+        p_.data.materials.append(mb)
+    pole = tube("pole", [((0, 0.9, 2.5), 0.07), ((0, 0.9, 8.5), 0.06)], seg=6, sub=1)
+    pole.data.materials.append(mi)
+    bm = bmesh.new()
+    rows = []
+    for i in range(7):
+        z = 8.3 - i * 0.55
+        rows.append([bm.verts.new((x, 0.95 + math.sin(i * 0.9) * 0.1, z)) for x in (0.05, 0.7, 1.4)])
+    for i in range(6):
+        for j in range(2):
+            bm.faces.new((rows[i][j], rows[i][j + 1], rows[i + 1][j + 1], rows[i + 1][j]))
+    flag = L.from_bmesh("flag", bm)
+    L.mod(flag, "SOLIDIFY", thickness=0.03)
+    L.apply_all(flag)
+    flag.data.materials.append(mc)
+    body = join("Body", [chest, belt, skirt, pole, flag] + pauld)
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    helm = lathe("helm", [(0.0, 5.0), (0.55, 5.05), (0.62, 5.5), (0.55, 6.0), (0.0, 6.1)], steps=16)
+    helm.data.materials.append(mi)
+    horns = []
+    for sx in (-1, 1):
+        b = Vector((sx * 0.55, 0, 5.7))
+        h = tube("horn", [(b, 0.16), (b + Vector((sx * 0.6, 0.1, 0.3)), 0.11), (b + Vector((sx * 0.8, -0.2, 1.1)), 0.01)], seg=8, sub=2)
+        h.data.materials.append(mat_horn("warlord_horn"))
+        horns.append(h)
+    head = join("Head", [helm] + horns)
+    set_origin(head, (0, 0, 5.0))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 1.5, 0, 4.6))
+        arm = tube("arm", [(sh, 0.45), (sh + Vector((sx * 0.3, -0.3, -1.2)), 0.38), (sh + Vector((sx * 0.3, -0.8, -2.2)), 0.35)], seg=10, sub=1)
+        arm.data.materials.append(m)
+        gaunt = uv_sphere("gauntlet", 0.42, sh + Vector((sx * 0.3, -0.9, -2.35)), seg=12, rings=8)
+        gaunt.data.materials.append(mi)
+        extra = []
+        if side == "R":
+            hand = sh + Vector((sx * 0.3, -0.9, -2.35))
+            haft = tube("haft", [(hand + Vector((0, 0, -0.6)), 0.08), (hand + Vector((0, -0.2, 1.4)), 0.08)], seg=6, sub=1)
+            haft.data.materials.append(mb)
+            bm2 = bmesh.new()
+            pts = [(0, 0), (1.4, 0.1), (1.6, 1.4), (0.2, 1.8), (0, 1.6)]
+            fv = [bm2.verts.new((-0.05, -y * 0.0 + 0, 0)) for _ in range(0)]
+            fv = [bm2.verts.new((-0.06, -x, y)) for x, y in pts]
+            bv = [bm2.verts.new((0.06, -x, y)) for x, y in pts]
+            bm2.faces.new(fv)
+            bm2.faces.new(list(reversed(bv)))
+            for i in range(len(pts)):
+                bm2.faces.new((fv[(i + 1) % len(pts)], fv[i], bv[i], bv[(i + 1) % len(pts)]))
+            bmesh.ops.recalc_face_normals(bm2, faces=bm2.faces)
+            blade = L.from_bmesh("blade", bm2, smooth=False)
+            blade.location = hand + Vector((0, -0.25, 0.5))
+            L.transform_apply(blade)
+            blade.data.materials.append(mi)
+            extra = [haft, blade]
+        a = join("Arm" + side, [arm, gaunt] + extra)
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+        hip = Vector((sx * 0.55, 0, 2.2))
+        leg = tube("leg", [(hip, 0.5), (hip + Vector((0, -0.1, -1.1)), 0.42), (hip + Vector((0, 0.05, -2.1)), 0.4)], seg=10, sub=1)
+        leg.data.materials.append(mi)
+        lg = join("Leg" + side, [leg])
+        set_origin(lg, hip)
+        parent(lg, body)
+        parts.append(lg)
+    for o in parts:
+        L.shade_smooth(o, 40)
+    L.bake_group(parts, "warlord", size=1024, ao_dist=0.3)
+    eyes = uv_sphere("GlowEyes", 0.08, (0, -0.58, 5.55), scale=(4, 0.4, 0.6), seg=10, rings=6)
+    eyes.data.materials.append(glow("warlord_eyes", "#ff4a1a", 12.0))
+    parent(eyes, head)
+    L.export_tree("warlord", body)
+
 ASSETS = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian,
           "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus,
           "collector": build_collector, "goldguard": build_goldguard, "usurer": build_usurer,
           "dweller": build_dweller, "envious": build_envious, "wraith": build_wraith, "devourer": build_devourer,
-          "legionary": build_legionary, "guide": build_guide, "janus": build_janus}
+          "legionary": build_legionary, "guide": build_guide, "janus": build_janus,
+          "warlord": build_warlord}
 
 
 def main():

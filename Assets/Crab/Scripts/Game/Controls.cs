@@ -2,6 +2,8 @@
 //   WASD / left stick — move, mouse / right stick — look, Space / A — jump, Shift / L3 — run,
 //   LMB / RT — strike, throw or shoot, RMB / LT — aim, E / X — draw matter in, eat, use,
 //   Tab / Y — create (matter into things), wheel, 1-9 / bumpers — weapon, Q / B — shield, F / R3 — portal,
+//   G / H / J (d-pad) — orders to the squad: attack there, to me, hold there,
+//   T / d-pad left — the truth lens, B / Select — a bridge of matter,
 //   Esc / Start — pause.
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -11,7 +13,7 @@ namespace Crab.Game
     public static class Controls
     {
         static InputActionMap map;
-        public static InputAction Move, Look, Jump, Sprint, Attack, Aim, Interact, Create, Next, Prev, Scroll, Pause, Shield, Portal;
+        public static InputAction Move, Look, Jump, Sprint, Attack, Aim, Interact, Create, Next, Prev, Scroll, Pause, Shield, Portal, OrderAttack, OrderFollow, OrderHold, Truth, Bridge;
         public static readonly InputAction[] Slot = new InputAction[9];
         /// <summary>Mouse look speed (settings).</summary>
         public static float sensitivity = 1;
@@ -40,6 +42,11 @@ namespace Crab.Game
             Pause = Button("Pause", "<Keyboard>/escape", "<Gamepad>/start");
             Shield = Button("Shield", "<Keyboard>/q", "<Gamepad>/buttonEast");
             Portal = Button("Portal", "<Keyboard>/f", "<Gamepad>/rightStickPress");
+            OrderAttack = Button("OrderAttack", "<Keyboard>/g", "<Gamepad>/dpad/up");
+            OrderFollow = Button("OrderFollow", "<Keyboard>/h", "<Gamepad>/dpad/down");
+            OrderHold = Button("OrderHold", "<Keyboard>/j", "<Gamepad>/dpad/right");
+            Truth = Button("Truth", "<Keyboard>/t", "<Gamepad>/dpad/left");
+            Bridge = Button("Bridge", "<Keyboard>/b", "<Gamepad>/select");
             for (int i = 0; i < Slot.Length; i++) Slot[i] = Button($"Slot{i + 1}", $"<Keyboard>/{i + 1}", null);
             map.Enable();
         }
