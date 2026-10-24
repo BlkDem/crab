@@ -1,0 +1,109 @@
+// The playthrough across scenes: the game state, saving and loading, scene changes with a fade.
+using System;
+using System.Collections;
+using System.IO;
+using Crab.Core;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace Crab.Game
+{
+    public sealed class GameSession : MonoBehaviour
+    {
+        public static GameSession Instance { get; private set; }
+        public GameState State { get; private set; } = new GameState();
+        /// <summary>Tests keep their saves elsewhere.</summary>
+        public static string SavePathOverride;
+        public static string SavePath => SavePathOverride ?? Path.Combine(Application.persistentDataPath, "save.json");
+        /// <summary>0..1 black over the screen (the interface draws it).</summary>
+        public float fade;
+        public bool Changing { get; private set; }
+        public event Action<string> SceneStarted;
+
+        public static GameSession Ensure()
+        {
+            if (Instance) return Instance;
+            var go = new GameObject("GameSession");
+            DontDestroyOnLoad(go);
+            Instance = go.AddComponent<GameSession>();
+            return Instance;
+        }
+
+        void Awake()
+        {
+            if (Instance && Instance != this) { Destroy(gameObject); return; }
+            Instance = this;
+            SceneManager.sceneLoaded += (s, _) => SceneStarted?.Invoke(s.name);
+            Sfx.volume = PlayerPrefs.GetFloat("crab.volume", 0.8f);
+            Sfx.music = PlayerPrefs.GetFloat("crab.music", 0.5f);
+            Controls.sensitivity = PlayerPrefs.GetFloat("crab.sens", 1f);
+        }
+
+        void Update()
+        {
+            if (Time.timeScale > 0) State.PlaySeconds += Time.unscaledDeltaTime;
+        }
+
+        public static bool HasSave => File.Exists(SavePath);
+
+        /// <summary>A fresh playthrough without changing scene (tests, debugging).</summary>
+        public void ResetState() => State = new GameState();
+
+        public void NewGame()
+        {
+            State = new GameState();
+            Go("Prologue");
+        }
+
+        public void Continue()
+        {
+            if (!Load()) { NewGame(); return; }
+            Go(State.Scene);
+        }
+
+        public void Save()
+        {
+            try
+            {
+                File.WriteAllText(SavePath, JsonUtility.ToJson(State.ToSave(), true));
+            }
+            catch (IOException e) { Debug.LogWarning($"save: {e.Message}"); }
+        }
+
+        public bool Load()
+        {
+            try
+            {
+                if (!HasSave) return false;
+                var s = JsonUtility.FromJson<SaveData>(File.ReadAllText(SavePath));
+                if (s == null) return false;
+                State = new GameState();
+                State.Load(s);
+                return true;
+            }
+            catch (Exception e) { Debug.LogWarning($"load: {e.Message}"); return false; }
+        }
+
+        /// <summary>Fade out, load a scene, fade in.</summary>
+        public void Go(string scene, float fadeTime = 0.8f)
+        {
+            if (Changing) return;
+            StartCoroutine(GoRoutine(scene, fadeTime));
+        }
+
+        IEnumerator GoRoutine(string scene, float fadeTime)
+        {
+            Changing = true;
+            for (float t = 0; t < fadeTime; t += Time.unscaledDeltaTime) { fade = t / fadeTime; yield return null; }
+            fade = 1;
+            Time.timeScale = 1;
+            if (scene != "Menu") State.Scene = scene;
+            var op = SceneManager.LoadSceneAsync(scene);
+            while (!op.isDone) yield return null;
+            yield return null;
+            for (float t = 0; t < fadeTime; t += Time.unscaledDeltaTime) { fade = 1 - t / fadeTime; yield return null; }
+            fade = 0;
+            Changing = false;
+        }
+    }
+}
