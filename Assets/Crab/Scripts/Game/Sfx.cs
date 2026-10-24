@@ -474,6 +474,39 @@ namespace Crab.Game
                     Normalize(d, 0.55f);
                     return d;
                 }
+                case "music_envy":
+                {
+                    // too sweet: a bright major pad and a music box that sometimes slips out of tune
+                    d = Pad(new[] { new[] { 0, 4, 7, 11 }, new[] { 5, 9, 12, 16 }, new[] { -3, 0, 4, 7 }, new[] { 2, 5, 9, 12 } }, 60, 4, false);
+                    int[] tune = { 12, 16, 19, 24, 19, 16, 17, 21, 24, 21, 17, 14, 16, 19, 23, 19 };
+                    float beat = 1f;
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        int n = (int)(t / beat);
+                        float tb = t - n * beat;
+                        float detune = n % 7 == 6 ? 0.55f : 0;   // the wrong note
+                        float f = 440 * Mathf.Pow(2, (60 + tune[n % tune.Length] + detune - 69) / 12f);
+                        float box = (Mathf.Sin(2 * Mathf.PI * f * t) + 0.3f * Mathf.Sin(2 * Mathf.PI * f * 3.01f * t)) * Env(tb, 0.002f, 0.4f);
+                        d[i] += box * 0.2f;
+                    }
+                    Normalize(d, 0.5f);
+                    return d;
+                }
+                case "glitch":
+                {
+                    // a tearing, stuttering burst
+                    d = Buf(0.6f);
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        float t = i / (float)Rate;
+                        float gate = ((int)(t * 37) % 3 == 0) ? 0 : 1;
+                        float f = 80 + 600 * Mathf.Abs(Mathf.Sin(t * 23));
+                        d[i] = (Mathf.Sign(Mathf.Sin(2 * Mathf.PI * f * t)) * 0.5f + N() * 0.5f) * gate * Env(t, 0.005f, 0.25f);
+                    }
+                    Normalize(d, 0.6f);
+                    return d;
+                }
                 case "music_greed":
                 {
                     // a slow, stately minor waltz of plucked notes over a low organ: counting coins

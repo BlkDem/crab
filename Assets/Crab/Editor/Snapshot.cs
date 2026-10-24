@@ -22,6 +22,8 @@ namespace Crab.EditorTools
                 ("vent", new Vector3(-34, 3, 14), new Vector3(-40, 1, 22)), ("lake", new Vector3(0, 5, 58), new Vector3(0, 7, 106)), ("sky", new Vector3(40, 50, -60), new Vector3(0, 0, 40)) });
             Scene("Greed", new[] { ("start", (Vector3?)null, Vector3.zero), ("gate", new Vector3(-10, 4, -52), new Vector3(0, 6, -30)), ("city", new Vector3(-45, 30, -50), new Vector3(0, 0, 15)),
                 ("street", new Vector3(2, 2.5f, -22), new Vector3(0, 3, 10)), ("workshop", new Vector3(-12, 3, 0), new Vector3(-22, 1, 4)), ("hall", new Vector3(0, 4, 56), new Vector3(0, 5, 92)) });
+            Scene("Envy", new[] { ("start", (Vector3?)null, Vector3.zero), ("village", new Vector3(-6, 3, -22), new Vector3(0, 2, 6)), ("island", new Vector3(-60, 40, -70), new Vector3(0, 0, 30)),
+                ("spring", new Vector3(-20, 9, 26), new Vector3(-30, 7, 36)), ("plaza", new Vector3(0, 4, 52), new Vector3(0, 4, 82)) });
             Scene("Menu", new[] { ("title", (Vector3?)null, Vector3.zero) });
             Debug.Log("Snapshots rendered");
         }

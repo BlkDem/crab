@@ -40,8 +40,9 @@ namespace Crab.EditorTools
             BuildLimbo();
             BuildWrath();
             BuildGreed();
+            BuildEnvy();
             BuildMenu();
-            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
+            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log("Crab scenes built");
         }
@@ -61,8 +62,23 @@ namespace Crab.EditorTools
                 Set("m_MainLightShadowmapResolution", p => p.intValue = 2048);
                 Set("m_SoftShadowsSupported", p => p.boolValue = true);
                 Set("m_SupportsHDR", p => p.boolValue = true);
+                // the SRP Batcher draws some models with other models' textures in the circle of Envy
+                // (hundreds of flowers and trees, many baked materials) until they are re-enabled;
+                // the plain path is right, and fast enough here
+                Set("m_UseSRPBatcher", p => p.boolValue = false);
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
+            // the scenes carry many textures: upload them faster after a load (the default slice leaves
+            // garbage in the top mips for seconds in the bigger circles)
+            var qso = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/QualitySettings.asset")[0]);
+            var levels = qso.FindProperty("m_QualitySettings");
+            for (int i = 0; levels != null && i < levels.arraySize; i++)
+            {
+                var q = levels.GetArrayElementAtIndex(i);
+                q.FindPropertyRelative("asyncUploadTimeSlice").intValue = 8;
+                q.FindPropertyRelative("asyncUploadBufferSize").intValue = 64;
+            }
+            qso.ApplyModifiedPropertiesWithoutUndo();
             PlayerSettings.productName = "Краб против ада";
             PlayerSettings.companyName = "umolab";
         }
@@ -92,7 +108,7 @@ namespace Crab.EditorTools
             if (!l) { l = ScriptableObject.CreateInstance<Library>(); AssetDatabase.CreateAsset(l, path); }
             l.hero = Glb("Hero/hero");
             l.items = new List<Library.Named>();
-            foreach (var (id, file) in new[] { (ItemId.Stick, "stick"), (ItemId.Stone, "stone"), (ItemId.Crowbar, "crowbar"), (ItemId.Knife, "knife"), (ItemId.Pistol, "pistol"), (ItemId.MachineGun, "machinegun"), (ItemId.EnergyRifle, "energy_rifle") })
+            foreach (var (id, file) in new[] { (ItemId.Stick, "stick"), (ItemId.Stone, "stone"), (ItemId.Crowbar, "crowbar"), (ItemId.Knife, "knife"), (ItemId.Pistol, "pistol"), (ItemId.MachineGun, "machinegun"), (ItemId.EnergyRifle, "energy_rifle"), (ItemId.EnergyBlade, "energy_blade"), (ItemId.GravityGun, "gravity_gun") })
                 l.items.Add(new Library.Named { name = id.ToString(), model = Glb("Items/" + file) });
             l.stone = Glb("Items/stone");
             l.gull = Glb("World/gull");
@@ -103,6 +119,8 @@ namespace Crab.EditorTools
             l.drone = Glb("Items/drone");
             l.heavyArmor = Glb("Items/heavy_armor");
             l.king = Glb("Enemies/usurer");
+            l.sparkCore = Glb("Items/spark_core");
+            l.dweller = Glb("Enemies/dweller");
             l.particle = Mat("ParticleSoft", "Crab/Soft");
             l.particleAdditive = Mat("ParticleGlow", "Crab/Glow", m => m.SetFloat("_Round", 1));
             l.tracer = Mat("Tracer", "Crab/Glow", m => m.SetFloat("_Round", 0));
@@ -111,6 +129,16 @@ namespace Crab.EditorTools
             l.water = Mat("Sea", "Crab/Water");
             l.gold = Mat("Gold", "Universal Render Pipeline/Lit", m => { m.SetColor("_BaseColor", new Color(1f, 0.75f, 0.25f)); m.SetFloat("_Metallic", 0.6f); m.SetFloat("_Smoothness", 0.7f); });
             l.shield = Mat("ShieldDome", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(0.45f, 0.9f, 1f, 0.6f)); });
+            l.mirror = Mat("MirrorGlass", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetColor("_BaseColor", new Color(0.5f, 0.48f, 0.62f));
+                m.SetFloat("_Metallic", 0.9f);
+                m.SetFloat("_Smoothness", 0.95f);
+                m.EnableKeyword("_EMISSION");
+                m.SetColor("_EmissionColor", new Color(0.12f, 0.08f, 0.2f));
+                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                m.SetFloat("_Cull", 0);
+            });
             l.fire = Mat("Fire", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(1f, 0.55f, 0.15f, 1f)); });
             l.shade = EnemyPrefab<Shade>("Shade", Glb("Enemies/shade"), 0.35f, 1.8f, e => { e.maxHealth = 40; e.speed = 1.8f; e.attackRange = 1.7f; e.damage = 9; e.windup = 0.7f; e.attackCooldown = 1.5f; });
             l.crawler = EnemyPrefab<Crawler>("Crawler", Glb("Enemies/crawler"), 0.35f, 0.6f, e => { e.maxHealth = 28; e.speed = 3.6f; e.attackRange = 1.1f; e.damage = 8; e.windup = 0.35f; e.attackCooldown = 1.2f; });
@@ -120,6 +148,7 @@ namespace Crab.EditorTools
             l.collector = EnemyPrefab<Collector>("Collector", Glb("Enemies/collector"), 0.35f, 1.2f, e => { e.maxHealth = 50; e.speed = 3.0f; e.aggro = 12; e.attackRange = 0; e.damage = 0; });
             l.goldGuard = EnemyPrefab<GoldGuard>("GoldGuard", Glb("Enemies/goldguard"), 0.5f, 2.2f, e => { e.maxHealth = 130; e.speed = 2.1f; e.attackRange = 2.2f; e.damage = 18; e.windup = 0.8f; e.attackCooldown = 1.8f; e.aggro = 13; });
             l.tank = TankPrefab(Glb("Items/tank"));
+            l.envious = EnemyPrefab<Envious>("Envious", Glb("Enemies/envious"), 0.35f, 1.6f, e => { e.maxHealth = 80; e.speed = 3.0f; e.attackRange = 1.5f; e.damage = 14; e.windup = 0.45f; e.attackCooldown = 1.3f; e.aggro = 18; });
             EditorUtility.SetDirty(l);
             return l;
         }
@@ -1308,12 +1337,263 @@ namespace Crab.EditorTools
             }
             dir.usurer = usurer;
             var exit = RiftAt(root, 0, 80, 180, "greed_exit");
-            exit.leadsTo = "Menu";
+            exit.leadsTo = "Envy";
             exit.delay = 6;
             exit.membrane.sharedMaterial = Mat("RiftGreen", "Crab/Rift", m => { m.SetColor("_Color", new Color(0.5f, 1f, 0.8f)); m.SetColor("_Core", new Color(0.02f, 0.08f, 0.06f)); });
             dir.exit = exit;
             Ui<GameUI>();
             SaveScene(scene, "Greed");
+        }
+
+        // ------------------------------------------------------------------ Envy
+        // a paradise island in a turquoise sea: the shore in the south, the village of white
+        // pavilions in the middle, the Spring on a hill in the west, the mirror plaza and the lake
+        // in the north
+        static readonly Vector3 SpringHill = new Vector3(-30, 0, 36), MirrorPlaza = new Vector3(0, 0, 70);
+
+        static float EnvyHeight(float x, float z)
+        {
+            float h = 0.8f + (Mathf.PerlinNoise(x * 0.03f + 51, z * 0.03f + 7) - 0.5f) * 3f;
+            h += (Mathf.PerlinNoise(x * 0.12f + 5, z * 0.12f) - 0.5f) * 0.4f;
+            // the Spring's hill
+            float hill = Mathf.Clamp01(1 - new Vector2(x - SpringHill.x, z - SpringHill.z).magnitude / 22f);
+            h += hill * hill * (3 - 2 * hill) * 5;
+            float top = Mathf.Clamp01(1 - (new Vector2(x - SpringHill.x, z - SpringHill.z).magnitude - 4) / 3f);
+            h = Mathf.Lerp(h, 6.2f, top);
+            // the village and the plaza lie flat
+            float village = Mathf.Clamp01(1 - (new Vector2(x, z - 4).magnitude - 18) / 8f);
+            float plaza = Mathf.Clamp01(1 - (new Vector2(x - MirrorPlaza.x, z - MirrorPlaza.z).magnitude - 15) / 5f);
+            h = Mathf.Lerp(h, 0.8f, Mathf.Max(village, plaza));
+            // the lake behind the mirror, and the shore going down into the sea all round
+            float lake = Mathf.Clamp01(1 - (new Vector2(x, z - 102).magnitude - 14) / 6f);
+            h = Mathf.Lerp(h, -2f, lake);
+            float r = new Vector2(x / 70f, (z - 25) / 95f).magnitude;
+            h = Mathf.Lerp(h, -3f, Mathf.Clamp01((r - 0.82f) / 0.18f));
+            return h;
+        }
+
+        static void BuildEnvy()
+        {
+            var scene = NewScene("Envy");
+            ground = EnvyHeight;
+            var (mc, mn) = TextureGen.Meadow();
+            var meadow = Mat("Meadow", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", mc);
+                m.SetTexture("_BumpMap", mn);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetFloat("_Smoothness", 0.15f);
+            });
+            var root = Group("Envy");
+            Ground("EnvyGround", new Rect(-80, -80, 160, 210), meadow, 0.25f).transform.SetParent(root, false);
+            var sea = Mat("SeaEnvy", "Crab/Water", m =>
+            {
+                m.SetColor("_Shallow", new Color(0.35f, 0.9f, 0.85f));
+                m.SetColor("_Deep", new Color(0.05f, 0.4f, 0.6f));
+                m.SetColor("_Sky", new Color(0.8f, 0.9f, 1f));
+            });
+            Sea(sea, -0.3f, 500).transform.SetParent(root, false);
+            var sun = Sun(new Color(1f, 0.95f, 0.85f), 1.7f, new Vector3(45, 30, 0));
+            Environment(new Color(0.5f, 0.5f, 0.5f), new Color(0.3f, 0.35f, 0.3f), 1, new Color(0.7f, 0.78f, 0.95f), new Color(0.8f, 0.75f, 0.72f), new Color(0.35f, 0.4f, 0.3f), new Color(0.85f, 0.82f, 0.92f), 0.0045f, 0.05f);
+            RenderSettings.skybox = Mat("Sky_Envy_Gradient", "Crab/Sky", m =>
+            {
+                m.SetColor("_Top", new Color(0.3f, 0.55f, 0.95f));
+                m.SetColor("_Horizon", new Color(0.98f, 0.88f, 0.92f));
+                m.SetColor("_Bottom", new Color(0.6f, 0.75f, 0.8f));
+                m.SetColor("_Sun", new Color(1f, 0.95f, 0.8f));
+                m.SetVector("_SunDir", -sun.transform.forward);
+                m.SetFloat("_Exponent", 0.6f);
+            });
+            Post("Envy", 0.3f, 18, new Color(1f, 0.97f, 0.98f), 1.0f, 0.18f, 6);
+
+            // paradise: blossoming trees, flowers everywhere, white pavilions and arches
+            var seeming = Group("Seeming", root);
+            var tree = Glb("World/blossom_tree");
+            var pavs = new[] { new Vector2(-13, -6), new Vector2(13, -2), new Vector2(0, 14), new Vector2(-15, 14), new Vector2(14, 16) };
+            var flowers = Glb("World/flowers");
+            bool Clear(float x, float z) => new Vector2(x, z - 4).magnitude > 20 && new Vector2(x - MirrorPlaza.x, z - MirrorPlaza.z).magnitude > 19
+                                            && new Vector2(x - SpringHill.x, z - SpringHill.z).magnitude > 7 && Mathf.Abs(x) > 4 && EnvyHeight(x, z) > 0.2f;
+            for (int i = 0; i < 60; i++)
+            {
+                float x = R(-60, 60), z = R(-60, 110);
+                if (!Clear(x, z)) continue;
+                Place(tree, seeming, x, z, R(0, 360), R(0.8f, 1.4f), collider: "box");
+            }
+            for (int i = 0; i < 420; i++)
+            {
+                float x = R(-62, 62), z = R(-62, 112);
+                if (EnvyHeight(x, z) < 0.3f || new Vector2(x - MirrorPlaza.x, z - MirrorPlaza.z).magnitude < 15 || pavs.Any(p => (p - new Vector2(x, z)).magnitude < 4.5f)) continue;
+                Variant(flowers, $"Flowers{rnd.Next(4)}", seeming, x, z, R(0, 360), R(2f, 3.5f), collider: "none");
+            }
+            var pav = Glb("World/pavilion");
+            foreach (var p in pavs) Place(pav, root, p.x, p.y, R(0, 360), 1, sink: 0.1f);
+            var arch = Glb("World/marble_arch");
+            foreach (var (z, yaw) in new[] { (-30f, 0f), (32f, 0f) }) Place(arch, root, 0, z, yaw, 1, sink: 0.1f);
+            Place(arch, root, -20, 30, 50, 1, sink: 0.1f);
+
+            // what is really there: bones, black spires, burnt trees — shown only when the illusion slips
+            var truth = Group("Truth", root);
+            var ribs = Glb("World/ribs");
+            var spires = Glb("World/spires");
+            var burnt = Glb("World/burnt_tree");
+            var totem = Glb("World/totem");
+            for (int i = 0; i < 40; i++)
+            {
+                float x = R(-55, 55), z = R(-55, 100);
+                if (EnvyHeight(x, z) < 0.2f) continue;
+                int k = rnd.Next(4);
+                if (k == 0) Place(ribs, truth, x, z, R(0, 360), R(0.6f, 1.2f), collider: "none");
+                else if (k == 1) Variant(spires, $"Spire{rnd.Next(4)}", truth, x, z, R(0, 360), R(0.8f, 1.5f), collider: "none");
+                else if (k == 2) Place(burnt, truth, x, z, R(0, 360), R(0.8f, 1.3f), collider: "none");
+                else Place(totem, truth, x, z, R(0, 360), 1, collider: "none");
+            }
+            var glitch = new GameObject("Illusion").AddComponent<IllusionGlitch>();
+            glitch.truth.Add(truth.gameObject);
+            glitch.seeming.Add(seeming.gameObject);
+            glitch.trueSky = Mat("Sky_Wrath_Gradient", "Crab/Sky");
+            truth.gameObject.SetActive(false);
+
+            // butterflies over the meadow
+            var bf = new GameObject("Butterflies");
+            bf.transform.SetParent(root, false);
+            bf.transform.position = new Vector3(0, 2, 10);
+            var ps = bf.AddComponent<ParticleSystem>();
+            var main = ps.main;
+            main.loop = true;
+            main.prewarm = true;
+            main.startLifetime = 12;
+            main.startSpeed = 0.4f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.14f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.6f, 0.85f), new Color(1f, 0.95f, 0.5f));
+            main.maxParticles = 200;
+            var em = ps.emission;
+            em.rateOverTime = 14;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(80, 3, 100);
+            var noise = ps.noise;
+            noise.enabled = true;
+            noise.strength = 1.2f;
+            noise.frequency = 0.4f;
+            bf.GetComponent<ParticleSystemRenderer>().sharedMaterial = lib.particleAdditive;
+            bf.transform.SetParent(seeming, true);
+
+            // start, beacons, director
+            var start = Group("Start", root);
+            start.position = new Vector3(0, H(0, -52), -52);
+            var hero = BuildHero(start.position, 0, out _);
+            Setup("Envy", start);
+            var dir = new GameObject("Envy").AddComponent<EnvyDirector>();
+            dir.glitch = glitch;
+            dir.beacons.Add(BeaconAt(root, 5, -48, -30, "envy_shore"));
+            dir.beacons.Add(BeaconAt(root, 5, 2, 180, "envy_village"));
+            dir.beacons.Add(BeaconAt(root, SpringHill.x + 5, SpringHill.z - 4, 120, "envy_hill"));
+            dir.beacons.Add(BeaconAt(root, 6, 50, 180, "envy_lake"));
+
+            // the dwellers of the village
+            var names = new[] { "Светлая", "Тихий", "Певунья", "Старейшина" };
+            var lines = new[]
+            {
+                new[] { "Добро пожаловать, маленький! Здесь у всех всё есть.", "Останься. Тут никто никогда не плачет.", "А что это светится у тебя внутри?.." },
+                new[] { "Тише… Слышишь? Это цветы растут.", "Мы ничего не делаем. Нам и так хорошо.", "Твоя Искра… Красивая. Очень." },
+                new[] { "Ля-ля! Ты пришёл петь с нами?", "Наверху, на холме, Источник. Он даёт всё, чего пожелаешь!", "Почему у тебя есть то, чего нет у меня?" },
+                new[] { "Мы ждали тебя, носитель. Очень долго ждали.", "Источник на холме откроет тебе, кто ты.", "Иди. Мы будем смотреть на тебя. Все." },
+            };
+            var dpos = new[] { (-9f, -3f), (10f, 1f), (2f, 10f), (-12f, 11f) };
+            for (int i = 0; i < 4; i++)
+            {
+                var (x, z) = dpos[i];
+                var m = (GameObject)PrefabUtility.InstantiatePrefab(lib.dweller);
+                var dw = new GameObject("Dweller " + names[i]);
+                dw.transform.SetPositionAndRotation(new Vector3(x, H(x, z), z), Quaternion.Euler(0, R(0, 360), 0));
+                m.transform.SetParent(dw.transform, false);
+                var col = dw.AddComponent<CapsuleCollider>();
+                col.center = new Vector3(0, 0.9f, 0);
+                col.height = 1.8f;
+                col.radius = 0.35f;
+                var d = dw.AddComponent<Dweller>();
+                d.model = m.transform;
+                d.title = names[i];
+                d.lines = lines[i];
+                d.reach = 3;
+                dir.dwellers.Add(d);
+                AddLight(dw.transform, "Halo", dw.transform.position + Vector3.up * 2, new Color(1f, 0.9f, 0.6f), 1, 4);
+            }
+
+            // matter in paradise: crystals in the rocks, a little scrap of an older world, flowers (organic)
+            void Source(GameObject model, string variant, float x, float z, Matter kind, int amount, float regrow, float scale = 1)
+            {
+                var go = variant != null ? Variant(model, variant, root, x, z, R(0, 360), scale, collider: "none") : Place(model, root, x, z, R(0, 360), scale, collider: "none", sink: 0.02f);
+                var ms = go.AddComponent<MatterSource>();
+                ms.kind = kind;
+                ms.amount = amount;
+                ms.regrow = regrow;
+                ms.reach = 2.6f;
+            }
+            var crys = Glb("World/crystal");
+            foreach (var (x, z) in new[] { (-20f, -20f), (22f, -26f), (-34f, 10f), (30f, 30f), (-22f, 50f), (24f, 56f), (-36f, 40f) }) Source(crys, $"Crystal{rnd.Next(3)}", x, z, Matter.Crystal, 5, 60);
+            foreach (var (x, z) in new[] { (-6f, -36f), (14f, -14f), (-26f, 24f), (18f, 44f) }) Source(Glb("World/scrap"), null, x, z, Matter.Metal, 8, 50);
+            foreach (var (x, z) in new[] { (8f, -40f), (-18f, 0f), (26f, 8f), (-10f, 44f) }) Source(Glb("World/rubble"), null, x, z, Matter.Mineral, 6, 50);
+            foreach (var (x, z) in new[] { (-4f, -20f), (6f, 24f), (-30f, -10f) }) Source(Glb("World/pylon"), null, x, z, Matter.Energy, 5, 45);
+
+            // the Spring on the hill
+            var springGo = Place(Glb("World/spring"), root, SpringHill.x, SpringHill.z, 0, 1, sink: 0.05f);
+            var spring = springGo.AddComponent<Spring>();
+            spring.reach = 3.6f;
+            spring.glow = AddLight(springGo.transform, "Glow", springGo.transform.position + Vector3.up * 2, new Color(0.8f, 0.6f, 1f), 4, 14);
+            dir.spring = spring;
+
+            // the mirror plaza: a disc of white marble, the great mirror at its north edge, the lake beyond
+            var marble = Mat("Marble", "Universal Render Pipeline/Lit", m => { m.SetColor("_BaseColor", new Color(0.82f, 0.8f, 0.88f)); m.SetFloat("_Smoothness", 0.6f); });
+            var plaza = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            plaza.name = "Plaza";
+            plaza.transform.SetParent(root, false);
+            plaza.transform.position = new Vector3(MirrorPlaza.x, H(MirrorPlaza.x, MirrorPlaza.z) - 0.1f, MirrorPlaza.z);
+            plaza.transform.localScale = new Vector3(32, 0.2f, 32);
+            plaza.GetComponent<Renderer>().sharedMaterial = marble;
+            UnityEngine.Object.DestroyImmediate(plaza.GetComponent<Collider>());
+            var mirrorGo = Place(Glb("World/giant_mirror"), root, 0, MirrorPlaza.z + 16, 180, 1.3f, sink: 0);
+            var glass = CrabRig.Find(mirrorGo.transform, "Glass");
+            if (glass) glass.GetComponent<Renderer>().sharedMaterial = lib.mirror;
+            foreach (var x in new[] { -13f, 13f })
+                Place(Glb("World/column"), root, x, MirrorPlaza.z + 6, 0, 1.2f);
+            var arena = Group("Arena", root);
+            arena.position = new Vector3(MirrorPlaza.x, H(MirrorPlaza.x, MirrorPlaza.z), MirrorPlaza.z);
+
+            // the Reflection: the crab itself, giant, of dark mirror-glass
+            var rRoot = new GameObject("Reflection");
+            rRoot.transform.SetPositionAndRotation(arena.position + Vector3.forward * 7, Quaternion.Euler(0, 180, 0));
+            var model = (GameObject)PrefabUtility.InstantiatePrefab(lib.hero, rRoot.transform);
+            model.name = "Model";
+            model.transform.localScale *= 3.5f;   // the hero model carries its own scale
+            foreach (var r in model.GetComponentsInChildren<Renderer>())
+            {
+                var mats = new Material[r.sharedMaterials.Length];
+                for (int i = 0; i < mats.Length; i++) mats[i] = lib.mirror;
+                r.sharedMaterials = mats;
+            }
+            var rig = rRoot.AddComponent<CrabRig>();
+            rig.body = CrabRig.BodyOf(model.transform);
+            var box = rRoot.AddComponent<BoxCollider>();
+            box.center = new Vector3(0, 1.1f, 0);
+            box.size = new Vector3(2.8f, 1.8f, 2.2f);
+            var mc2 = rRoot.AddComponent<MirrorCrab>();
+            mc2.rig = rig;
+            mc2.arena = arena;
+            var core = new GameObject("Core").transform;
+            core.SetParent(rRoot.transform, false);
+            core.localPosition = new Vector3(0, 1.2f, 0.4f);
+            mc2.core = core;
+            mc2.glow = AddLight(rRoot.transform, "Glare", rRoot.transform.position + Vector3.up * 3, new Color(0.85f, 0.85f, 1f), 1.5f, 14);
+            dir.reflection = mc2;
+            var exit = RiftAt(root, 0, MirrorPlaza.z + 9, 180, "envy_exit");
+            exit.leadsTo = "Menu";
+            exit.delay = 6;
+            exit.membrane.sharedMaterial = Mat("RiftViolet", "Crab/Rift", m => { m.SetColor("_Color", new Color(0.7f, 0.55f, 1f)); m.SetColor("_Core", new Color(0.05f, 0.02f, 0.1f)); });
+            exit.glow.color = new Color(0.7f, 0.55f, 1f);
+            dir.exit = exit;
+            Ui<GameUI>();
+            SaveScene(scene, "Envy");
         }
 
         // ------------------------------------------------------------------ menu

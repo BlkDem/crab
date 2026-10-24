@@ -211,6 +211,8 @@ namespace Crab.Game
             foreach (var kv in matterChips) kv.Value.style.display = Shown(st, kv.Key) ? DisplayStyle.Flex : DisplayStyle.None;
             var sh = hero.Shield;
             shieldText.text = !sh ? "" : sh.Active ? "ЩИТ АКТИВЕН" : sh.Cooldown > 0 ? $"щит [Q]: {Mathf.CeilToInt(sh.Cooldown)} с" : "щит [Q]: готов";
+            var pt = hero.Portal;
+            if (pt) shieldText.text += (shieldText.text.Length > 0 ? "\n" : "") + (pt.Cooldown > 0 ? $"портал [F]: {Mathf.CeilToInt(pt.Cooldown)} с" : "портал [F]: готов");
             levelText.text = st.Flag("spark") ? $"Уровень {st.Level} — {GameState.LevelTitle(st.Level)}" : "";
             var eq = Blueprints.Get(st.Items.Equipped);
             weaponName.text = eq != null ? eq.title : st.Flag("spark") ? "Голые клешни" : "";
@@ -299,7 +301,7 @@ namespace Crab.Game
             {
                 bool known = st.Knows(bp.id);
                 el.EnableInClassList("locked", !known);
-                el.EnableInClassList("cannot", known && (!st.Matter.CanPay(bp.cost) || st.Items.Full(bp.id) || (bp.workshop && !st.AtWorkshop)));
+                el.EnableInClassList("cannot", known && (!st.Matter.CanPay(st.Mage ? st.FromEnergy(bp.cost) : bp.cost) || st.Items.Full(bp.id) || (bp.workshop && !st.AtWorkshop)));
                 el.Q<Label>(className: "name").text = known ? bp.title : "???";
                 el.Q<Label>(className: "cost").text = !known ? "ещё не понял, как это делать" : bp.workshop && !st.AtWorkshop ? $"{bp.cost}\nтолько в мастерской" : bp.cost.ToString();
                 int n = st.Items.Count(bp.id);
@@ -319,7 +321,7 @@ namespace Crab.Game
             Slider(box, "Музыка", Sfx.music, v => { Sfx.music = v; PlayerPrefs.SetFloat("crab.music", v); });
             Slider(box, "Чувствительность мыши", Controls.sensitivity / 2, v => { Controls.sensitivity = Mathf.Max(0.1f, v * 2); PlayerPrefs.SetFloat("crab.sens", Controls.sensitivity); });
             B("Сохранить и выйти в меню", "menu-btn", () => { TogglePause(); GameSession.Instance.Save(); GameSession.Instance.Go("Menu"); }, box);
-            L("WASD — идти · мышь — смотреть · Shift — бежать · Пробел — прыжок\nЛКМ — удар/выстрел · ПКМ — прицел · E — втянуть/использовать · Tab — создать · 1–7, X/Z — оружие · Q — щит", "menu-note", box);
+            L("WASD — идти · мышь — смотреть · Shift — бежать · Пробел — прыжок\nЛКМ — удар/выстрел · ПКМ — прицел · E — втянуть/использовать · Tab — создать · 1–9, X/Z — оружие · Q — щит · F — портал", "menu-note", box);
             return m;
         }
 

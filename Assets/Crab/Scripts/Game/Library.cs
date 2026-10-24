@@ -22,7 +22,8 @@ namespace Crab.Game
         public GameObject shade, crawler, guardian, gull, morsel, stone;
         public GameObject imp, brute, burrower, colossus, armor, drone;
         public GameObject collector, goldGuard, king, heavyArmor, tank, coin;
-        public Material particle, particleAdditive, rift, beam, tracer, water, fire, gold, shield;
+        public GameObject dweller, envious, sparkCore;
+        public Material particle, particleAdditive, rift, beam, tracer, water, fire, gold, shield, mirror;
         public Mesh quad;
 
         public GameObject Item(ItemId id) => items.Find(i => i.name == id.ToString())?.model;

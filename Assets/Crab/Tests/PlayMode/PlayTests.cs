@@ -43,7 +43,7 @@ namespace Crab.Tests
         static IEnumerator Load(string scene)
         {
             GameSession.Ensure().State.Scene = scene;
-            yield return SceneManager.LoadSceneAsync(scene);
+            SceneManager.LoadScene(scene);   // like the game: at once (textures complete)
             yield return null;
             yield return null;
         }

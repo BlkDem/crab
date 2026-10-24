@@ -197,10 +197,13 @@ namespace Crab.Game
                 if (c.transform.IsChildOf(transform)) continue;
                 var h = Hits.Of(c);
                 if (h == null || !h.Alive) continue;
+                Hits.Energy = bp.energy;
                 h.Hit(bp.damage, c.ClosestPoint(center), transform.forward, hero.gameObject);
+                Hits.Energy = false;
                 any = true;
                 break;
             }
+            if (bp.energy) Fx.Burst(center, new Color(0.75f, 0.5f, 1f), 14, 3, 0.05f, 0.25f);
             if (any)
             {
                 Sfx.Play("hit", center, 0.9f);
@@ -255,6 +258,13 @@ namespace Crab.Game
                 Hits.Energy = bp.energy;
                 h.Hit(bp.damage, point, (point - from).normalized, hero.gameObject);
                 Hits.Energy = false;
+                // the gravity gun throws what it hits away and up
+                if (bp.gravity && h is Enemy e && e.Alive) e.Push((point - from).normalized * 14 + Vector3.up * 7);
+            }
+            if (bp.gravity)
+            {
+                Fx.Burst(point, new Color(0.75f, 0.5f, 1f), 30, 5, 0.1f, 0.5f);
+                Fx.Flash(point, new Color(0.75f, 0.5f, 1f), 6, 6, 0.2f);
             }
             Fx.Burst(point, h != null ? new Color(0.6f, 1f, 0.7f) : new Color(0.8f, 0.75f, 0.7f), 10, 2.5f, 0.05f, 0.35f, h != null, 0.8f);
         }

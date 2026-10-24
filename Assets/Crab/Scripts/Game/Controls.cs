@@ -1,7 +1,7 @@
 // The controls, built in code (keyboard and mouse, and a gamepad):
 //   WASD / left stick — move, mouse / right stick — look, Space / A — jump, Shift / L3 — run,
 //   LMB / RT — strike, throw or shoot, RMB / LT — aim, E / X — draw matter in, eat, use,
-//   Tab / Y — create (matter into things), wheel, 1-7 / bumpers — weapon, Q / B — shield,
+//   Tab / Y — create (matter into things), wheel, 1-9 / bumpers — weapon, Q / B — shield, F / R3 — portal,
 //   Esc / Start — pause.
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -11,8 +11,8 @@ namespace Crab.Game
     public static class Controls
     {
         static InputActionMap map;
-        public static InputAction Move, Look, Jump, Sprint, Attack, Aim, Interact, Create, Next, Prev, Scroll, Pause, Shield;
-        public static readonly InputAction[] Slot = new InputAction[7];
+        public static InputAction Move, Look, Jump, Sprint, Attack, Aim, Interact, Create, Next, Prev, Scroll, Pause, Shield, Portal;
+        public static readonly InputAction[] Slot = new InputAction[9];
         /// <summary>Mouse look speed (settings).</summary>
         public static float sensitivity = 1;
 
@@ -39,6 +39,7 @@ namespace Crab.Game
             Scroll.AddBinding("<Mouse>/scroll/y");
             Pause = Button("Pause", "<Keyboard>/escape", "<Gamepad>/start");
             Shield = Button("Shield", "<Keyboard>/q", "<Gamepad>/buttonEast");
+            Portal = Button("Portal", "<Keyboard>/f", "<Gamepad>/rightStickPress");
             for (int i = 0; i < Slot.Length; i++) Slot[i] = Button($"Slot{i + 1}", $"<Keyboard>/{i + 1}", null);
             map.Enable();
         }

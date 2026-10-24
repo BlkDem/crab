@@ -37,7 +37,10 @@ namespace Crab.Core
 
         /// <summary>The crab's level (its evolution): 1 an ordinary crab, 2 a crab-warrior in scrap armour,
         /// 3 the armoured crab (heavy armour).</summary>
-        public int Level => Items.Has(ItemId.HeavyArmor) ? 3 : Items.Has(ItemId.ScrapArmor) ? 2 : 1;
+        public int Level => Items.Has(ItemId.SparkCore) ? 4 : Items.Has(ItemId.HeavyArmor) ? 3 : Items.Has(ItemId.ScrapArmor) ? 2 : 1;
+        /// <summary>With the Spark's core the crab makes matter out of energy: what it lacks of the
+        /// plain kinds (organic, mineral, metal) energy covers, one for one.</summary>
+        public bool Mage => Items.Has(ItemId.SparkCore);
         /// <summary>The crab stands at its workshop (set by the game): complex things can be made.</summary>
         public bool AtWorkshop;
         public static string LevelTitle(int level) => level switch { 1 => "Обычный краб", 2 => "Краб-воин", 3 => "Бронекраб", 4 => "Краб-маг", 5 => "Киберкраб", 9 => "Повелитель материи", _ => "Краб-архитектор" };
@@ -68,9 +71,18 @@ namespace Crab.Core
             if (b == null || !Knows(id)) return CreateResult.Unknown;
             if (Items.Full(id)) return CreateResult.Full;
             if (b.workshop && !AtWorkshop) return CreateResult.NeedWorkshop;
-            if (!Matter.Pay(b.cost)) return CreateResult.NoMatter;
+            if (!Matter.Pay(Mage ? FromEnergy(b.cost) : b.cost)) return CreateResult.NoMatter;
             Items.Add(id, b.yield);
             return CreateResult.Done;
+        }
+
+        /// <summary>The cost with the missing plain matter paid in energy (the mage's way).</summary>
+        public Cost FromEnergy(Cost c)
+        {
+            int Short(Matter m) => Math.Max(0, c[m] - Matter[m]);
+            int need = Short(Core.Matter.Organic) + Short(Core.Matter.Mineral) + Short(Core.Matter.Metal);
+            if (need == 0) return c;
+            return new Cost(c.organic - Short(Core.Matter.Organic), c.mineral - Short(Core.Matter.Mineral), c.metal - Short(Core.Matter.Metal), c.gold, c.crystal, c.energy + need);
         }
 
         public SaveData ToSave() => new SaveData

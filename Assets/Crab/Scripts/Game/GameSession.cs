@@ -98,8 +98,11 @@ namespace Crab.Game
             fade = 1;
             Time.timeScale = 1;
             if (scene != "Menu") State.Scene = scene;
-            var op = SceneManager.LoadSceneAsync(scene);
-            while (!op.isDone) yield return null;
+            // loaded at once behind the black: an async load keeps uploading the scene's many
+            // textures for seconds after it opens, and the top mips show garbage until then
+            yield return null;
+            SceneManager.LoadScene(scene);
+            yield return null;
             yield return null;
             for (float t = 0; t < fadeTime; t += Time.unscaledDeltaTime) { fade = 1 - t / fadeTime; yield return null; }
             fade = 0;

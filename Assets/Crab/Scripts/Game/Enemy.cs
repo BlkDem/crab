@@ -50,6 +50,9 @@ namespace Crab.Game
             if (!model && transform.childCount > 0) model = transform.GetChild(0);
         }
 
+        /// <summary>A shove from outside (the gravity gun): adds to the knockback.</summary>
+        public virtual void Push(Vector3 v) => knock += v;
+
         public virtual void Hit(float dmg, Vector3 point, Vector3 dir, GameObject by)
         {
             if (!Alive) return;

@@ -1123,6 +1123,190 @@ def build_scales():
     parent(ob, r)
     L.export_tree("scales", r)
 
+
+# ---------------------------------------------------------------------- IV. the circle of Envy
+def mat_marble(name, base="#f2efe8", vein="#9a96a8"):
+    """White marble with thin grey-violet veins, polished."""
+    t = NT(name)
+    n = t.noise(t.vec(), 2.5, detail=8, rough=0.6, distortion=1.5)
+    veins = t.ramp(n, [(0.47, 0.0), (0.5, 1.0), (0.53, 0.0)])
+    soft = t.noise(t.vec(), 9, detail=4)
+    col = t.ramp(soft, [(0.2, C("#e2ded6")), (0.8, C(base))])
+    col = t.mix(t.math("MULTIPLY", veins, 0.7), col, C(vein))
+    col = t.mix(t.math("MULTIPLY", t.math("SUBTRACT", 1.0, t.ao(0.2)), 0.4), col, C("#8a8680"))
+    return t.finish(col, rough=0.18)
+
+
+def mat_blossom(name, a="#ffb3cf", b="#fff0f6", c="#e8679a"):
+    """A canopy of blossom: pink and white specks over a soft pink."""
+    t = NT(name)
+    sp = t.voronoi(t.vec(), 60, out="Distance")
+    dots = t.ramp(sp, [(0.0, 1.0), (0.25, 0.0)])
+    n = t.noise(t.vec(), 6, detail=5)
+    col = t.ramp(n, [(0.3, C(c)), (0.7, C(a))])
+    col = t.mix(dots, col, C(b))
+    col = t.mix(t.math("MULTIPLY", t.math("SUBTRACT", 1.0, t.ao(0.4)), 0.3), col, C("#b05080"))
+    return t.finish(col, rough=0.7, normal=t.bump(t.math("ADD", dots, n), 0.6, 0.03))
+
+
+def build_pavilion():
+    """A white marble gazebo: a round stepped floor, eight columns and a shallow dome with a gilded tip."""
+    r = root("pavilion")
+    m = mat_marble("pav_marble")
+    mg = mat_gold("pav_gold")
+    parts = [lathe("floor", [(3.6, 0), (3.6, 0.25), (3.2, 0.25), (3.2, 0.5), (0, 0.5)], steps=40)]
+    parts[0].data.materials.append(m)
+    for k in range(8):
+        a = k / 8 * math.tau
+        c = L.column("col", 3.6, 0.18, m)
+        c.location = (math.cos(a) * 2.7, math.sin(a) * 2.7, 0.45)
+        L.transform_apply(c)
+        parts.append(c)
+    ring = lathe("ring", [(3.2, 4.4), (3.2, 4.8), (2.4, 4.8), (2.4, 4.4)], steps=40)
+    ring.data.materials.append(m)
+    dome = lathe("dome", [(3.1, 4.8), (2.9, 5.5), (2.2, 6.2), (1.2, 6.7), (0.15, 6.85), (0, 6.85)], steps=40)
+    L.shade_smooth(dome, 60)
+    dome.data.materials.append(m)
+    tip = lathe("tip", [(0.25, 6.8), (0.2, 7.2), (0.06, 7.8), (0, 7.9)], steps=16)
+    tip.data.materials.append(mg)
+    ob = join("Pavilion", parts + [ring, dome, tip])
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    L.export_tree("pavilion", r)
+
+
+def build_blossom_tree():
+    """A blossoming tree: a pale bending trunk and a cloud of pink blossom (canopy clumps)."""
+    r = root("blossom_tree")
+    mb = L.mat_driftwood("blossom_bark", base="#8a7a72", dark="#3a302c", light="#c0b4aa", moss=0.0)
+    mp = mat_blossom("blossom_pink")
+    paths = [[((0, 0, 0), 0.22), ((0.2, 0.1, 1.2), 0.18), ((0.0, 0.3, 2.4), 0.14), ((-0.3, 0.2, 3.2), 0.08)]]
+    tops = [Vector((-0.3, 0.2, 3.2))]
+    for k in range(4):
+        a = k / 4 * math.tau + 0.3
+        b0 = Vector((0.05, 0.25, 2.0 + 0.2 * k))
+        tip = b0 + Vector((math.cos(a) * 1.4, math.sin(a) * 1.4, 1.0 + 0.2 * k))
+        paths.append([(b0, 0.1), ((b0 + tip) / 2 + Vector((0, 0, 0.2)), 0.07), (tip, 0.03)])
+        tops.append(tip)
+    trunk = sweep("trunk", paths, seg=10, sub=3)
+    trunk.data.materials.append(mb)
+    clumps = []
+    for i, tpos in enumerate(tops):
+        for j in range(3):
+            c = L.blob("clump", random.uniform(0.6, 1.0), seed=400 + i * 3 + j, squash=(1, 1, 0.7), rough=0.08, sub=4)
+            L.shade_smooth(c, 80)
+            off = tpos + Vector((random.uniform(-0.6, 0.6), random.uniform(-0.6, 0.6), random.uniform(-0.1, 0.5)))
+            for v in c.data.vertices:
+                v.co += off
+            c.data.materials.append(mp)
+            clumps.append(c)
+    ob = join("BlossomTree", [trunk] + clumps)
+    L.bake(ob, size=1024, metal=False, ao_strength=0.25)
+    parent(ob, r)
+    L.export_tree("blossom_tree", r)
+
+
+def build_flowers():
+    """Clumps of flowers (Flowers0..3): stems, leaves and bright petal rings."""
+    r = root("flowers")
+    ms = L.mat_plain("flower_stem", "#4a8a2a", rough=0.6)
+    palette = [("#ff5a8a", "#ffe04a"), ("#ffffff", "#ffd040"), ("#8a6aff", "#fff0a0"), ("#ffb03a", "#7a3a10")]
+    for k in range(4):
+        petal_c, eye_c = palette[k]
+        mp = L.mat_plain(f"petal{k}", petal_c, rough=0.5)
+        me = L.mat_plain(f"eye{k}", eye_c, rough=0.5)
+        parts = []
+        for i in range(9):
+            a = random.uniform(0, math.tau)
+            d = random.uniform(0, 0.45)
+            base = Vector((math.cos(a) * d, math.sin(a) * d, 0))
+            h = random.uniform(0.25, 0.5)
+            top = base + Vector((random.uniform(-0.05, 0.05), random.uniform(-0.05, 0.05), h))
+            st = tube("stem", [(base, 0.012), (top, 0.008)], seg=5, sub=1)
+            st.data.materials.append(ms)
+            parts.append(st)
+            for j in range(5):
+                pa = j / 5 * math.tau
+                pt = uv_sphere("petal", 0.035, top + Vector((math.cos(pa) * 0.04, math.sin(pa) * 0.04, 0)), scale=(1.4, 1.4, 0.3), seg=8, rings=5)
+                pt.data.materials.append(mp)
+                parts.append(pt)
+            e = uv_sphere("eye", 0.02, top + Vector((0, 0, 0.008)), seg=8, rings=5)
+            e.data.materials.append(me)
+            parts.append(e)
+        ob = join(f"Flowers{k}", parts)
+        L.bake(ob, size=256, metal=False)
+        parent(ob, r)
+    L.export_tree("flowers", r)
+
+
+def build_marble_arch():
+    """A triumphal arch of white marble with a gilded band."""
+    r = root("marble_arch")
+    m = mat_marble("arch_marble")
+    mg = mat_gold("arch_gold")
+    w = wall("arch", 6.0, 6.0, 1.2, m, holes=[(0, 0, 3.0, 3.2, False)], seed=410, broken=0.0)
+    parts = [w, box("cap", (6.4, 1.5, 0.4), (0, 0, 6.2), m, 0.05), box("band", (6.05, 1.25, 0.25), (0, 0, 5.2), mg, 0.02)]
+    ob = join("MarbleArch", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    L.export_tree("marble_arch", r)
+
+
+def build_spring():
+    """The Spring: a round marble basin on steps, a column of light rising from glowing water (GlowWater)."""
+    r = root("spring")
+    m = mat_marble("spring_marble")
+    mg = mat_gold("spring_gold")
+    parts = [lathe("steps", [(3.0, 0), (3.0, 0.3), (2.5, 0.3), (2.5, 0.6), (0, 0.6)], steps=40),
+             lathe("basin", [(2.0, 0.6), (2.2, 0.9), (2.2, 1.3), (2.0, 1.3), (1.9, 0.95), (0, 0.95)], steps=40),
+             lathe("pillar", [(0.35, 0.95), (0.25, 1.4), (0.2, 2.2), (0.5, 2.5), (0.55, 2.6), (0, 2.6)], steps=24)]
+    parts[0].data.materials.append(m)
+    parts[1].data.materials.append(m)
+    parts[2].data.materials.append(mg)
+    ob = join("Spring", parts)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    water = lathe("GlowWater", [(1.95, 1.15), (0, 1.15)], steps=40)
+    bowl = lathe("bowl", [(0.48, 2.6), (0, 2.55)], steps=24)
+    w = join("GlowWater", [water, bowl])
+    w.data.materials.append(glow("spring_water", "#c8a0ff", 4.0))
+    parent(w, ob)
+    L.export_tree("spring", r)
+
+
+def build_giant_mirror():
+    """A giant oval mirror on a marble stand (the Reflection rises before it): Frame and Glass."""
+    r = root("giant_mirror")
+    m = mat_marble("mirror_marble")
+    mg = mat_gold("mirror_gold", rough=0.2)
+    # an oval ring of gold standing upright, facing -Y
+    bm = bmesh.new()
+    pts = []
+    for i in range(48):
+        a = i / 48 * math.tau
+        pts.append(Vector((math.cos(a) * 3.0, 0, 5.0 + math.sin(a) * 4.2)))
+    frame = sweep("frame", [[(p, 0.28) for p in pts + pts[:1]]], seg=10, sub=1)
+    frame.data.materials.append(mg)
+    stand = box("stand", (4.0, 1.6, 1.0), (0, 0, 0.5), m, 0.08)
+    legs = [tube("leg", [((sx * 1.6, 0, 0.9), 0.25), ((sx * 2.4, 0, 2.0), 0.22)], seg=10, sub=1) for sx in (-1, 1)]
+    for l_ in legs:
+        l_.data.materials.append(mg)
+    crown = lathe("crown", [(0.6, 0), (0.4, 0.5), (0.1, 1.2), (0, 1.3)], steps=16)
+    crown.location = (0, 0, 9.3)
+    L.transform_apply(crown)
+    crown.data.materials.append(mg)
+    ob = join("Frame", [frame, stand, crown] + legs)
+    L.bake(ob, size=1024)
+    parent(ob, r)
+    bm = bmesh.new()
+    ring = [bm.verts.new((math.cos(i / 48 * math.tau) * 2.85, -0.02, 5.0 + math.sin(i / 48 * math.tau) * 4.05)) for i in range(48)]
+    bm.faces.new(ring)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    glass = L.from_bmesh("Glass", bm, smooth=False)
+    glass.data.materials.append(L.mat_plain("mirror_glass", "#c8c8d8", rough=0.05, metal=1.0))
+    parent(glass, ob)
+    L.export_tree("giant_mirror", r)
+
 ASSETS = {
     "palm": build_palm, "beach_rocks": build_beach_rocks, "shelter": build_shelter, "driftwood": build_driftwood,
     "seaweed": build_seaweed, "morsel": build_morsel, "gull": build_gull,
@@ -1134,6 +1318,8 @@ ASSETS = {
     "gold_wall": build_gold_wall, "gold_tower": build_gold_tower, "gold_house": build_gold_house, "gold_gate": build_gold_gate,
     "gold_pile": build_gold_pile, "crystal": build_crystal, "pylon": build_pylon, "obelisk": build_obelisk,
     "gold_column": build_gold_column, "throne": build_throne, "workshop": build_workshop, "scales": build_scales,
+    "pavilion": build_pavilion, "blossom_tree": build_blossom_tree, "flowers": build_flowers, "marble_arch": build_marble_arch,
+    "spring": build_spring, "giant_mirror": build_giant_mirror,
 }
 
 

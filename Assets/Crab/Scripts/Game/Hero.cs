@@ -48,6 +48,9 @@ namespace Crab.Game
         public Drone Drone { get; private set; }
         public TankBot Tank { get; private set; }
         public EnergyShield Shield { get; private set; }
+        public PortalStep Portal { get; private set; }
+        GameObject core;
+        float regen;
 
         /// <summary>What the crab wears and who goes with it: armour on the shell (heavy over scrap),
         /// the shield, the drone, the TANK.</summary>
@@ -68,6 +71,19 @@ namespace Crab.Game
             {
                 Shield = gameObject.AddComponent<EnergyShield>();
                 Shield.hero = this;
+            }
+            if (State.Items.Has(ItemId.Portal) && !Portal)
+            {
+                Portal = gameObject.AddComponent<PortalStep>();
+                Portal.hero = this;
+            }
+            // the Spark's core: a crystal crown on the shell, violet light
+            if (State.Mage && !core && lib && lib.sparkCore && Rig.body)
+            {
+                core = Instantiate(lib.sparkCore, Rig.body, false);
+                core.name = "SparkCore";
+                foreach (var c in core.GetComponentsInChildren<Collider>()) Destroy(c);
+                if (sparkLight) sparkLight.color = new Color(0.8f, 0.6f, 1f);
             }
             if (State.Items.Has(ItemId.Tank) && !Tank && lib && lib.tank)
             {
@@ -100,6 +116,13 @@ namespace Crab.Game
             iframes -= Time.deltaTime;
             // in the crab's own eyes the armour would sit over the camera
             if (armor && armor.activeSelf == Combat.firstPerson) armor.SetActive(!Combat.firstPerson);
+            if (core && core.activeSelf == Combat.firstPerson) core.SetActive(!Combat.firstPerson);
+            // the mage draws energy out of the air, slowly
+            if (State.Mage && Alive)
+            {
+                regen += Time.deltaTime;
+                if (regen > 5) { regen = 0; State.Matter.Add(Matter.Energy, 1); }
+            }
             if (sparkLight && sparkLight.enabled) sparkLight.intensity = 0.6f + 0.25f * Mathf.Sin(Time.time * 3);
             if (transform.position.y < -30 && Alive) Hurt(1000, transform.position, Vector3.zero);
         }

@@ -25,7 +25,8 @@ namespace Crab.Tests
             s.ResetState();
             s.State.SetFlag("spark");
             s.State.SetFlag("limbo_intro");
-            yield return SceneManager.LoadSceneAsync("Limbo");
+            SceneManager.LoadScene("Limbo");
+            yield return null;
             yield return null;
         }
 
@@ -107,7 +108,8 @@ namespace Crab.Tests
         {
             var st = GameSession.Instance.State;
             st.SetFlag("wrath_intro");
-            yield return SceneManager.LoadSceneAsync("Wrath");
+            SceneManager.LoadScene("Wrath");
+            yield return null;
             yield return null;
             var hero = Hero.Instance;
             hero.Invulnerable = true;
@@ -134,7 +136,8 @@ namespace Crab.Tests
             var st = GameSession.Instance.State;
             st.SetFlag("greed_intro");
             st.SetFlag("city");
-            yield return SceneManager.LoadSceneAsync("Greed");
+            SceneManager.LoadScene("Greed");
+            yield return null;
             yield return null;
             var hero = Hero.Instance;
             hero.Invulnerable = true;

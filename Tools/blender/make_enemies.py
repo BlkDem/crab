@@ -905,9 +905,143 @@ def build_usurer():
     parent(ge, head)
     L.export_tree("usurer", body)
 
+
+# ---------------------------------------------------------------------- IV. the circle of Envy
+def build_dweller():
+    """A dweller of paradise (about 1.6 m, floating): a long pearl-white robe that ends in a wisp,
+    long sleeves, a smooth faceless head with two soft eyes, a golden halo (GlowHalo).
+    Body > Head > GlowEyes, GlowHalo, ArmL, ArmR."""
+    mr = L.mat_plain("dweller_robe", "#f4f0fa", rough=0.6)
+    mt = L.mat_plain("dweller_trim", "#e6c46a", rough=0.35, metal=0.4)
+    ms = L.mat_plain("dweller_skin", "#f8e8e0", rough=0.5)
+    robe = lathe("robe", [(0.0, 0.05), (0.08, 0.05), (0.32, 0.3), (0.38, 0.6), (0.3, 1.0), (0.24, 1.25), (0.16, 1.35), (0.0, 1.38)], steps=24)
+    for v in robe.data.vertices:   # the hem drifts in a wisp
+        if v.co.z < 0.4:
+            v.co.x += math.sin(v.co.y * 9) * 0.03
+    robe.data.materials.append(mr)
+    sash = lathe("sash", [(0.33, 0.78), (0.35, 0.85), (0.33, 0.92)], steps=24)
+    sash.data.materials.append(mt)
+    body = join("Body", [robe, sash])
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    hd = uv_sphere("headball", 0.16, (0, 0, 1.55), scale=(0.9, 0.95, 1.1), seg=20, rings=14)
+    hd.data.materials.append(ms)
+    hood = lathe("hood", [(0.0, 1.78), (0.15, 1.74), (0.2, 1.6), (0.19, 1.42), (0.15, 1.38)], steps=20)
+    for v in hood.data.vertices:
+        if v.co.y < -0.05 and v.co.z < 1.72:   # open at the face
+            v.co.y *= 0.4
+    hood.data.materials.append(mr)
+    head = join("Head", [hd, hood])
+    set_origin(head, (0, 0, 1.38))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 0.2, 0, 1.25))
+        sl = tube("sleeve", [(sh, 0.07), (sh + Vector((sx * 0.08, -0.1, -0.35)), 0.09), (sh + Vector((sx * 0.06, -0.2, -0.6)), 0.12)], seg=10, sub=2)
+        sl.data.materials.append(mr)
+        hand = uv_sphere("hand", 0.05, sh + Vector((sx * 0.06, -0.24, -0.66)), seg=10, rings=8)
+        hand.data.materials.append(ms)
+        a = join("Arm" + side, [sl, hand])
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+    for o in parts:
+        L.shade_smooth(o, 50)
+    L.bake_group(parts, "dweller", size=512, ao_dist=0.05)
+    eyes = [uv_sphere("e", 0.028, (sx * 0.06, -0.135, 1.57), scale=(1, 0.5, 1.3), seg=10, rings=8) for sx in (-1, 1)]
+    for e in eyes:
+        e.data.materials.append(glow("dweller_eyes", "#9ae0ff", 6.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, head)
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.2, minor_radius=0.018, location=(0, 0, 1.92))
+    halo = bpy.context.active_object
+    halo.name = "GlowHalo"
+    halo.data.materials.append(glow("dweller_halo", "#ffd870", 8.0))
+    set_origin(halo, (0, 0, 1.92))
+    parent(halo, head)
+    L.export_tree("dweller", body)
+
+
+def build_envious():
+    """An Envious one: the dweller's shape gone wrong — thin, hunched, grey-green hide torn by
+    thorns, the robe in rags, a face of mirror shards with green eyes. Body > Head > GlowEyes,
+    ArmL, ArmR, LegL, LegR."""
+    m = mat_demon("envious_hide", base="#4a5a3a", dark="#141a0e", vein="#8aff5a", veins=0.45, scale=6.0)
+    mr = L.mat_canvas("envious_rags", base="#c8c4b8", dark="#3a3a30", moss=0.5)
+    mm = L.mat_plain("envious_shard", "#c8d0d8", rough=0.08, metal=0.9)
+    mh = mat_horn("envious_thorn")
+    torso = L.blob("torso", 0.28, seed=91, squash=(0.9, 0.7, 1.3), rough=0.12, sub=4)
+    for v in torso.data.vertices:
+        v.co += Vector((0, 0.04, 1.05))
+    rags = lathe("rags", [(0.12, 0.98), (0.2, 0.9), (0.27, 0.62), (0.3, 0.42)], steps=24)
+    for v in rags.data.vertices:   # a torn, fringed hem
+        if v.co.z < 0.5:
+            v.co.z += 0.16 * abs(math.sin(math.atan2(v.co.y, v.co.x) * 7))
+    L.mod(rags, "SOLIDIFY", thickness=0.015)
+    L.apply_all(rags)
+    rags.data.materials.append(mr)
+    torso.data.materials.append(m)
+    thorns = []
+    for k in range(7):
+        a = random.uniform(0, math.tau)
+        b = Vector((math.cos(a) * 0.22, 0.08 + math.sin(a) * 0.15, random.uniform(0.95, 1.3)))
+        th = tube("thorn", [(b, 0.03), (b + Vector((math.cos(a) * 0.14, 0.1, 0.08)), 0.003)], seg=6, sub=1)
+        th.data.materials.append(mh)
+        thorns.append(th)
+    body = join("Body", [torso, rags] + thorns)
+    set_origin(body, (0, 0, 0))
+    parts = [body]
+    skull = L.blob("skull", 0.15, seed=92, squash=(0.85, 1.0, 1.15), rough=0.12, sub=3)
+    for v in skull.data.vertices:
+        v.co += Vector((0, -0.08, 1.45))
+    skull.data.materials.append(m)
+    shards = []
+    for k in range(6):
+        bpy.ops.mesh.primitive_cone_add(vertices=3, radius1=0.06, depth=0.16, location=(random.uniform(-0.08, 0.08), -0.21, 1.45 + random.uniform(-0.08, 0.1)),
+                                        rotation=(math.pi / 2 + random.uniform(-0.5, 0.5), random.uniform(-0.6, 0.6), random.uniform(0, 3)))
+        sh = bpy.context.active_object
+        sh.data.materials.append(mm)
+        shards.append(sh)
+    head = join("Head", [skull] + shards)
+    set_origin(head, (0, -0.05, 1.38))
+    parent(head, body)
+    parts.append(head)
+    for side, sx in (("L", 1), ("R", -1)):
+        sh = Vector((sx * 0.24, 0.02, 1.28))
+        arm = tube("arm", [(sh, 0.045), (sh + Vector((sx * 0.08, -0.12, -0.35)), 0.035), (sh + Vector((sx * 0.06, -0.3, -0.6)), 0.03)], seg=8, sub=2)
+        arm.data.materials.append(m)
+        claws = []
+        wr = sh + Vector((sx * 0.06, -0.3, -0.6))
+        for k in range(3):
+            d = Vector((sx * 0.05 * (k - 1), -1, -0.6)).normalized()
+            c = tube("claw", [(wr, 0.014), (wr + d * 0.16, 0.002)], seg=6, sub=1)
+            c.data.materials.append(mh)
+            claws.append(c)
+        a = join("Arm" + side, [arm] + claws)
+        set_origin(a, sh)
+        parent(a, body)
+        parts.append(a)
+        hip = Vector((sx * 0.1, 0.03, 0.62))
+        leg = tube("leg", [(hip, 0.06), (hip + Vector((0, -0.1, -0.3)), 0.045), (hip + Vector((0, 0.08, -0.55)), 0.035), (hip + Vector((0, -0.06, -0.6)), 0.03)], seg=8, sub=2)
+        leg.data.materials.append(m)
+        lg = join("Leg" + side, [leg])
+        set_origin(lg, hip)
+        parent(lg, body)
+        parts.append(lg)
+    for o in parts:
+        L.shade_smooth(o, 45)
+    L.bake_group(parts, "envious", size=1024, ao_dist=0.06)
+    eyes = [uv_sphere("e", 0.025, (sx * 0.05, -0.23, 1.48), seg=10, rings=8) for sx in (-1, 1)]
+    for e in eyes:
+        e.data.materials.append(glow("envious_eyes", "#8aff4a", 12.0))
+    ge = join("GlowEyes", eyes)
+    parent(ge, head)
+    L.export_tree("envious", body)
+
 ASSETS = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian,
           "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus,
-          "collector": build_collector, "goldguard": build_goldguard, "usurer": build_usurer}
+          "collector": build_collector, "goldguard": build_goldguard, "usurer": build_usurer,
+          "dweller": build_dweller, "envious": build_envious}
 
 
 def main():

@@ -18,7 +18,7 @@ from mathutils import Vector, Matrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import lib as L  # noqa: E402
-from lib import NT, C, join, set_origin, parent, uv_sphere, tube, sweep  # noqa: E402
+from lib import NT, C, join, set_origin, parent, uv_sphere, tube, sweep, lathe  # noqa: E402
 
 
 def empty(name, loc, par):
@@ -423,9 +423,103 @@ def build_tank():
     parent(eye, head)
     L.export_tree("tank", body)
 
+
+# ---------------------------------------------------------------------- level 4 (circle of Envy)
+def build_energy_blade():
+    """The energy blade: a gilded hilt with a crystal, the blade itself pure light (GlowBlade)."""
+    mg = mat_goldtrim("blade_gold")
+    md = L.mat_metal("blade_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.4, metal_max=0.6)
+    grip = tube("grip", [((0, 0.06, 0), 0.016), ((0, -0.05, 0), 0.016)], seg=10, sub=1)
+    grip.data.materials.append(md)
+    guard = tube("guard", [((-0.05, -0.055, 0), 0.01), ((0, -0.06, 0), 0.014), ((0.05, -0.055, 0), 0.01)], seg=8, sub=2)
+    guard.data.materials.append(mg)
+    pommel = uv_sphere("pommel", 0.02, (0, 0.07, 0), seg=10, rings=8)
+    pommel.data.materials.append(mg)
+    ob = join("EnergyBlade", [grip, guard, pommel])
+    L.bake(ob, size=256)
+    bm = bmesh.new()
+    pts = [(-0.018, -0.065), (0.018, -0.065), (0.012, -0.5), (0.0, -0.56), (-0.012, -0.5)]
+    f = [bm.verts.new((x, y, -0.004)) for x, y in pts]
+    b = [bm.verts.new((x, y, 0.004)) for x, y in pts]
+    bm.faces.new(f)
+    bm.faces.new(list(reversed(b)))
+    for i in range(len(pts)):
+        bm.faces.new((f[(i + 1) % len(pts)], f[i], b[i], b[(i + 1) % len(pts)]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    blade = L.from_bmesh("GlowBlade", bm, smooth=False)
+    blade.data.materials.append(L.mat_plain("blade_light", "#c8a0ff", rough=0.2, emission=("#c8a0ff", 10.0)))
+    parent(blade, ob)
+    empty("Tip", (0, -0.56, 0), ob)
+    L.export_tree("energy_blade", ob)
+
+
+def build_gravity_gun():
+    """The gravity gun: a short dark body with three gold prongs around a violet core (GlowCore)."""
+    md = L.mat_metal("grav_dark", base="#3a3a44", patina="#1a1a20", patina_amt=0.2, rough=0.35, metal_max=0.6)
+    mg = mat_goldtrim("grav_gold")
+    body = lathe("body", [(0.0, 0.12), (0.045, 0.12), (0.055, 0.0), (0.05, -0.12), (0.0, -0.12)], steps=20)
+    for v in body.data.vertices:
+        v.co = Vector((v.co.x, -v.co.z, v.co.y + 0.06))
+    body.data.materials.append(md)
+    parts = [body]
+    for k in range(3):
+        a = k / 3 * math.tau + math.pi / 2
+        o = Vector((math.cos(a) * 0.05, 0, math.sin(a) * 0.05 + 0.06))
+        pr = tube("prong", [(o + Vector((0, -0.08, 0)), 0.012), (o * 1.0 + Vector((0, -0.2, 0)) + (o - Vector((0, 0, 0.06))) * 0.6, 0.008)], seg=6, sub=1)
+        pr.data.materials.append(mg)
+        parts.append(pr)
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1)
+    for v in bm.verts:
+        v.co = Vector((v.co.x * 0.032, v.co.y * 0.045, v.co.z * 0.11))
+    bmesh.ops.transform(bm, matrix=Matrix.Translation((0, 0.06, -0.02)) @ Matrix.Rotation(-0.3, 4, "X"), verts=bm.verts)
+    grip = L.from_bmesh("grip", bm, smooth=False)
+    grip.data.materials.append(md)
+    parts.append(grip)
+    ob = join("GravityGun", parts)
+    L.transform_apply(ob)
+    L.bake(ob, size=512)
+    core = uv_sphere("GlowCore", 0.03, (0, -0.17, 0.06), seg=12, rings=8)
+    core.data.materials.append(L.mat_plain("grav_core", "#b07aff", rough=0.2, emission=("#b07aff", 12.0)))
+    parent(core, ob)
+    empty("Muzzle", (0, -0.2, 0.06), ob)
+    L.export_tree("gravity_gun", ob)
+
+
+def build_spark_core():
+    """The Spark's core (level 4, the crab-mage): a crown of violet crystals on the shell with a
+    ring of glowing runes (GlowRunes) — in the hero model's units, on the Body."""
+    H = 0.062
+    mb = mat_goldtrim("core_gold")
+    base = lathe("base", [(0.03, H + 0.035), (0.034, H + 0.042), (0.026, H + 0.05), (0.0, H + 0.05)], steps=16)
+    base.data.materials.append(mb)
+    ob = join("SparkCoreBase", [base])
+    L.bake(ob, size=256)
+    shards = []
+    for k in range(5):
+        a = k / 5 * math.tau
+        tilt = 0.35 if k else 0.0
+        ln = 0.05 if k else 0.07
+        bpy.ops.mesh.primitive_cone_add(vertices=6, radius1=0.008, radius2=0.0, depth=ln, location=(0, 0, ln / 2))
+        sh = bpy.context.active_object
+        sh.rotation_euler = (math.cos(a) * tilt, math.sin(a) * tilt, 0)
+        sh.location = (math.cos(a) * 0.012 * (1 if k else 0), -0.01 + math.sin(a) * 0.012 * (1 if k else 0), H + 0.045)
+        L.transform_apply(sh)
+        shards.append(sh)
+    cr = join("GlowCrystals", shards)
+    cr.data.materials.append(L.mat_plain("core_crystal", "#c8a0ff", rough=0.15, emission=("#b07aff", 6.0)))
+    parent(cr, ob)
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.09, minor_radius=0.0025, location=(0, 0, H + 0.03))
+    runes = bpy.context.active_object
+    runes.name = "GlowRunes"
+    runes.data.materials.append(L.mat_plain("core_runes", "#c8a0ff", rough=0.3, emission=("#c8a0ff", 5.0)))
+    parent(runes, ob)
+    L.export_tree("spark_core", ob)
+
 ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar, "knife": build_knife, "pistol": build_pistol,
           "machinegun": build_machinegun, "armor": build_armor, "drone": build_drone,
-          "heavy_armor": build_heavy_armor, "energy_rifle": build_energy_rifle, "tank": build_tank}
+          "heavy_armor": build_heavy_armor, "energy_rifle": build_energy_rifle, "tank": build_tank,
+          "energy_blade": build_energy_blade, "gravity_gun": build_gravity_gun, "spark_core": build_spark_core}
 
 
 def main():

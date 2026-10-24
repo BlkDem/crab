@@ -1,5 +1,6 @@
 // Ground textures made in code: the warm rippled sand of the beach, the grey ash of Limbo with
-// old cobbles showing through, the orange dunes of Wrath; each with a normal map. Saved as PNG assets (tileable).
+// old cobbles showing through, the orange dunes of Wrath, the dark plain
+// and golden paving of Greed, the meadow of Envy; each with a normal map. Saved as PNG assets (tileable).
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -152,6 +153,23 @@ namespace Crab.EditorTools
             c = Color.Lerp(c, new Color(0.95f, 0.8f, 0.45f), wear * j * 0.35f);
             return (c, j * 0.8f + n * 0.2f);
         }, 2.0f);
+
+        public static (Texture2D albedo, Texture2D normal) Meadow() => Make("meadow", 1024, (u, v) =>
+        {
+            // lush, too-perfect grass: blades of two greens, tiny flowers scattered like confetti
+            float n = Fbm(u, v, 5, 111, 6);
+            float blades = Fbm(u * 3, v * 9, 3, 113, 16);
+            float grain = Hash((int)(u * 1024), (int)(v * 1024), 117);
+            var c = Color.Lerp(new Color(0.28f, 0.55f, 0.16f), new Color(0.52f, 0.78f, 0.26f), n * 0.6f + blades * 0.4f);
+            c = Color.Lerp(c, new Color(0.18f, 0.38f, 0.1f), Smooth(0.6f, 0.9f, grain) * 0.4f);
+            float fl = Hash((int)(u * 256), (int)(v * 256), 119);
+            if (fl > 0.985f)
+            {
+                float k = Hash((int)(u * 256), (int)(v * 256), 121);
+                c = k < 0.33f ? new Color(1f, 0.95f, 0.98f) : k < 0.66f ? new Color(1f, 0.55f, 0.75f) : new Color(1f, 0.88f, 0.3f);
+            }
+            return (c, blades * 0.6f + n * 0.4f);
+        }, 1.4f);
 
         static (Texture2D, Texture2D) Make(string name, int size, System.Func<float, float, (Color, float)> f, float bump)
         {

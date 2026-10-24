@@ -55,7 +55,7 @@ namespace Crab.Game
             {
                 st.SetFlag("circle3_done");
                 Story.Task("");
-                Story.Title("КОНЕЦ III КРУГА", "IV. Круг зависти — скоро");
+                Story.Title("КОНЕЦ III КРУГА", "Впереди — круг зависти");
             };
             if (st.Flag("usurer")) usurer.gameObject.SetActive(false);
             else if (st.Flag("vault")) usurer.awake = true;

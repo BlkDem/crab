@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Crab.Core
 {
-    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank }
+    public enum ItemId { None, Stick, Stone, Crowbar, Knife, Pistol, Ammo, MachineGun, ScrapArmor, ScoutDrone, HeavyArmor, EnergyRifle, EnergyCell, EnergyShield, Tank, SparkCore, EnergyBlade, GravityGun, Portal }
 
     public enum WeaponKind { None, Melee, Throw, Gun }
 
@@ -35,6 +35,8 @@ namespace Crab.Core
         public bool energy;
         /// <summary>A gear ability rather than a thing in the claw (the shield).</summary>
         public bool gear;
+        /// <summary>Throws what it hits away (the gravity gun).</summary>
+        public bool gravity;
     }
 
     public static class Blueprints
@@ -62,6 +64,12 @@ namespace Crab.Core
             new Blueprint { id = ItemId.EnergyCell, title = "Энергоячейки", hint = "Десять зарядов из одной единицы энергии.", cost = new Cost(0, 0, 0, 0, 0, 1), yield = 10, stack = true },
             new Blueprint { id = ItemId.EnergyShield, title = "Энергощит", hint = "Купол на несколько секунд (Q). Ничто не пройдёт.", cost = new Cost(0, 2, 6, 2, 4, 3), gear = true, workshop = true },
             new Blueprint { id = ItemId.Tank, title = "Робот TANK", hint = "Тяжёлый, упрямый, мой. Идёт впереди и бьёт.", cost = new Cost(0, 4, 18, 6, 4, 6), companion = true, workshop = true },
+            new Blueprint { id = ItemId.SparkCore, title = "Ядро Искры", hint = "Кристалл на панцире, через который Искра течёт наружу. Теперь материю можно лепить из энергии.", cost = new Cost(0, 0, 0, 0, 6, 8), gear = true },
+            new Blueprint { id = ItemId.EnergyBlade, title = "Энергоклинок", hint = "Лезвие из чистой энергии. Режет и золото, и зеркала.", cost = new Cost(0, 0, 2, 0, 2, 4),
+                kind = WeaponKind.Melee, damage = 42, range = 1.7f, cooldown = 0.38f, energy = true },
+            new Blueprint { id = ItemId.GravityGun, title = "Гравипушка", hint = "Хватает пространство и швыряет. Враги летят кувырком.", cost = new Cost(0, 2, 6, 0, 4, 4),
+                kind = WeaponKind.Gun, damage = 18, range = 35, cooldown = 0.7f, ammo = ItemId.EnergyCell, energy = true, gravity = true },
+            new Blueprint { id = ItemId.Portal, title = "Портал", hint = "Шаг сквозь пространство (F) — туда, куда смотрю.", cost = new Cost(0, 0, 0, 0, 3, 5), gear = true },
         };
 
         public static Blueprint Get(ItemId id) => All.FirstOrDefault(b => b.id == id);
