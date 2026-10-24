@@ -125,3 +125,21 @@
 .ai.show { opacity: 1; }
 .ai-head { font-size: 12px; color: #5adcff; -unity-font-definition: url("Fonts/RussoOne-Regular.ttf"); letter-spacing: 2px; }
 .ai-text { font-size: 16px; color: #d8f6ff; white-space: normal; }
+
+/* settings (title screen and pause) */
+.settings-box { width: 460px; max-height: 88%; }
+.settings-scroll { flex-shrink: 1; }
+.settings-head { margin-top: 16px; font-size: 13px; color: var(--orange); -unity-font-definition: url("Fonts/Nunito-ExtraBold.ttf"); letter-spacing: 1px; }
+.settings-top { flex-direction: row; justify-content: space-between; }
+.settings-value { color: var(--gold); }
+.settings-switch { padding: 6px 10px; border-radius: 8px; background-color: rgba(255, 255, 255, 0.05); }
+.settings-switch:hover { background-color: rgba(255, 140, 40, 0.15); }
+.settings-switch.on .settings-value { color: var(--orange); }
+.settings-choice { flex-direction: row; margin-top: 6px; }
+.settings-choice Button { flex-grow: 1; margin: 0 3px; padding: 7px; border-radius: 8px; background-color: rgba(255, 255, 255, 0.06); border-width: 1px; border-color: rgba(255, 255, 255, 0.1); color: var(--muted); font-size: 14px; }
+.settings-choice Button.on { background-color: rgba(255, 140, 40, 0.3); border-color: var(--orange); color: white; }
+.main-settings { position: absolute; left: 80px; top: 8%; }
+.menu-btn-two { flex-direction: column; align-items: center; padding: 7px; }
+.menu-btn-sub { font-size: 12px; color: var(--muted); -unity-font-definition: url("Fonts/Nunito-Regular.ttf"); margin-top: 2px; }
+.menu-btn.confirm { border-color: #ff5a3c; color: #ffb4a0; }
+.fps { position: absolute; left: 16px; bottom: 10px; font-size: 12px; color: rgba(255, 255, 255, 0.7); }

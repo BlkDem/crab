@@ -17,6 +17,7 @@ namespace Crab.Game
         public static readonly InputAction[] Slot = new InputAction[9];
         /// <summary>Mouse look speed (settings).</summary>
         public static float sensitivity = 1;
+        public static bool invertY;
 
         public static void Ensure()
         {
@@ -68,6 +69,7 @@ namespace Crab.Game
                 Ensure();
                 var v = Look.ReadValue<Vector2>();
                 bool pad = Look.activeControl != null && Look.activeControl.device is Gamepad;
+                if (invertY) v.y = -v.y;
                 return (pad ? v * Time.unscaledDeltaTime * 10 : v * 0.12f) * sensitivity;
             }
         }

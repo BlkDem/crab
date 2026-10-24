@@ -34,6 +34,7 @@ namespace Crab.EditorTools
         {
             Directory.CreateDirectory(SceneDir);
             Directory.CreateDirectory(Gen);
+            ModelUnpack.All();
             ConfigureProject();
             lib = BuildLibrary();
             BuildPrologue();
@@ -105,7 +106,8 @@ namespace Crab.EditorTools
             return m;
         }
 
-        static GameObject Glb(string path) => AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{path}.glb");
+        // the unpacked models (ModelUnpack): their pictures are compressed textures
+        static GameObject Glb(string path) => AssetDatabase.LoadAssetAtPath<GameObject>(ModelUnpack.PathOf(path));
 
         static Library BuildLibrary()
         {

@@ -13,7 +13,7 @@ namespace Crab.Game
     [RequireComponent(typeof(UIDocument))]
     public sealed class GameUI : MonoBehaviour
     {
-        VisualElement root, hpFill, objective, thought, hint, prompt, crosshair, boss, bossFill, titleCard, flash, fadeEl, vignette, create, ring, pause, slots;
+        VisualElement root, settings, pauseBox, hpFill, objective, thought, hint, prompt, crosshair, boss, bossFill, titleCard, flash, fadeEl, vignette, create, ring, pause, slots;
         Label hpText, objText, thoughtText, hintText, promptText, weaponName, weaponCount, bossName, titleMain, titleSub, createSub;
         readonly Dictionary<Matter, Label> matterLabels = new Dictionary<Matter, Label>();
         readonly Dictionary<Matter, VisualElement> matterChips = new Dictionary<Matter, VisualElement>();
@@ -125,6 +125,8 @@ namespace Crab.Game
             createSub = L("", "sub", center);
             // pause
             pause = BuildPause();
+            fps = L("", "fps", root);
+            fps.pickingMode = PickingMode.Ignore;
             // overlays on top
             flash = E("overlay", root);
             flash.pickingMode = PickingMode.Ignore;
@@ -228,6 +230,14 @@ namespace Crab.Game
             float dt = Time.unscaledDeltaTime;
             var s = GameSession.Instance;
             fadeEl.style.opacity = s ? s.fade : 0;
+            fpsTime += dt;
+            fpsFrames++;
+            if (fpsTime > 0.5f)
+            {
+                fps.text = Settings.ShowFps ? $"{fpsFrames / fpsTime:0} к/с · {1000 * fpsTime / fpsFrames:0.0} мс" : "";
+                fpsTime = 0;
+                fpsFrames = 0;
+            }
             flashA = Mathf.MoveTowards(flashA, 0, dt / flashFade);
             flash.style.backgroundColor = new Color(flashColor.r, flashColor.g, flashColor.b, flashA);
             hurtA = Mathf.MoveTowards(hurtA, 0, dt * 1.5f);
@@ -272,6 +282,7 @@ namespace Crab.Game
             if (Controls.Pause.WasPressedThisFrame())
             {
                 if (hero.Power.MenuOpen) hero.Power.SetMenu(false);
+                else if (settings != null) CloseSettings();
                 else TogglePause();
             }
         }
@@ -356,24 +367,31 @@ namespace Crab.Game
         VisualElement BuildPause()
         {
             var m = E("menu", root);
-            var box = E("menu-box", m);
+            var box = pauseBox = E("menu-box", m);
             L("ПАУЗА", "menu-title", box);
             B("Продолжить", "menu-btn", TogglePause, box);
-            Slider(box, "Громкость", Sfx.volume, v => { Sfx.volume = v; PlayerPrefs.SetFloat("crab.volume", v); });
-            Slider(box, "Музыка", Sfx.music, v => { Sfx.music = v; PlayerPrefs.SetFloat("crab.music", v); });
-            Slider(box, "Чувствительность мыши", Controls.sensitivity / 2, v => { Controls.sensitivity = Mathf.Max(0.1f, v * 2); PlayerPrefs.SetFloat("crab.sens", Controls.sensitivity); });
+            B("Настройки", "menu-btn", OpenSettings, box);
             B("Сохранить и выйти в меню", "menu-btn", () => { TogglePause(); GameSession.Instance.Save(); GameSession.Instance.Go("Menu"); }, box);
-            L("WASD — идти · мышь — смотреть · Shift — бежать · Пробел — прыжок\nЛКМ — удар/выстрел · ПКМ — прицел · E — втянуть/использовать · Tab — создать · 1–9, X/Z — оружие · Q — щит · F — портал", "menu-note", box);
+            L("WASD — идти · мышь — смотреть · Shift — бежать · Пробел — прыжок (держать в воздухе — парить)\nЛКМ — удар/выстрел · ПКМ — прицел · E — втянуть/использовать · Tab — создать · 1–9, X/Z — оружие\nQ — щит · F — портал · G/H/J — приказы отряду · T — взгляд истины · B — мост · R — буря материи", "menu-note", box);
             return m;
         }
 
-        static void Slider(VisualElement parent, string title, float value, System.Action<float> changed)
+        Label fps;
+        float fpsTime;
+        int fpsFrames;
+
+        void OpenSettings()
         {
-            var row = E("menu-row", parent);
-            L(title, null, row);
-            var s = new Slider(0, 1) { value = value };
-            s.RegisterValueChangedCallback(e => changed(e.newValue));
-            row.Add(s);
+            pauseBox.style.display = DisplayStyle.None;
+            settings = Settings.Panel(CloseSettings);
+            pause.Add(settings);
+        }
+
+        void CloseSettings()
+        {
+            settings?.RemoveFromHierarchy();
+            settings = null;
+            pauseBox.style.display = DisplayStyle.Flex;
         }
 
         public bool Paused { get; private set; }
@@ -381,6 +399,7 @@ namespace Crab.Game
         void TogglePause()
         {
             Paused = !Paused;
+            if (!Paused) CloseSettings();
             pause.style.display = Paused ? DisplayStyle.Flex : DisplayStyle.None;
             Time.timeScale = Paused ? 0 : 1;
             UnityEngine.Cursor.lockState = Paused ? CursorLockMode.None : CursorLockMode.Locked;

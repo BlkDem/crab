@@ -34,9 +34,7 @@ namespace Crab.Game
             if (Instance && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             SceneManager.sceneLoaded += (s, _) => SceneStarted?.Invoke(s.name);
-            Sfx.volume = PlayerPrefs.GetFloat("crab.volume", 0.8f);
-            Sfx.music = PlayerPrefs.GetFloat("crab.music", 0.5f);
-            Controls.sensitivity = PlayerPrefs.GetFloat("crab.sens", 1f);
+            Settings.Apply();
         }
 
         void Update()

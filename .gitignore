@@ -115,3 +115,7 @@ InitTestScene*.unity*
 
 # Pictures the snapshot tool and the play tests write on every run (working material, not kept)
 /Docs/shots/
+
+# derived from Assets/Crab/Models by ModelUnpack (SceneBuilder.BuildAll remakes them)
+/Assets/Crab/Art/Unpacked/
+/Assets/Crab/Art/Unpacked.meta
