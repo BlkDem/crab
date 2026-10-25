@@ -2212,13 +2212,13 @@ namespace Crab.EditorTools
                 m.SetTexture("_BaseMap", ac);
                 m.SetTexture("_BumpMap", an);
                 m.EnableKeyword("_NORMALMAP");
-                m.SetColor("_BaseColor", new Color(0.75f, 0.55f, 0.45f));
+                m.SetColor("_BaseColor", new Color(1.05f, 0.8f, 0.66f));
                 m.SetFloat("_Smoothness", 0.2f);
             });
             var root = Group("Violence");
             Ground("BattleGround", new Rect(-110, -110, 220, 230), mud, 0.2f).transform.SetParent(root, false);
-            var sun = Sun(new Color(1f, 0.65f, 0.45f), 1.3f, new Vector3(25, 160, 0));
-            Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.45f, 0.38f, 0.38f), new Color(0.42f, 0.32f, 0.28f), new Color(0.16f, 0.12f, 0.1f), new Color(0.38f, 0.26f, 0.22f), 0.009f, 0.04f);
+            var sun = Sun(new Color(1f, 0.66f, 0.42f), 1.8f, new Vector3(18, 160, 0));
+            Environment(new Color(0.5f, 0.5f, 0.5f), Color.black, 1, new Color(0.45f, 0.38f, 0.38f), new Color(0.42f, 0.32f, 0.28f), new Color(0.16f, 0.12f, 0.1f), new Color(0.42f, 0.28f, 0.22f), 0.0065f, 0.04f);
             RenderSettings.skybox = Mat("Sky_Violence_Gradient", "Crab/Sky", m =>
             {
                 m.SetFloat("_SunSize", 6);
@@ -2228,7 +2228,7 @@ namespace Crab.EditorTools
                 m.SetColor("_Sun", new Color(1f, 0.55f, 0.3f));
                 m.SetVector("_SunDir", -sun.transform.forward);
             });
-            Post("Violence", 0.2f, -8, new Color(1f, 0.9f, 0.82f), 1.1f, 0.35f, 16);
+            Post("Violence", 0.55f, -2, new Color(1f, 0.9f, 0.82f), 1.1f, 0.35f, 16);
 
             // the debris of war
             var props = Group("Scenery", root);

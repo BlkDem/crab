@@ -681,38 +681,181 @@ def box_item(name, size, loc, mat):
 
 
 # ---------------------------------------------------------------------- level 7 (circle of Violence)
+def mat_paint(name, base="#3d6a9a", dark="#22384f", wear_to="#a8adb4"):
+    """Painted armour: the colour darker in the cavities, chipped to bare steel on the sharp edges."""
+    t = L.NT(name)
+    n = t.noise(t.vec(), 14, detail=6, rough=0.6)
+    # pointiness is about 0.5 on flat faces: only clear edges, broken up by the noise, wear through
+    edge = t.ramp(t.math("ADD", t.geo("Pointiness"), t.math("MULTIPLY", t.math("SUBTRACT", n, 0.5), 0.1)), [(0.6, 0.0), (0.66, 1.0)])
+    cav = t.math("SUBTRACT", 1.0, t.ao(0.1))
+    col = t.mix(t.ramp(cav, [(0.1, 0.0), (0.6, 1.0)]), C(base), C(dark))
+    col = t.mix(edge, col, C(wear_to))
+    metal = t.ramp(edge, [(0.0, 0.1), (1.0, 0.6)])
+    rgh = t.ramp(edge, [(0.0, 0.55), (1.0, 0.3)])
+    return t.finish(col, rough=rgh, metal=metal, normal=t.bump(n, 0.15, 0.01))
+
+
+def mat_hazard(name, freq=40.0):
+    """Diagonal hazard stripes, orange and near black, a little worn."""
+    t = L.NT(name)
+    x, y, z = t.sep(t.vec())
+    w = t.math("SINE", t.math("MULTIPLY", t.math("ADD", t.math("ADD", x, y), z), freq))
+    n = t.noise(t.vec(), 18, detail=4)
+    band = t.ramp(t.math("ADD", w, t.math("MULTIPLY", n, 0.3)), [(0.48, 0.0), (0.52, 1.0)])
+    col = t.mix(band, C("#1c1c1e"), C("#ff8a1e"))
+    return t.finish(col, rough=0.5, metal=0.1, normal=t.bump(n, 0.1, 0.01))
+
+
+def taper_box(name, size, loc, mat, top=1.0, front=1.0, bevel=0.025):
+    """A bevelled box whose top is scaled by `top` (a chest broader than the waist) and whose front
+    face leans by `front` (scale of the front half at the top)."""
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
+    b = bpy.context.active_object
+    b.name = name
+    for v in b.data.vertices:
+        if v.co.z > 0:
+            v.co.x *= top
+            v.co.y *= top
+            if v.co.y < 0:
+                v.co.y *= front
+    b.scale = size
+    L.apply_all(b)
+    L.transform_apply(b)
+    b.location = loc
+    L.transform_apply(b)
+    L.mod(b, "BEVEL", width=bevel, segments=3)
+    L.apply_all(b)
+    b.data.materials.append(mat)
+    return b
+
+
 def build_battlebot():
-    """A battle robot of the crab's army (about 1.1 m): a boxy blue-grey torso with a shoulder gun
-    (Gun), a sensor head with a blue eye, two legs. Body > Gun, LegL, LegR, GlowEye."""
-    m = mat_steel("bb_steel")
-    mb = L.mat_plain("bb_blue", "#3a6a9a", rough=0.5)
+    """A battle robot of the crab's army (about 1.25 m): a small walker. A tapered armoured chest
+    with a dark visor helmet, round pauldrons with hazard bands, a twin cannon in a housing on the
+    right shoulder (Gun, its origin at the muzzles), a fist on the left, a backpack with exhausts and
+    an antenna; reverse-jointed legs with knee guards and three-toed feet (LegL, LegR). Body >
+    Gun, LegL, LegR, GlowEye, GlowVents."""
+    pb = mat_paint("bb_paint")
+    pd = mat_paint("bb_paint_dark", base="#2a3a4c", dark="#151d27")
+    hz = mat_hazard("bb_hazard")
+    st = mat_steel("bb_steel")
     md = L.mat_metal("bb_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.45, metal_max=0.6)
-    torso = box_item("torso", (0.6, 0.45, 0.5), (0, 0, 0.75), mb)
-    head = box_item("head", (0.3, 0.3, 0.22), (0, -0.05, 1.12), m)
-    body = join("Body", [torso, head])
+    body_parts = []
+    # pelvis, waist, chest
+    body_parts.append(taper_box("pelvis", (0.36, 0.26, 0.14), (0, 0.01, 0.56), pd, top=1.05, bevel=0.02))
+    waist = tube("waist", [((0, 0.02, 0.6), 0.1), ((0, 0.02, 0.7), 0.09)], seg=12, sub=1)
+    waist.data.materials.append(md)
+    body_parts.append(waist)
+    body_parts.append(taper_box("chest", (0.44, 0.34, 0.36), (0, 0.0, 0.86), pb, top=1.28, front=0.9, bevel=0.035))
+    body_parts.append(taper_box("chestplate", (0.3, 0.06, 0.22), (0, -0.22, 0.88), pd, top=1.15, bevel=0.02))
+    for sx in (-1, 1):   # vents in the chest plate
+        for k in range(3):
+            body_parts.append(box_item("slot", (0.07, 0.02, 0.012), (sx * 0.07, -0.255, 0.84 + k * 0.035), md))
+    # helmet: a rounded dome with a visor band
+    helm = uv_sphere("helm", 0.15, (0, -0.04, 1.14), scale=(1.0, 1.05, 0.78), seg=20, rings=12)
+    helm.data.materials.append(pb)
+    body_parts.append(helm)
+    jaw = taper_box("jaw", (0.2, 0.12, 0.08), (0, -0.11, 1.06), pd, top=1.1, bevel=0.02)
+    body_parts.append(jaw)
+    visor_frame = taper_box("visorframe", (0.26, 0.05, 0.08), (0, -0.165, 1.15), md, bevel=0.015)
+    body_parts.append(visor_frame)
+    ant = tube("antenna", [((0.09, 0.05, 1.22), 0.008), ((0.13, 0.12, 1.42), 0.004)], seg=6, sub=1)
+    ant.data.materials.append(st)
+    body_parts.append(ant)
+    body_parts.append(uv_sphere("antip", 0.012, (0.13, 0.12, 1.42), seg=8, rings=6))
+    body_parts[-1].data.materials.append(hz)
+    # pauldrons with hazard bands
+    for sx in (-1, 1):
+        pl = uv_sphere("pauldron", 0.13, (sx * 0.33, 0.0, 1.0), scale=(1.0, 1.15, 0.75), seg=18, rings=10)
+        pl.data.materials.append(pb)
+        body_parts.append(pl)
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.12, minor_radius=0.022, location=(sx * 0.33, 0.0, 0.95))
+        band = bpy.context.active_object
+        band.name = "band"
+        band.scale = (1.0, 1.15, 1.0)
+        L.apply_all(band)
+        L.transform_apply(band)
+        band.data.materials.append(hz)
+        body_parts.append(band)
+    # the left arm: upper arm, forearm guard, fist
+    sh = Vector((-0.36, 0.0, 0.92))
+    arm = tube("arm", [(sh, 0.05), (sh + Vector((-0.03, -0.02, -0.18)), 0.045)], seg=10, sub=1)
+    arm.data.materials.append(md)
+    body_parts.append(arm)
+    body_parts.append(taper_box("forearm", (0.12, 0.2, 0.12), sh + Vector((-0.03, -0.1, -0.24)), pb, top=1.1, bevel=0.02))
+    fist = uv_sphere("fist", 0.065, sh + Vector((-0.03, -0.22, -0.26)), scale=(1, 1.1, 0.95), seg=12, rings=8)
+    fist.data.materials.append(st)
+    body_parts.append(fist)
+    # backpack and exhausts
+    body_parts.append(taper_box("pack", (0.32, 0.16, 0.3), (0, 0.24, 0.9), pd, top=0.9, bevel=0.03))
+    for sx in (-1, 1):
+        ex = tube("exhaust", [((sx * 0.09, 0.3, 0.98), 0.035), ((sx * 0.1, 0.33, 1.12), 0.03)], seg=10, sub=1)
+        ex.data.materials.append(md)
+        body_parts.append(ex)
+    body = join("Body", body_parts)
     set_origin(body, (0, 0, 0))
     parts = [body]
-    gun = tube("gun", [((0.34, -0.1, 0.92), 0.06), ((0.34, -0.55, 0.92), 0.05)], seg=8, sub=1)
-    gun.data.materials.append(md)
-    g = join("Gun", [gun])
-    set_origin(g, (0.34, -0.55, 0.92))
+    # the twin cannon on the right shoulder, its origin at the muzzles
+    gp = [taper_box("housing", (0.16, 0.3, 0.14), (0.36, -0.08, 1.12), pd, bevel=0.025)]
+    for dx in (-0.035, 0.035):
+        br = tube("barrel", [((0.36 + dx, -0.2, 1.12), 0.028), ((0.36 + dx, -0.5, 1.12), 0.024)], seg=10, sub=1)
+        br.data.materials.append(md)
+        gp.append(br)
+        for k in range(3):
+            bpy.ops.mesh.primitive_torus_add(major_radius=0.03, minor_radius=0.007, location=(0.36 + dx, -0.26 - k * 0.07, 1.12), rotation=(math.pi / 2, 0, 0))
+            rg = bpy.context.active_object
+            rg.data.materials.append(st)
+            gp.append(rg)
+        mz = tube("muzzle", [((0.36 + dx, -0.5, 1.12), 0.032), ((0.36 + dx, -0.55, 1.12), 0.03)], seg=10, sub=1)
+        mz.data.materials.append(st)
+        gp.append(mz)
+    g = join("Gun", gp)
+    set_origin(g, (0.36, -0.55, 1.12))
     parent(g, body)
     parts.append(g)
+    # reverse-jointed legs: thigh forward to the knee, shin back down to the ankle, a three-toed foot
     for side, sx in (("L", 1), ("R", -1)):
-        hip = Vector((sx * 0.18, 0, 0.5))
-        leg = tube("leg", [(hip, 0.07), (hip + Vector((0, -0.05, -0.25)), 0.06), (hip + Vector((0, 0.02, -0.45)), 0.06)], seg=8, sub=1)
-        leg.data.materials.append(md)
-        foot = box_item("foot", (0.14, 0.24, 0.07), hip + Vector((0, -0.04, -0.46)), m)
-        lg = join("Leg" + side, [leg, foot])
+        hip = Vector((sx * 0.15, 0.02, 0.54))
+        knee = hip + Vector((sx * 0.02, -0.12, -0.2))
+        ankle = hip + Vector((sx * 0.02, 0.08, -0.44))
+        lp = []
+        th = tube("thigh", [(hip, 0.065), (knee, 0.055)], seg=10, sub=1)
+        th.data.materials.append(md)
+        lp.append(th)
+        lp.append(taper_box("thighplate", (0.11, 0.08, 0.16), (hip + knee) / 2 + Vector((0, -0.05, 0)), pb, top=1.1, bevel=0.02))
+        kg = uv_sphere("kneeguard", 0.06, knee + Vector((0, -0.035, 0.01)), scale=(1, 0.8, 1.1), seg=12, rings=8)
+        kg.data.materials.append(hz)
+        lp.append(kg)
+        sh_ = tube("shin", [(knee, 0.05), (ankle, 0.04)], seg=10, sub=1)
+        sh_.data.materials.append(st)
+        lp.append(sh_)
+        piston = tube("piston", [(knee + Vector((0, 0.04, -0.02)), 0.015), (ankle + Vector((0, 0.04, 0.06)), 0.012)], seg=6, sub=1)
+        piston.data.materials.append(md)
+        lp.append(piston)
+        for a in (-0.5, 0.0, 0.5):   # three toes and a heel spur
+            d = Vector((math.sin(a) * 0.1, -math.cos(a) * 0.13, -0.08))
+            toe = tube("toe", [(ankle, 0.03), (ankle + d, 0.022)], seg=8, sub=1)
+            toe.data.materials.append(pd)
+            lp.append(toe)
+        heel = tube("heel", [(ankle, 0.026), (ankle + Vector((0, 0.09, -0.08)), 0.02)], seg=8, sub=1)
+        heel.data.materials.append(pd)
+        lp.append(heel)
+        lg = join("Leg" + side, lp)
         set_origin(lg, hip)
         parent(lg, body)
         parts.append(lg)
     for o in parts:
-        L.shade_smooth(o, 30)
-    L.bake_group(parts, "battlebot", size=256, ao_dist=0.04)
-    eye = uv_sphere("GlowEye", 0.05, (0, -0.21, 1.13), scale=(1.6, 0.4, 0.6), seg=10, rings=6)
-    eye.data.materials.append(L.mat_plain("bb_eye", "#5ac8ff", rough=0.2, emission=("#5ac8ff", 10.0)))
+        L.shade_smooth(o, 32)
+    L.bake_group(parts, "battlebot", size=512, ao_dist=0.04)
+    eye = taper_box("GlowEye", (0.22, 0.02, 0.035), (0, -0.19, 1.15), L.mat_plain("bb_eye", "#5ac8ff", rough=0.2, emission=("#5ac8ff", 10.0)), bevel=0.008)
     parent(eye, body)
+    vents = []
+    for sx in (-1, 1):
+        v = uv_sphere("vent", 0.026, (sx * 0.1, 0.33, 1.125), scale=(1, 1, 0.3), seg=10, rings=6)
+        vents.append(v)
+    gv = join("GlowVents", vents)
+    gv.data.materials.append(L.mat_plain("bb_vent", "#ff9a40", rough=0.3, emission=("#ff8a30", 6.0)))
+    parent(gv, body)
     L.export_tree("battlebot", body)
 
 
@@ -745,14 +888,30 @@ def build_matter_lord():
     L.bake(ob, size=256)
     wings = []
     for sx in (-1, 1):
-        bm = bmesh.new()
-        pts = [(0.0, 0.0), (0.12, 0.1), (0.3, 0.14), (0.42, 0.08), (0.36, 0.0), (0.24, -0.04), (0.1, -0.03)]
-        verts = [bm.verts.new((sx * (0.06 + px), 0.08 + pz * 0.3, H + 0.08 + pz)) for px, pz in pts]
-        bm.faces.new(verts if sx > 0 else list(reversed(verts)))
-        w = L.from_bmesh("wing", bm, smooth=False)
-        L.mod(w, "SOLIDIFY", thickness=0.004)
-        L.apply_all(w)
-        wings.append(w)
+        # a fan of six feathers of light, long in the middle, each a thin curved blade
+        root = Vector((sx * 0.06, 0.08, H + 0.08))
+        for k in range(6):
+            a = math.radians(10 + k * 17)
+            length = 0.2 + 0.24 * math.sin(math.pi * (k + 0.6) / 6.4)
+            d = Vector((sx * math.cos(a), 0.35 * math.sin(a) * 0.4, math.sin(a)))
+            d.normalize()
+            side = Vector((0, 1, 0)).cross(d).normalized()   # across the feather, in the wing's plane
+            bm = bmesh.new()
+            rows = 6
+            left, right = [], []
+            for r_ in range(rows + 1):
+                f = r_ / rows
+                w = 0.028 * math.sin(math.pi * min(1.0, f * 1.1 + 0.08)) + 0.004
+                c = root + d * (length * f) + Vector((0, 0.05 * f * f, -0.02 * f * f))   # sweeps back and droops
+                left.append(bm.verts.new(c - side * w))
+                right.append(bm.verts.new(c + side * w))
+            for r_ in range(rows):
+                q = [left[r_], right[r_], right[r_ + 1], left[r_ + 1]]
+                bm.faces.new(q if sx > 0 else list(reversed(q)))
+            w_ = L.from_bmesh("feather", bm, smooth=True)
+            L.mod(w_, "SOLIDIFY", thickness=0.003)
+            L.apply_all(w_)
+            wings.append(w_)
     gw = join("GlowWings", wings)
     gw.data.materials.append(L.mat_plain("lord_wings", "#fff0c8", rough=0.2, emission=("#ffe8a8", 6.0)))
     parent(gw, ob)
