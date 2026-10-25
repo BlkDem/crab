@@ -209,6 +209,7 @@ namespace Crab.Game
         public void Hurt(float damage, Vector3 point, Vector3 dir)
         {
             if (!Alive || iframes > 0) return;
+            if (Cam && Cam.Mode == CamMode.Scripted) return;   // a story moment: the crab cannot answer, so nothing reaches it
             if (Shield && Shield.Absorb(point)) return;
             iframes = 0.45f;
             Taken += damage * Armor;

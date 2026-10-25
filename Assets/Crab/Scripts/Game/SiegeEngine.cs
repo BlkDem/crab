@@ -67,6 +67,7 @@ namespace Crab.Game
             var mark = BossFx.Marker(target, r, new Color(1f, 0.4f, 0.15f, 0.6f));
             var ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             Destroy(ball.GetComponent<Collider>());
+            Destroy(ball, 8);
             ball.transform.localScale = Vector3.one * 0.8f;
             var lib = Library.Current;
             if (lib && lib.fire) ball.GetComponent<Renderer>().sharedMaterial = lib.fire;

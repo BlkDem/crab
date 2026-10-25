@@ -43,6 +43,7 @@ namespace Crab.Game
         /// <summary>Runs away from the crab instead of fighting (the gold collectors).</summary>
         protected virtual bool Flees => false;
         public bool Alive => health != null && !health.Dead;
+        public float Health01 => health == null ? 1 : health.Value / health.Max;
         /// <summary>Can be seen and shot (a burrower under the sand cannot).</summary>
         public virtual bool Visible => true;
         float dieT = -1;
@@ -100,6 +101,8 @@ namespace Crab.Game
                 if (dieT > 1.3f) Destroy(gameObject);
                 return;
             }
+            // fell out of the world (into a pit, through the ground): it is gone, nothing left to chase
+            if (transform.position.y < -60) { health.Hurt(99999); Die(); return; }
             hurtT -= dt;
             attackT -= dt;
             var hero = Target;

@@ -359,6 +359,7 @@ namespace Crab.Game
             var mark = BossFx.Marker(at, r, new Color(0.85f, 0.9f, 1f, 0.6f));
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             Destroy(go.GetComponent<Collider>());
+            Destroy(go, 8);
             go.transform.localScale = new Vector3(0.6f, 1.6f, 0.08f);
             var lib = Library.Current;
             if (lib && lib.mirror) go.GetComponent<Renderer>().sharedMaterial = lib.mirror;

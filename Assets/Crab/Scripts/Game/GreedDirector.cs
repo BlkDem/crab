@@ -45,7 +45,7 @@ namespace Crab.Game
                 if (!st.Flag("usurer"))
                 {
                     usurer.awake = true;
-                    Story.Task("Войти в тронный зал Ростовщика");
+                    Story.Task("Войти в тронный зал Ростовщика", usurer.transform);
                     Story.Think("Дверь взяла плату и отворилась. За ней — тот, кто берёт плату со всего круга.", 4.5f);
                 }
             };
@@ -74,7 +74,7 @@ namespace Crab.Game
                 yield return Wait(3.5f);
                 Story.Think("Золотые стены до неба. Здесь не жгут и не рвут — здесь считают.", 4.5f);
                 yield return Wait(5);
-                Story.Task("Войти в золотой город");
+                Story.Task("Войти в золотой город", gate);
                 // the first collectors run off with their sacks
                 while (firstCollectors.Any(e => e && e.Alive) && firstCollectors.All(e => !e || Vector3.Distance(e.transform.position, hero.transform.position) > 14)) yield return null;
                 if (firstCollectors.Any(e => e && e.Alive))
@@ -151,6 +151,7 @@ namespace Crab.Game
             Story.Hint("Краб пал…");
             yield return Wait(2.5f);
             GameSession.Instance.fade = 1;
+            yield return BossFx.Calm();   // the boss starts over first
             hero.Respawn();
             Story.Hint("Маяк вернул меня.");
             for (float t = 0; t < 1; t += Time.unscaledDeltaTime) { GameSession.Instance.fade = 1 - t; yield return null; }

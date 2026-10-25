@@ -132,7 +132,7 @@ namespace Crab.Game
             rift.gameObject.SetActive(true);
             Sfx.Loop("rift", 0.6f);
             Fx.Flash(rift.Point, new Color(0.6f, 1f, 0.75f), 10, 20, 0.6f);
-            Story.Task("Войти в разлом");
+            Story.Task("Войти в разлом", rift.transform);
             st.SetFlag("prologue_done");
             GameSession.Instance.Save();
         }
@@ -192,6 +192,7 @@ namespace Crab.Game
         {
             Story.Hint("Краб пал… но краба так просто не взять.");
             yield return Wait(2.5f);
+            yield return BossFx.Calm();   // the boss starts over first
             hero.Respawn();
         }
 

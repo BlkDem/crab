@@ -8,9 +8,24 @@ namespace Crab.Game
     public static class BossFx
     {
         /// <summary>A glowing ring on the ground where something is about to fall.</summary>
+        /// <summary>Waits until no boss is fighting (or a while at most). A boss notices the crab's fall
+        /// only between its attacks; the crab is brought back after that, so the fight starts over.</summary>
+        public static IEnumerator Calm(float most = 12)
+        {
+            for (float t = 0; t < most; t += Time.unscaledDeltaTime)
+            {
+                bool any = false;
+                foreach (var m in Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
+                    if (m is IBoss b && b.Fighting) { any = true; break; }
+                if (!any) yield break;
+                yield return null;
+            }
+        }
+
         public static GameObject Marker(Vector3 at, float radius, Color color)
         {
             var go = new GameObject("marker");
+            Object.Destroy(go, 10);   // its attack may be stopped before it removes it
             go.transform.position = at + Vector3.up * 0.12f;
             var lr = go.AddComponent<LineRenderer>();
             lr.sharedMaterial = Library.Current ? Library.Current.tracer : null;
@@ -40,6 +55,7 @@ namespace Crab.Game
         public static IEnumerator Ring(Vector3 at, float speed, float reach, Color color, float damage)
         {
             var go = new GameObject("wave");
+            Object.Destroy(go, reach / Mathf.Max(0.1f, speed) + 1);   // gone even if the attack is stopped
             var lr = go.AddComponent<LineRenderer>();
             lr.sharedMaterial = Library.Current ? Library.Current.tracer : null;
             lr.loop = true;

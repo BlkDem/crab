@@ -250,6 +250,7 @@ namespace Crab.Game
             var coin = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             coin.name = "coin";
             Destroy(coin.GetComponent<Collider>());
+            Destroy(coin, 8);
             coin.transform.localScale = new Vector3(1.2f, 0.08f, 1.2f);
             var lib = Library.Current;
             if (lib && lib.gold) coin.GetComponent<Renderer>().sharedMaterial = lib.gold;

@@ -333,6 +333,7 @@ namespace Crab.Game
             var ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             ball.name = "fireball";
             Destroy(ball.GetComponent<Collider>());
+            Destroy(ball, 8);
             ball.transform.localScale = Vector3.one * 0.9f;
             var lib = Library.Current;
             if (lib && lib.fire) ball.GetComponent<Renderer>().sharedMaterial = lib.fire;

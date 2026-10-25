@@ -49,7 +49,8 @@
       }, p => {
         fill.style.width = Math.round(p * 100) + "%";
         if (p >= 0.9) note.textContent = "Почти готово: собираю мир…";
-      }).then(() => {
+      }).then(instance => {
+        window.unityInstance = instance;   // for tools: unityInstance.SendMessage(...)
         card.classList.add("gone");
         setTimeout(() => card.remove(), 1000);
       }).catch(message => {

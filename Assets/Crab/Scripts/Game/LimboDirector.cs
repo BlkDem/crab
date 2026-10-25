@@ -73,6 +73,8 @@ namespace Crab.Game
                 {
                     Story.Think("Тени. Они тянутся ко мне… Нет. Не дамся.", 3.5f);
                     Story.Task("Отбиться от теней");
+                    // all of them come for the crab: none is left idling somewhere in the fog with the task waiting on it
+                    foreach (var e in firstShades) if (e) e.aggro = 999;
                     while (firstShades.Any(e => e && e.Alive)) yield return null;
                 }
                 Story.Think("Они рассыпались в туман. Значит, их можно победить.", 4);
@@ -80,7 +82,7 @@ namespace Crab.Game
             }
             if (Sealed < rifts.Count && !st.Flag("guardian"))
             {
-                Story.Task(RiftTask);
+                Story.Task(RiftTask, null, NearestRift);
                 if (!st.Flag("rift_hint"))
                 {
                     st.SetFlag("rift_hint");
@@ -91,7 +93,7 @@ namespace Crab.Game
             if (!st.Flag("guardian"))
             {
                 guardian.awake = true;
-                Story.Task("Найти Стража на главной площади");
+                Story.Task("Найти Стража на главной площади", guardian.transform);
                 if (!st.Flag("guardian_hint"))
                 {
                     st.SetFlag("guardian_hint");
@@ -112,7 +114,7 @@ namespace Crab.Game
                 st.Learn(ItemId.Ammo);
                 Story.Think("Когда разлом схлопнулся, я понял, как устроено… оружие. Пистолет. Из металла и камня.", 5);
             }
-            if (Sealed < rifts.Count) Story.Task(RiftTask);
+            if (Sealed < rifts.Count) Story.Task(RiftTask, null, NearestRift);
             GameSession.Instance.Save();
         }
 
@@ -134,7 +136,16 @@ namespace Crab.Game
             exit.gameObject.SetActive(true);
             Fx.Flash(exit.Point, new Color(1f, 0.5f, 0.2f), 10, 20, 0.8f);
             Sfx.Loop("rift", 0.6f);
-            Story.Task("Войти в разлом: путь во II круг");
+            Story.Task("Войти в разлом: путь во II круг", exit.transform);
+        }
+
+        Transform NearestRift()
+        {
+            Transform best = null;
+            float d = float.MaxValue;
+            foreach (var r in rifts)
+                if (r && r.open && r.gameObject.activeInHierarchy && Vector3.Distance(r.transform.position, hero.transform.position) is var x && x < d) { d = x; best = r.transform; }
+            return best;
         }
 
         IEnumerator Respawn()
@@ -142,6 +153,7 @@ namespace Crab.Game
             Story.Hint("Краб пал…");
             yield return Wait(2.5f);
             GameSession.Instance.fade = 1;
+            yield return BossFx.Calm();   // the boss starts over first
             hero.Respawn();
             Story.Hint("Маяк вернул меня.");
             for (float t = 0; t < 1; t += Time.unscaledDeltaTime) { GameSession.Instance.fade = 1 - t; yield return null; }

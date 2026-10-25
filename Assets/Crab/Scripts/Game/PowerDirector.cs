@@ -108,7 +108,7 @@ namespace Crab.Game
             if (!st.Flag("lord"))
             {
                 lord.awake = true;
-                Story.Task("Войти в тронный зал");
+                Story.Task("Войти в тронный зал", lord.transform);
             }
         }
 
@@ -139,7 +139,7 @@ namespace Crab.Game
             Sfx.Loop("rift", 0.8f);
             Story.AI("Трон раскололся. За ним — проход. Не в ад. Куда-то… дальше.", 4.5f);
             yield return Wait(5);
-            Story.Task("Войти в портал за троном");
+            Story.Task("Войти в портал за троном", portal.transform);
         }
 
         IEnumerator Respawn()
@@ -147,6 +147,7 @@ namespace Crab.Game
             Story.Hint("Краб пал…");
             yield return Wait(2.5f);
             GameSession.Instance.fade = 1;
+            yield return BossFx.Calm();   // the boss starts over first
             hero.Respawn();
             Story.Hint("Маяк вернул меня.");
             for (float t = 0; t < 1; t += Time.unscaledDeltaTime) { GameSession.Instance.fade = 1 - t; yield return null; }

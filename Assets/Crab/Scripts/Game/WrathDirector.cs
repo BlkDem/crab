@@ -140,7 +140,7 @@ namespace Crab.Game
             exit.gameObject.SetActive(true);
             Fx.Flash(exit.Point, new Color(1f, 0.8f, 0.3f), 10, 20, 0.8f);
             Sfx.Loop("rift", 0.6f);
-            Story.Task("Войти в разлом: путь в III круг");
+            Story.Task("Войти в разлом: путь в III круг", exit.transform);
         }
 
         IEnumerator Respawn()
@@ -148,6 +148,7 @@ namespace Crab.Game
             Story.Hint("Краб пал…");
             yield return Wait(2.5f);
             GameSession.Instance.fade = 1;
+            yield return BossFx.Calm();   // the boss starts over first
             hero.Respawn();
             Story.Hint("Маяк вернул меня.");
             for (float t = 0; t < 1; t += Time.unscaledDeltaTime) { GameSession.Instance.fade = 1 - t; yield return null; }

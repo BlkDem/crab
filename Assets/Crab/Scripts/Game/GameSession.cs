@@ -44,6 +44,16 @@ namespace Crab.Game
 
         public static bool HasSave => File.Exists(SavePath);
 
+        /// <summary>Holds the game's time from outside ("1") or lets it go ("0"): in a browser,
+        /// unityInstance.SendMessage("GameSession", "Freeze", "1"). For tools that play the game
+        /// step by step and look between the steps.</summary>
+        public void Freeze(string on)
+        {
+            bool hold = on == "1";
+            Time.timeScale = hold ? 0 : 1;
+            AudioListener.pause = hold;
+        }
+
         /// <summary>A fresh playthrough without changing scene (tests, debugging).</summary>
         public void ResetState() => State = new GameState();
 

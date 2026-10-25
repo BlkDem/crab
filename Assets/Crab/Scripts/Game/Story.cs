@@ -2,6 +2,7 @@
 // voice since the Spark), the current task, big title cards, hints and the prompt for the
 // thing in reach.
 using System;
+using UnityEngine;
 
 namespace Crab.Game
 {
@@ -20,11 +21,21 @@ namespace Crab.Game
 
         public static void Think(string text, float seconds = 4) => OnThought?.Invoke(text, seconds);
 
-        public static void Task(string text)
+        /// <summary>Where the task leads, if somewhere: the interface marks it on screen.</summary>
+        public static Transform Target { get; private set; }
+        public static System.Func<Transform> Nearest;
+
+        /// <summary>A new task; `target` (or the nearest of `nearest`) is where it leads.</summary>
+        public static void Task(string text, Transform target = null, System.Func<Transform> nearest = null)
         {
             Objective = text;
+            Target = target;
+            Nearest = nearest;
             OnObjective?.Invoke(text);
         }
+
+        /// <summary>The place to mark now: the given one, or the nearest of a set.</summary>
+        public static Transform Goal => Target ? Target : Nearest?.Invoke();
 
         public static void Title(string main, string sub) => OnTitle?.Invoke(main, sub);
         public static void Hint(string text) => OnHint?.Invoke(text);

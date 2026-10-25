@@ -53,6 +53,7 @@ namespace Crab.Game
             var mark = BossFx.Marker(at, r, new Color(1f, 0.3f, 0.2f, 0.6f));
             var bomb = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             Destroy(bomb.GetComponent<Collider>());
+            Destroy(bomb, 8);
             bomb.transform.localScale = Vector3.one * 0.6f;
             var from = at + Vector3.up * 30;
             for (float k = 0; k < fall; k += Time.deltaTime)

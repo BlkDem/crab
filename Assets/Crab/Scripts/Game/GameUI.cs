@@ -1,7 +1,8 @@
 // The interface during play (UI Toolkit, built in code; styles in UI/Crab.uss): health and matter,
 // the task, the weapon in the claw, the crab's thoughts and hints, the prompt for what is in
 // reach, a crosshair when aiming, the boss's bar, title cards, flashes and fades, a red edge
-// when hurt; the circle of creation (Tab) and the pause menu (Esc).
+// when hurt; the circle of creation (Tab), the pause menu (Esc), the map (corner, and M).
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Crab.Core;
@@ -127,6 +128,11 @@ namespace Crab.Game
             createSub = L("", "sub", center);
             // pause
             pause = BuildPause();
+            BuildMaps();
+            goal = E("goal", root);
+            goal.pickingMode = PickingMode.Ignore;
+            E("goal-mark", goal).pickingMode = PickingMode.Ignore;
+            goalText = L("", "goal-text", goal);
             fps = L("", "fps", root);
             fps.pickingMode = PickingMode.Ignore;
             // overlays on top
@@ -161,6 +167,7 @@ namespace Crab.Game
         void Start()
         {
             hero = Hero.Instance;
+            StartCoroutine(TakeMap());
             guardian = FindObjectsByType<MonoBehaviour>().OfType<IBoss>().FirstOrDefault();
             if (hero)
             {
@@ -233,6 +240,7 @@ namespace Crab.Game
             var s = GameSession.Instance;
             fadeEl.style.opacity = s ? s.fade : 0;
             root.EnableInClassList("cinema", Cinema);
+            if (hero) UpdateGoal();
             fpsTime += dt;
             fpsFrames++;
             if (fpsTime > 0.5f)
@@ -282,9 +290,12 @@ namespace Crab.Game
             boss.style.display = fight ? DisplayStyle.Flex : DisplayStyle.None;
             if (fight) bossFill.style.width = Length.Percent(100 * guardian.Health01);
             if (create.style.display == DisplayStyle.Flex) RefreshCreate();
+            if (Controls.Map.WasPressedThisFrame() && !Paused && !hero.Power.MenuOpen) ShowBigMap(!bigMapOpen);
+            UpdateMaps();
             if (Controls.Pause.WasPressedThisFrame())
             {
-                if (hero.Power.MenuOpen) hero.Power.SetMenu(false);
+                if (bigMapOpen) ShowBigMap(false);
+                else if (hero.Power.MenuOpen) hero.Power.SetMenu(false);
                 else if (settings != null) CloseSettings();
                 else TogglePause();
             }
@@ -374,12 +385,167 @@ namespace Crab.Game
             L("ПАУЗА", "menu-title", box);
             B("Продолжить", "menu-btn", TogglePause, box);
             B("Настройки", "menu-btn", OpenSettings, box);
+            B("Карта (M)", "menu-btn", () => { TogglePause(); ShowBigMap(true); }, box);
             B("Сохранить и выйти в меню", "menu-btn", () => { TogglePause(); GameSession.Instance.Save(); GameSession.Instance.Go("Menu"); }, box);
             L("WASD — идти · мышь — смотреть · Shift — бежать · Пробел — прыжок (держать в воздухе — парить)\nЛКМ — удар/выстрел · ПКМ — прицел · E — втянуть/использовать · Tab — создать · 1–9, X/Z — оружие\nQ — щит · F — портал · G/H/J — приказы отряду · T — взгляд истины · B — мост · R — буря материи", "menu-note", box);
             return m;
         }
 
-        Label fps;
+        // ------------------------------------------------------------------ the map
+        VisualElement mini, miniImg, big, bigImg, miniPlayer, bigPlayer;
+        readonly List<VisualElement> miniMarks = new List<VisualElement>(), bigMarks = new List<VisualElement>();
+        bool bigMapOpen;
+        const float MiniSize = 180, MiniSpan = 80;   // the small map shows 80 m across
+
+        IEnumerator TakeMap()
+        {
+            yield return null;
+            yield return null;   // the crab is at its beacon by now
+            WorldMap.Take(hero.transform.position);
+            if (!WorldMap.Ready) yield break;
+            var bg = new StyleBackground(Background.FromRenderTexture(WorldMap.Picture));
+            miniImg.style.backgroundImage = bg;
+            bigImg.style.backgroundImage = bg;
+        }
+
+        void BuildMaps()
+        {
+            mini = E("minimap", root);
+            mini.pickingMode = PickingMode.Ignore;
+            miniImg = E("map-img", mini);
+            miniPlayer = E("map-player", mini);
+            L("M — карта", "minimap-hint", mini);
+            big = E("bigmap", root);
+            var frame = E("bigmap-frame", big);
+            bigImg = E("map-img", frame);
+            bigImg.style.width = Length.Percent(100);
+            bigImg.style.height = Length.Percent(100);
+            bigPlayer = E("map-player", frame);
+            var legend = E("bigmap-legend", big);
+            foreach (var (cls, text) in new[] { ("goal", "цель"), ("exit", "выход"), ("rift", "разлом"), ("beacon", "маяк") })
+            {
+                var row = E("legend-row", legend);
+                E("map-mark " + cls, row).AddToClassList("static");
+                L(text, null, row);
+            }
+            L("M или Esc — закрыть", "bigmap-hint", big);
+            big.style.display = DisplayStyle.None;
+            mini.style.display = DisplayStyle.None;
+        }
+
+        public void ShowBigMap(bool on)
+        {
+            bigMapOpen = on && WorldMap.Ready;
+            big.style.display = bigMapOpen ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        static string MarkClass(WorldMap.Mark m) => m switch
+        {
+            WorldMap.Mark.Goal => "goal",
+            WorldMap.Mark.Exit => "exit",
+            WorldMap.Mark.Rift => "rift",
+            WorldMap.Mark.Beacon => "beacon",
+            _ => "boss",
+        };
+
+        static VisualElement Pooled(List<VisualElement> pool, VisualElement parent, int i)
+        {
+            while (pool.Count <= i) { var m = E("map-mark", parent); m.pickingMode = PickingMode.Ignore; pool.Add(m); }
+            pool[i].style.display = DisplayStyle.Flex;
+            return pool[i];
+        }
+
+        void UpdateMaps()
+        {
+            bool ready = WorldMap.Ready && !Cinema;
+            mini.style.display = ready && !bigMapOpen ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!ready) { if (bigMapOpen) ShowBigMap(false); return; }
+            var area = WorldMap.Area;
+            var me = WorldMap.ToMap(hero.transform.position);
+            float yaw = hero.Cam ? hero.Cam.Yaw : hero.transform.eulerAngles.y;
+            var marks = WorldMap.Marks().ToList();
+            // the small one: the picture moves under the crab, which stays in the middle
+            float px = MiniSize * area.width / MiniSpan;
+            miniImg.style.width = px;
+            miniImg.style.height = px;
+            miniImg.style.left = MiniSize / 2 - me.x * px;
+            miniImg.style.top = MiniSize / 2 - me.y * px;
+            miniPlayer.style.rotate = new Rotate(yaw);
+            int n = 0;
+            foreach (var (kind, at) in marks)
+            {
+                var d = (WorldMap.ToMap(at) - me) * px;
+                float r = MiniSize / 2 - 8;
+                if (d.magnitude > r)
+                {
+                    if (kind != WorldMap.Mark.Goal && kind != WorldMap.Mark.Exit) continue;
+                    d = d.normalized * r;   // at the rim, towards it
+                }
+                var m = Pooled(miniMarks, mini, n++);
+                m.ClearClassList();
+                m.AddToClassList("map-mark");
+                m.AddToClassList(MarkClass(kind));
+                m.style.left = MiniSize / 2 + d.x;
+                m.style.top = MiniSize / 2 + d.y;
+            }
+            for (int i = n; i < miniMarks.Count; i++) miniMarks[i].style.display = DisplayStyle.None;
+            miniPlayer.BringToFront();
+            if (!bigMapOpen) return;
+            // the big one: the whole scene
+            var frame = bigImg.parent;
+            float side = Mathf.Min(root.resolvedStyle.width, root.resolvedStyle.height - 90) * 0.85f;
+            if (!float.IsNaN(side) && side > 100) { frame.style.width = side; frame.style.height = side; }
+            float w = frame.resolvedStyle.width, h = frame.resolvedStyle.height;
+            if (float.IsNaN(w) || w <= 0) return;
+            bigPlayer.style.left = me.x * w;
+            bigPlayer.style.top = me.y * h;
+            bigPlayer.style.rotate = new Rotate(yaw);
+            n = 0;
+            foreach (var (kind, at) in marks)
+            {
+                var p = WorldMap.ToMap(at);
+                var m = Pooled(bigMarks, frame, n++);
+                m.ClearClassList();
+                m.AddToClassList("map-mark");
+                m.AddToClassList(MarkClass(kind));
+                m.AddToClassList("big");
+                m.style.left = p.x * w;
+                m.style.top = p.y * h;
+            }
+            for (int i = n; i < bigMarks.Count; i++) bigMarks[i].style.display = DisplayStyle.None;
+            bigPlayer.BringToFront();
+        }
+
+        void OnDestroy() => WorldMap.Clear();
+
+        Label fps, goalText;
+        VisualElement goal;
+
+        /// <summary>The task's place on screen: a mark over it with the distance, or at the edge,
+        /// turned towards it, when it is off screen or behind.</summary>
+        void UpdateGoal()
+        {
+            var t = Story.Goal;
+            var cam = Camera.main;
+            bool show = t && cam && hero && !Cinema && !Paused && t.gameObject.activeInHierarchy;
+            goal.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!show) return;
+            var p = t.position + Vector3.up * 2.2f;
+            float dist = Vector3.Distance(hero.transform.position, t.position);
+            var sp = cam.WorldToScreenPoint(p);
+            bool behind = sp.z < 0;
+            if (behind) { sp.x = Screen.width - sp.x; sp.y = Screen.height - sp.y; }
+            float mx = Screen.width * 0.06f, my = Screen.height * 0.1f;
+            bool edge = behind || sp.x < mx || sp.x > Screen.width - mx || sp.y < my || sp.y > Screen.height - my;
+            if (behind) sp.y = Mathf.Min(sp.y, Screen.height * 0.3f);   // behind: along the bottom
+            sp.x = Mathf.Clamp(sp.x, mx, Screen.width - mx);
+            sp.y = Mathf.Clamp(sp.y, my, Screen.height - my);
+            var panel = RuntimePanelUtils.ScreenToPanel(root.panel, new Vector2(sp.x, Screen.height - sp.y));
+            goal.style.left = panel.x;
+            goal.style.top = panel.y;
+            goal.EnableInClassList("edge", edge);
+            goalText.text = dist < 4 ? "" : $"{dist:0} м";
+        }
         float fpsTime;
         int fpsFrames;
 

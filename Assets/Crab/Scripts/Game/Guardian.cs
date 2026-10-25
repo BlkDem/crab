@@ -281,6 +281,7 @@ namespace Crab.Game
         IEnumerator Shockwave(Vector3 at)
         {
             var go = new GameObject("shockwave");
+            Destroy(go, 6);   // gone even if the fight stops mid-wave
             var lr = go.AddComponent<LineRenderer>();
             lr.sharedMaterial = Library.Current ? Library.Current.tracer : null;
             lr.loop = true;

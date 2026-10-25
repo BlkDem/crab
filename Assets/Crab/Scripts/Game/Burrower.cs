@@ -3,9 +3,10 @@ using UnityEngine;
 namespace Crab.Game
 {
     /// <summary>
-    /// A sand demon: it moves under the sand (only a trail of dust shows, nothing can hit it),
-    /// bursts out next to the crab, bites, stays out a few seconds — that is the time to hit it —
-    /// and goes under again.
+    /// A sand demon: it moves under the sand (only a trail of dust shows), bursts out next to the
+    /// crab, bites, stays out a few seconds — that is the time to hit it — and goes under again.
+    /// A blow at the trail knocks it out of the sand at once (half the harm goes through), so it
+    /// can always be fought: it is never untouchable for long.
     /// </summary>
     public sealed class Burrower : Enemy
     {
@@ -35,15 +36,9 @@ namespace Crab.Game
         protected override void Hunt(Hero hero, float dist, float dt)
         {
             stateT += dt;
-            if (under && dist < 2.6f)
-            {
-                under = false;
-                stateT = 0;
-                Sfx.Play("slam", transform.position, 0.6f, 1.8f);
-                Fx.Burst(transform.position + Vector3.up * 0.3f, new Color(0.85f, 0.6f, 0.35f), 50, 4, 0.2f, 0.9f, false, 1);
-                attackT = 0.3f;
-            }
-            else if (!under && stateT > 3.2f)
+            if (under && (dist < 3.2f || stateT > 7))   // and it cannot stay down for ever
+                Surface(0.3f);
+            else if (!under && stateT > 4.5f)
             {
                 under = true;
                 stateT = 0;
@@ -74,9 +69,24 @@ namespace Crab.Game
             if (body && !under) body.localRotation = Quaternion.Euler(-15 * (1 - sink), 0, Mathf.Sin(life * 4) * 5);
         }
 
+        void Surface(float bite)
+        {
+            under = false;
+            stateT = 0;
+            Sfx.Play("slam", transform.position, 0.6f, 1.8f);
+            Fx.Burst(transform.position + Vector3.up * 0.3f, new Color(0.85f, 0.6f, 0.35f), 50, 4, 0.2f, 0.9f, false, 1);
+            attackT = bite;
+        }
+
         public override void Hit(float dmg, Vector3 point, Vector3 dir, GameObject by)
         {
-            if (under) return;
+            if (under)
+            {
+                // struck through the sand: out it comes, stunned for a moment
+                Surface(1.2f);
+                base.Hit(dmg * 0.5f, point, dir, by);
+                return;
+            }
             base.Hit(dmg, point, dir, by);
         }
     }
