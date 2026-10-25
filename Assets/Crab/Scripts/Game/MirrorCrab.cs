@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Crab.Core;
+using System.Linq;
 using UnityEngine;
 
 namespace Crab.Game
@@ -382,8 +383,11 @@ namespace Crab.Game
         IEnumerator CallEnvy()
         {
             var lib = Library.Current;
+            // never more than two of them about: the fight is with the mirror, not a crowd
+            int about = Enemy.All.Count(e => e && e.Alive && e is Envious);
+            if (about >= 2) yield break;
             Story.Hint("«Всё, что есть у тебя, должно быть нашим!» — зависть зовёт подмогу");
-            for (int i = 0; i < 2 && lib && lib.envious; i++)
+            for (int i = about; i < 2 && lib && lib.envious; i++)
             {
                 float a = UnityEngine.Random.Range(0, Mathf.PI * 2);
                 var p = Center + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * (arenaRadius - 3);

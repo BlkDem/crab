@@ -18,6 +18,7 @@ namespace Crab.Tests
             var st = GameSession.Ensure().State;
             foreach (var f in new[] { "spark", "limbo_intro", "circle1_done", "circle2_done", "circle3_done", "circle4_done", "gloom_intro" }) st.SetFlag(f);
             foreach (var id in new[] { ItemId.Pistol, ItemId.Ammo, ItemId.MachineGun, ItemId.EnergyRifle, ItemId.EnergyCell, ItemId.SparkCore, ItemId.EnergyBlade, ItemId.GravityGun }) st.Learn(id);
+            st.Items.Add(ItemId.HeavyArmor);   // made in the circle of Greed: no one goes on without it
             return st;
         }
 
@@ -48,7 +49,7 @@ namespace Crab.Tests
             yield return Wait(0.5f);
             Assert.That(d.Will, Is.GreaterThan(95), "at the lamp the will comes back");
             // a wraith's touch: little harm, much despair
-            var wr = Object.Instantiate(Library.Current.wraith, hero.transform.position + hero.transform.forward * 2, Quaternion.identity).GetComponent<Enemy>();
+            var wr = Object.Instantiate(Library.Current.wraith, hero.transform.position + hero.transform.right * 2, Quaternion.identity).GetComponent<Enemy>();   // aside: ahead stands the lamp
             hero.Invulnerable = false;
             float will = d.Will;
             yield return Until(() => d.Will < will - 10 || !wr, 15, "the wraith's touch");

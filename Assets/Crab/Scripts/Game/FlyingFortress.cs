@@ -68,7 +68,7 @@ namespace Crab.Game
             Fx.Burst(at + Vector3.up * 0.3f, new Color(1f, 0.5f, 0.2f), 40, 6, 0.15f, 0.8f, true, 1);
             Fx.Burst(at + Vector3.up * 0.3f, new Color(0.2f, 0.18f, 0.16f), 30, 3, 0.4f, 1.6f, false, -0.2f);
             var hero = Hero.Instance;
-            if (hero && hero.Alive && Vector3.Distance(hero.transform.position, at) < r) hero.Hurt(20, hero.transform.position, hero.transform.position - at);
+            if (hero && hero.Alive && Vector3.Distance(hero.transform.position, at) < r) hero.Hurt(16, hero.transform.position, hero.transform.position - at);
             else if (hero) hero.Cam.Shake(0.4f);
         }
     }

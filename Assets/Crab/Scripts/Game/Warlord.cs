@@ -150,7 +150,8 @@ namespace Crab.Game
             if (hero.Hunter) hero.Hunter.Engage(this, transform);
             if (hero.Tank) hero.Tank.Engage(this, transform);
             Story.Task("Победить Полководца: сначала его гвардию (G — приказ отряду)");
-            if (fortress) fortress.bombing = true;
+            // the fortress bombs at his word only (its own runs over the field would double the rain)
+            if (fortress) fortress.bombing = false;
             yield return new WaitForSeconds(1.5f);
             int n = 0;
             while (!dead && hero)
@@ -163,7 +164,7 @@ namespace Crab.Game
                 n++;
                 if (n % 3 == 0) yield return Charge();
                 else if (n % 3 == 1) yield return Cleave();
-                else if (fortress) yield return fortress.Bombard(Health01 < 0.5f ? 7 : 5);
+                else if (fortress) yield return fortress.Bombard(Health01 < 0.5f ? 5 : 4);
                 if (dead) yield break;
                 yield return new WaitForSeconds(Health01 < 0.5f ? 1.4f : 2.2f);
             }
@@ -219,7 +220,7 @@ namespace Crab.Game
             Sfx.Play("slam", at, 1, 0.8f);
             hero.Cam.Shake(1.4f);
             Fx.Burst(at + Vector3.up * 0.3f, new Color(0.6f, 0.45f, 0.3f), 60, 5, 0.25f, 1, false, 0.5f);
-            StartCoroutine(BossFx.Ring(at, 11, arenaRadius * 1.5f, new Color(1f, 0.35f, 0.2f, 0.9f), 24));
+            StartCoroutine(BossFx.Ring(at, 11, arenaRadius * 1.5f, new Color(1f, 0.35f, 0.2f, 0.9f), 16));
             foreach (var b in BattleBot.All.ToArray()) if (b && Vector3.Distance(b.transform.position, at) < 6) b.Hit(40, b.transform.position, Vector3.up, gameObject);
             yield return new WaitForSeconds(0.8f);
             if (armR) armR.localRotation = Quaternion.identity;
@@ -247,7 +248,7 @@ namespace Crab.Game
             Sfx.Play("slam", target, 1, 1);
             hero.Cam.Shake(1.6f);
             Fx.Burst(target + Vector3.up * 0.3f, new Color(0.6f, 0.45f, 0.3f), 50, 5, 0.2f, 0.8f, false, 0.5f);
-            if (hero.Alive && Flat(hero.transform.position - target).magnitude < 3) hero.Hurt(26, hero.transform.position, hero.transform.position - from);
+            if (hero.Alive && Flat(hero.transform.position - target).magnitude < 3) hero.Hurt(22, hero.transform.position, hero.transform.position - from);
             yield return new WaitForSeconds(0.6f);
         }
 

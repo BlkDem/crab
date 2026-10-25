@@ -26,12 +26,19 @@ namespace Crab.Tests
             if (File.Exists(GameSession.SavePathOverride)) File.Delete(GameSession.SavePathOverride);
             Time.timeScale = 1;
             GameSession.Ensure().ResetState();
+            Hero.Taken = 0;
+            Hero.TakenBy = new System.Collections.Generic.Dictionary<string, float>();
+            started = Time.realtimeSinceStartup;
             yield return null;
         }
+
+        float started;
 
         [UnityTearDown]
         public IEnumerator TearDown()
         {
+            Debug.Log($"BALANCE {NUnit.Framework.TestContext.CurrentContext.Test.Name}: {Hero.Taken:0} hp taken in {Time.realtimeSinceStartup - started:0} s"
+                + (Hero.TakenBy.Count > 0 ? " — " + string.Join(", ", Hero.TakenBy.OrderByDescending(p => p.Value).Select(p => $"{p.Key} {p.Value:0}")) : ""));
             Time.timeScale = 1;
             var doc = Object.FindAnyObjectByType<UIDocument>();
             if (doc && doc.panelSettings) doc.panelSettings.targetTexture = null;

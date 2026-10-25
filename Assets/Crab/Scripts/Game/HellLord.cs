@@ -221,7 +221,7 @@ namespace Crab.Game
             Sfx.Play("slam", at, 0.8f, 1.1f);
             Fx.Burst(at + Vector3.up * 0.3f, Fire, 40, 5, 0.15f, 0.8f, true, 1);
             var hero = Hero.Instance;
-            if (hero && hero.Alive && Vector3.Distance(hero.transform.position, at) < r) hero.Hurt(20, hero.transform.position, hero.transform.position - at);
+            if (hero && hero.Alive && Vector3.Distance(hero.transform.position, at) < r) hero.Hurt(27, hero.transform.position, hero.transform.position - at);
         }
 
         IEnumerator Wave()
@@ -233,7 +233,7 @@ namespace Crab.Game
             var at = GroundAt(transform.position + transform.forward * 5);
             Sfx.Play("slam", at, 1, 0.6f);
             hero.Cam.Shake(1.5f);
-            StartCoroutine(BossFx.Ring(at, 10, arenaRadius * 1.5f, new Color(1f, 0.45f, 0.15f, 0.9f), 22));
+            StartCoroutine(BossFx.Ring(at, 10, arenaRadius * 1.5f, new Color(1f, 0.45f, 0.15f, 0.9f), 30));
             yield return new WaitForSeconds(0.8f);
             if (armL0) armL0.localRotation = Quaternion.identity;
         }
@@ -270,7 +270,7 @@ namespace Crab.Game
                     if (along > 0 && (rel - dir * along).magnitude < 0.6f && hero.transform.position.y < Arena.y + 0.5f)
                     {
                         hit = true;
-                        hero.Hurt(22, hero.transform.position, dir);
+                        hero.Hurt(30, hero.transform.position, dir);
                     }
                 }
                 yield return null;
@@ -301,7 +301,7 @@ namespace Crab.Game
             Fx.Burst(at + Vector3.up * 0.2f, Gold, 20, 4, 0.08f, 0.6f, true, 2);
             Sfx.Play("hit", at, 0.8f, 0.6f);
             var hero = Hero.Instance;
-            if (hero && hero.Alive && Flat(hero.transform.position - at).magnitude < 1.4f) hero.Hurt(14, hero.transform.position, Vector3.up);
+            if (hero && hero.Alive && Flat(hero.transform.position - at).magnitude < 1.4f) hero.Hurt(19, hero.transform.position, Vector3.up);
         }
 
         /// <summary>The echo of the dark: hands out of the floor under the crab.</summary>
@@ -316,7 +316,7 @@ namespace Crab.Game
                 Destroy(mark);
                 for (int j = 0; j < 4; j++) Fx.Burst(at + Vector3.up * j * 0.5f, new Color(0.15f, 0.1f, 0.2f), 10, 1.5f, 0.25f, 0.6f, false, -0.5f);
                 Sfx.Play("slam", at, 0.6f, 0.7f);
-                if (hero.Alive && Flat(hero.transform.position - at).magnitude < 1.5f) hero.Hurt(16, hero.transform.position, Vector3.up);
+                if (hero.Alive && Flat(hero.transform.position - at).magnitude < 1.5f) hero.Hurt(22, hero.transform.position, Vector3.up);
                 yield return new WaitForSeconds(0.2f);
             }
             yield return new WaitForSeconds(0.6f);

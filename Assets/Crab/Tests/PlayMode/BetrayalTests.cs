@@ -19,6 +19,7 @@ namespace Crab.Tests
             var st = GameSession.Ensure().State;
             foreach (var f in new[] { "spark", "limbo_intro", "circle1_done", "circle2_done", "circle3_done", "circle4_done", "circle5_done", "betrayal_intro" }) st.SetFlag(f);
             foreach (var id in new[] { ItemId.Pistol, ItemId.Ammo, ItemId.MachineGun, ItemId.EnergyRifle, ItemId.EnergyCell, ItemId.SparkCore, ItemId.EnergyBlade, ItemId.GravityGun, ItemId.Portal, ItemId.CyberFrame }) st.Learn(id);
+            st.Items.Add(ItemId.HeavyArmor);   // made in the circle of Greed: no one goes on without it
             return st;
         }
 

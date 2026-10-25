@@ -23,6 +23,11 @@ namespace Crab.Game
         public bool Alive => !State.Health.Dead;
         public event Action Died, Respawned;
         public bool Invulnerable { get; set; }
+        /// <summary>All the harm that reached the crab after armour and shield, counted even while
+        /// it is invulnerable (the tests weigh the fights with it).</summary>
+        public static float Taken;
+        /// <summary>When set (tests), the harm is also summed by who dealt it.</summary>
+        public static System.Collections.Generic.Dictionary<string, float> TakenBy;
         float iframes;
 
         void Awake()
@@ -203,9 +208,27 @@ namespace Crab.Game
 
         public void Hurt(float damage, Vector3 point, Vector3 dir)
         {
-            if (!Alive || iframes > 0 || Invulnerable) return;
+            if (!Alive || iframes > 0) return;
             if (Shield && Shield.Absorb(point)) return;
             iframes = 0.45f;
+            Taken += damage * Armor;
+            if (TakenBy != null)
+            {
+                var trace = new System.Diagnostics.StackTrace(1, false);
+                string from = "?";
+                for (int i = 0; i < trace.FrameCount; i++)
+                {
+                    var m = trace.GetFrame(i).GetMethod();
+                    if (m == null || m.DeclaringType == typeof(Hero)) continue;
+                    var t = m.DeclaringType;
+                    while (t != null && t.DeclaringType != null && t.Name.StartsWith("<")) t = t.DeclaringType;   // a coroutine's inner class
+                    from = $"{t?.Name}.{(m.DeclaringType.Name.StartsWith("<") ? m.DeclaringType.Name.Split('>')[0].TrimStart('<') : m.Name)}";
+                    break;
+                }
+                TakenBy.TryGetValue(from, out var sum);
+                TakenBy[from] = sum + damage * Armor;
+            }
+            if (Invulnerable) return;
             bool died = State.Health.Hurt(damage * Armor);
             dir.y = 0;
             Controller.Knock(dir.normalized * (died ? 2 : 4) + Vector3.up * 0.5f);

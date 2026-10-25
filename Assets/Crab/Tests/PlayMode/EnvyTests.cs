@@ -18,6 +18,7 @@ namespace Crab.Tests
             var st = GameSession.Ensure().State;
             foreach (var f in new[] { "spark", "limbo_intro", "circle1_done", "circle2_done", "circle3_done", "envy_intro" }) st.SetFlag(f);
             foreach (var id in new[] { ItemId.Pistol, ItemId.Ammo, ItemId.MachineGun, ItemId.EnergyRifle, ItemId.EnergyCell }) st.Learn(id);
+            st.Items.Add(ItemId.HeavyArmor);   // made in the circle of Greed: no one goes on without it
             return st;
         }
 
@@ -116,6 +117,15 @@ namespace Crab.Tests
             {
                 st.Items.Add(ItemId.EnergyCell, 10);
                 st.Health.Heal(100);
+                // as a player would: the Envious ones it calls first
+                var add = Enemy.All.FirstOrDefault(e => e && e.Alive && e is Envious);
+                if (add)
+                {
+                    AimAt(hero, add.transform.position + Vector3.up);
+                    yield return null;
+                    hero.Combat.Fire();
+                    continue;
+                }
                 AimAt(hero, m.AimPoint);
                 yield return null;
                 if (m.Reflecting)
