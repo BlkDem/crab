@@ -585,7 +585,17 @@ namespace Crab.EditorTools
                 var e = w.AddComponent<Edible>();
                 e.title = "Водоросли";
                 e.heal = 20;
+                dir.morsels.Add(e);   // the crab may eat them, so they count as food too
             }
+            // all the weed on the beach may be eaten, not just two that look like the rest
+            foreach (var t in root.GetComponentsInChildren<Transform>())
+                if (t.name.StartsWith("seaweed") && !t.GetComponent<Edible>() && !t.GetComponentInParent<Edible>() && t.parent && !t.parent.name.StartsWith("seaweed"))
+                {
+                    var e = t.gameObject.AddComponent<Edible>();
+                    e.title = "Водоросли";
+                    e.heal = 10;
+                    dir.morsels.Add(e);
+                }
             // the shelter from the gull
             var shelter = Place(Glb("World/shelter"), root, 8, 4.5f, 20, 1.0f);
             var zone = new GameObject("ShelterZone").AddComponent<BoxCollider>();

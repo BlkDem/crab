@@ -54,12 +54,19 @@ namespace Crab.Game
                 }
                 // the gull
                 Story.Task("Спрятаться от чайки под камнем!");
+                Story.Hint("Плоский камень на ножках — там, где светится круг");
                 Sfx.Play("gull", gull.transform.position, 1);
+                // a ring of light under the shelter while the gull hunts
+                var c = shelter.bounds.center;
+                var mark = BossFx.Marker(new Vector3(c.x, hero.transform.position.y, c.z), 1.8f, new Color(0.5f, 1f, 0.7f, 0.8f));
+                var pulse = StartCoroutine(PulseMark(mark));
                 yield return Wait(2);
                 bool safe = false;
+                bool first = true;
                 while (!safe)
                 {
-                    yield return Wait(3);
+                    yield return Wait(first ? 5 : 3);   // the first time, a moment more to find the stone
+                    first = false;
                     bool done = false, hit = false;
                     System.Action<bool> h = x => { done = true; hit = x; };
                     gull.DiveDone += h;
@@ -69,6 +76,8 @@ namespace Crab.Game
                     safe = !hit && gull.heroSheltered();
                     if (!safe) Story.Hint(hit ? "Больно! Под плоским камнем чайка не достанет." : "Ещё заход! Под камень!");
                 }
+                StopCoroutine(pulse);
+                Destroy(mark);
                 Story.Hint("Чайка улетела ни с чем.");
                 gull.circleRadius = 30;
                 gull.height = 20;
@@ -184,6 +193,11 @@ namespace Crab.Game
             Story.Hint("Краб пал… но краба так просто не взять.");
             yield return Wait(2.5f);
             hero.Respawn();
+        }
+
+        static IEnumerator PulseMark(GameObject mark)
+        {
+            for (float t = 0; mark; t += Time.deltaTime) { BossFx.Pulse(mark, 0.5f + 0.5f * Mathf.Sin(t * 4)); yield return null; }
         }
 
         static IEnumerator Wait(float s)

@@ -1,5 +1,5 @@
 // The controls, built in code (keyboard and mouse, and a gamepad):
-//   WASD / left stick — move, mouse / right stick — look, Space / A — jump, Shift / L3 — run,
+//   WASD / left stick — move, mouse / right stick / numpad 8 4 2 6 — look, Space / A — jump, Shift / L3 — run,
 //   LMB / RT — strike, throw or shoot, RMB / LT — aim, E / X — draw matter in, eat, use,
 //   Tab / Y — create (matter into things), wheel, 1-9 / bumpers — weapon, Q / B — shield, F / R3 — portal,
 //   G / H / J (d-pad) — orders to the squad: attack there, to me, hold there,
@@ -30,6 +30,9 @@ namespace Crab.Game
             Look = map.AddAction("Look", InputActionType.Value);
             Look.AddBinding("<Mouse>/delta");
             Look.AddBinding("<Gamepad>/rightStick").WithProcessor("scaleVector2(x=12,y=12)");
+            // looking without a mouse, as with a stick
+            Look.AddCompositeBinding("2DVector", processors: "scaleVector2(x=8,y=6)")
+                .With("Up", "<Keyboard>/numpad8").With("Down", "<Keyboard>/numpad2").With("Left", "<Keyboard>/numpad4").With("Right", "<Keyboard>/numpad6");
             Jump = Button("Jump", "<Keyboard>/space", "<Gamepad>/buttonSouth");
             Sprint = Button("Sprint", "<Keyboard>/leftShift", "<Gamepad>/leftStickPress");
             Attack = Button("Attack", "<Mouse>/leftButton", "<Gamepad>/rightTrigger");
@@ -68,7 +71,7 @@ namespace Crab.Game
             {
                 Ensure();
                 var v = Look.ReadValue<Vector2>();
-                bool pad = Look.activeControl != null && Look.activeControl.device is Gamepad;
+                bool pad = Look.activeControl != null && (Look.activeControl.device is Gamepad || Look.activeControl.device is Keyboard);
                 if (invertY) v.y = -v.y;
                 return (pad ? v * Time.unscaledDeltaTime * 10 : v * 0.12f) * sensitivity;
             }
