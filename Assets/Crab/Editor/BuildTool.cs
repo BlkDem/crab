@@ -43,6 +43,10 @@ namespace Crab.EditorTools
 
         static void Build(BuildTarget target, string path, BuildOptions options)
         {
+            // URP strips its resources by the quality levels of the active target, not of the build's:
+            // a Windows build made while WebGL is active (no PC level) loses SSAO and never starts
+            if (EditorUserBuildSettings.activeBuildTarget != target)
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildPipeline.GetBuildTargetGroup(target), target);
             ModelUnpack.All();
             PlayerSettings.bundleVersion = Version;
             PlayerSettings.enableFrameTimingStats = true;   // the benchmark reads the cpu and gpu times
