@@ -1662,7 +1662,7 @@
    "yaw": 40.0,
    "scale": 1.4,
    "asset": "World/deadtree",
-   "collider": "box",
+   "collider": "mesh",
    "snap": 1,
    "group": "Props"
   },
@@ -1690,7 +1690,7 @@
    "yaw": 100.97,
    "scale": 0.8764,
    "asset": "World/deadtree",
-   "collider": "box",
+   "collider": "mesh",
    "snap": 1,
    "group": "Props"
   },
@@ -1704,7 +1704,7 @@
    "yaw": -31.55,
    "scale": 0.8361,
    "asset": "World/deadtree",
-   "collider": "box",
+   "collider": "mesh",
    "snap": 1,
    "group": "Props"
   },
@@ -1718,7 +1718,7 @@
    "yaw": 39.81,
    "scale": 0.8035,
    "asset": "World/deadtree",
-   "collider": "box",
+   "collider": "mesh",
    "snap": 1,
    "group": "Props"
   },
@@ -1732,7 +1732,7 @@
    "yaw": 39.64,
    "scale": 1.2625,
    "asset": "World/deadtree",
-   "collider": "box",
+   "collider": "mesh",
    "snap": 1,
    "group": "Props"
   },
@@ -1746,7 +1746,7 @@
    "yaw": -159.82,
    "scale": 1.1255,
    "asset": "World/deadtree",
-   "collider": "box",
+   "collider": "mesh",
    "snap": 1,
    "group": "Props"
   },
@@ -1760,7 +1760,7 @@
    "yaw": 39.0,
    "scale": 0.8898,
    "asset": "World/deadtree",
-   "collider": "box",
+   "collider": "mesh",
    "snap": 1,
    "group": "Props"
   },
@@ -1774,7 +1774,7 @@
    "yaw": -33.75,
    "scale": 1.0939,
    "asset": "World/deadtree",
-   "collider": "box",
+   "collider": "mesh",
    "snap": 1,
    "group": "Props"
   },
@@ -1788,7 +1788,7 @@
    "yaw": -166.66,
    "scale": 1.0572,
    "asset": "World/deadtree",
-   "collider": "box",
+   "collider": "mesh",
    "snap": 1,
    "group": "Props"
   },
@@ -3728,56 +3728,56 @@
    "name": "aqueduct",
    "pos": [
     -86.0,
-    7.0882,
+    3.0882,
     -20.0
    ],
    "yaw": 161.57,
    "scale": 1.0,
    "asset": "World/aqueduct",
    "collider": "mesh",
-   "snap": 1,
+   "snap": 0,
    "group": "Props"
   },
   {
    "name": "aqueduct.002",
    "pos": [
     -66.5,
-    4.7899,
+    0.7899,
     -13.5
    ],
    "yaw": 161.57,
    "scale": 1.0,
    "asset": "World/aqueduct",
    "collider": "mesh",
-   "snap": 1,
+   "snap": 0,
    "group": "Props"
   },
   {
    "name": "aqueduct.003",
    "pos": [
     -47.0,
-    4.1637,
+    0.1637,
     -7.0
    ],
    "yaw": 161.57,
    "scale": 1.0,
    "asset": "World/aqueduct",
    "collider": "mesh",
-   "snap": 1,
+   "snap": 0,
    "group": "Props"
   },
   {
    "name": "aqueduct.004",
    "pos": [
     -27.5,
-    0.5214,
+    -3.4786,
     -0.5
    ],
    "yaw": 161.57,
    "scale": 1.0,
    "asset": "World/aqueduct",
    "collider": "mesh",
-   "snap": 1,
+   "snap": 0,
    "group": "Props"
   },
   {
@@ -4357,9 +4357,9 @@
   {
    "name": "gate_statue",
    "pos": [
-    15.4,
+    14.5,
     2.6,
-    153.5
+    148.5
    ],
    "yaw": 180.0,
    "scale": 1.0,
@@ -4371,9 +4371,9 @@
   {
    "name": "gate_statue.001",
    "pos": [
-    24.6,
+    25.5,
     2.6,
-    153.5
+    148.5
    ],
    "yaw": 180.0,
    "scale": 1.0,
@@ -5167,7 +5167,7 @@
    "pos": [
     20.0,
     0.95,
-    159.0
+    150.0
    ],
    "yaw": 180.0,
    "scale": 1.1,

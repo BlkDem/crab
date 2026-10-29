@@ -4,7 +4,9 @@ Sculpted models of the first circle (Models/lvl1, from Tripo) brought into the g
     shade    (the Shade of Limbo, 2.5 m): Body > ArmL, ArmR; GlowEyes in the hood;
     crawler  (the Scavenger, 1.5 m long): Body > Jaw, Tail, Leg{L,R}{0,1}_0 > _1 (0 front, 1 back); GlowEyes;
     guardian (the Guardian of Limbo, 5.6 m): Body > Head, Arm{L,R}_0 > _1; Heart, Lantern, GlowLantern;
-  and things that only stand: poet (the colossus on the cliff), gate_statue, castle_far (in the fog).
+  and things that only stand: poet (the colossus on the cliff), gate_statue, castle_far (in the fog),
+  the ruins (arches, aqueduct, temple, column, steles, the castle's wall, towers and gate, the bridge),
+  the dead tree, the cypress, and the heaps of matter (rubble, planks, scrap).
 A creature's bones are placed from its shape: the arms where the shroud's sides reach out past the
 robe, the legs over the feet (where it touches the ground), the jaw under the skull's front. Each
 vertex goes to the bone of its part, the rest to Body.
@@ -276,8 +278,149 @@ def build_castle_far():
     export("castle_far", "World", [ob])
 
 
+# ----------------------------------------------------------------------------- the ruins of Limbo
+def piece(file, name, size, axis="z", rot=0, faces=20000, stretch=1.0):
+    """One sculpted model into the open scene: its main mesh alone, turned `rot` degrees about Z (its
+    long side to the one the game expects), cut down to `faces`, `size` m along `axis`, stretched
+    `stretch` in height, centred on the ground."""
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, file))
+    new = [o for o in bpy.data.objects if o not in before]
+    ob = max((o for o in new if o.type == "MESH"), key=lambda o: len(o.data.vertices))
+    mw = ob.matrix_world.copy()
+    ob.parent = None
+    ob.matrix_world = mw
+    for o in new:
+        if o is not ob:
+            bpy.data.objects.remove(o)
+    L.select_only(ob)
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    if len(ob.data.polygons) > faces:
+        m = ob.modifiers.new("dec", "DECIMATE")
+        m.ratio = faces / len(ob.data.polygons)
+        bpy.ops.object.modifier_apply(modifier="dec")
+    ob.data.transform(Matrix.Rotation(math.radians(rot), 4, "Z"))
+    co = [v.co for v in ob.data.vertices]
+    mn = Vector((min(c.x for c in co), min(c.y for c in co), min(c.z for c in co)))
+    mx = Vector((max(c.x for c in co), max(c.y for c in co), max(c.z for c in co)))
+    k = size / (mx - mn)["xyz".index(axis)]
+    ob.data.transform(Matrix.Diagonal((k, k, k * stretch, 1)) @ Matrix.Translation(Vector((-(mn.x + mx.x) / 2, -(mn.y + mx.y) / 2, -mn.z))))
+    ob.data.update()
+    ob.name = ob.data.name = name
+    return ob
+
+
+def shrink_images(size):
+    for im in bpy.data.images:
+        if im.size[0] > size:
+            im.scale(size, size)
+
+
+def stand(asset, children, tex=2048):
+    """Export the pieces as one asset: a root named after it, the pieces its children (the variants)."""
+    r = bpy.data.objects.new(asset, None)
+    L.link(r)
+    for c in children:
+        c.parent = r
+    shrink_images(tex)
+    export(asset, "World", [r] + children)
+
+
+def variant(ob, name, scale):
+    """Another child showing the same mesh at another size."""
+    v = bpy.data.objects.new(name, ob.data)
+    L.link(v)
+    v.scale = (scale,) * 3
+    return v
+
+
+def build_ruin_arch():
+    L.reset()
+    stand("ruin_arch", [piece("Арка руин.glb", "Arch0", 7.0, faces=12000), piece("Рухнувшая арка.glb", "Arch1", 7.0, faces=12000)])
+
+
+def build_aqueduct():
+    L.reset()
+    stand("aqueduct", [piece("Акведук.glb", "Aqueduct", 20.0, axis="x", rot=90, faces=20000)])
+
+
+def build_tholos():
+    L.reset()
+    stand("tholos", [piece("Ротонда на холме.glb", "Tholos", 10.0, axis="x", faces=24000)])
+
+
+def build_column():
+    L.reset()
+    stand("column", [piece("Колонна.glb", "Column", 3.6, faces=6000)], tex=1024)
+
+
+def build_stele():
+    L.reset()
+    a = piece("стела1.glb", "Stele0", 2.2, faces=4000)
+    b = piece("стела2.glb", "Stele1", 2.0, faces=4000)
+    stand("stele", [a, b, variant(a, "Stele2", 0.65)], tex=1024)
+
+
+def build_castle_wall():
+    L.reset()
+    w = piece("стена2.glb", "CastleWall", 16.0, axis="x", rot=90, faces=16000, stretch=2.3)
+    t = piece("башня.glb", "CastleTower", 26.0, faces=20000)
+    stand("castle_wall", [w, t])
+
+
+def build_castle_gate():
+    L.reset()
+    stand("castle_gate", [piece("врата.glb", "CastleGate", 22.0, axis="x", faces=30000)])
+
+
+def build_bridge():
+    """The deck's top at the origin (the level sets the bridge by its deck), the deck along Y."""
+    L.reset()
+    ob = piece("Мост через ущелье.glb", "Bridge", 34.0, axis="y", rot=90, faces=24000)
+    co = [v.co for v in ob.data.vertices]
+    w = max(c.x for c in co) - min(c.x for c in co)
+    mid = [c.z for c in co if abs(c.x) < 0.15 * w and abs(c.y) < 6]
+    deck = max(mid)
+    ob.data.transform(Matrix.Translation((0, 0, -deck)))
+    print("BRIDGE deck", round(deck, 2), "width", round(w, 2))
+    stand("bridge", [ob])
+
+
+def build_deadtree():
+    L.reset()
+    stand("deadtree", [piece("мертвое дерево.glb", "DeadTree", 6.0, faces=14000)], tex=1024)
+
+
+def build_cypress():
+    """Tripo's cypress is bright and cheerful: its colour darkened and greyed to Limbo's."""
+    import numpy as np
+    L.reset()
+    c = piece("кипарис.glb", "Cypress0", 9.5, faces=6000)
+    shrink_images(1024)
+    for m in c.data.materials:
+        for n in m.node_tree.nodes:
+            if n.type == "TEX_IMAGE" and n.image and n.image.colorspace_settings.name == "sRGB":
+                px = np.array(n.image.pixels[:]).reshape(-1, 4)
+                grey = px[:, :3].mean(1, keepdims=True)
+                px[:, :3] = (px[:, :3] * 0.45 + grey * 0.55) * np.array([0.42, 0.5, 0.45])
+                n.image.pixels.foreach_set(px.astype(np.float32).ravel())
+                n.image.pack()
+    stand("cypress", [c, variant(c, "Cypress1", 0.8), variant(c, "Cypress2", 1.2)], tex=1024)
+
+
+def build_matter(file, asset, size):
+    L.reset()
+    stand(asset, [piece(file, asset.capitalize(), size, axis="x", faces=6000)], tex=1024)
+
+
 BUILD = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian, "poet": build_poet,
-         "gate_statue": build_gate_statue, "castle_far": build_castle_far}
+         "gate_statue": build_gate_statue, "castle_far": build_castle_far,
+         "ruin_arch": build_ruin_arch, "aqueduct": build_aqueduct, "tholos": build_tholos, "column": build_column,
+         "stele": build_stele, "castle_wall": build_castle_wall, "castle_gate": build_castle_gate, "bridge": build_bridge,
+         "deadtree": build_deadtree, "cypress": build_cypress,
+         "rubble": lambda: build_matter("обломки.glb", "rubble", 2.0),
+         "planks": lambda: build_matter("доски.glb", "planks", 2.2),
+         "scrap": lambda: build_matter("металлолом.glb", "scrap", 1.8)}
 
 
 def main():

@@ -44,15 +44,10 @@ def collection(name, parent=None):
     return c
 
 
-def asset(path):
-    """The collection showing an asset ("World/palm", or "World/beach_rocks/Rock2" for one child of a
-    model), imported once from its GLB into the Assets collection."""
-    name = "asset:" + path
-    if name in bpy.data.collections:
-        return bpy.data.collections[name]
+def _fill(c, path):
+    """Import an asset's GLB (or one named child of it, moved to the origin) into collection c."""
     parts = path.split("/")
     glb = os.path.join(MODELS, *parts[:2]) + ".glb"
-    lib = collection("Assets")
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=glb)
     new = [o for o in bpy.data.objects if o not in before]
@@ -65,13 +60,45 @@ def asset(path):
         for o in new:
             if o not in keep:
                 bpy.data.objects.remove(o)
-    c = bpy.data.collections.new(name)
-    lib.children.link(c)
     for o in keep:
         for uc in list(o.users_collection):
             uc.objects.unlink(o)
         c.objects.link(o)
+
+
+def asset(path):
+    """The collection showing an asset ("World/palm", or "World/beach_rocks/Rock2" for one child of a
+    model), imported once from its GLB into the Assets collection."""
+    name = "asset:" + path
+    if name in bpy.data.collections:
+        return bpy.data.collections[name]
+    c = bpy.data.collections.new(name)
+    collection("Assets").children.link(c)
+    _fill(c, path)
     return c
+
+
+def refresh_assets(only=None):
+    """The assets shown in the open .blend imported anew from their GLBs (after a model changed);
+    the layout — the instances — stays as it is. `only`: model paths ("World/cypress") to refresh."""
+    lc = bpy.context.view_layer.layer_collection.children.get("Assets")
+    if lc:
+        lc.exclude = False
+    n = 0
+    for c in [c for c in bpy.data.collections if c.name.startswith("asset:")]:
+        path = c.name[len("asset:"):]
+        if only and "/".join(path.split("/")[:2]) not in only:
+            continue
+        for o in list(c.objects):
+            bpy.data.objects.remove(o)
+        _fill(c, path)
+        n += 1
+    for block in (bpy.data.meshes, bpy.data.materials, bpy.data.images):
+        for d in list(block):
+            if d.users == 0:
+                block.remove(d)
+    exclude_assets()
+    print("REFRESHED", n, "assets")
 
 
 def exclude_assets():

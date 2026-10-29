@@ -380,116 +380,14 @@ def build_wall():
     L.export_tree("wall", r)
 
 
-def build_column():
-    r = root("column")
-    m = ruin_stone("column_stone", base="#8a8c88", dark="#3a3c3a", light="#b0b2ad", moss=0.3)
-    c = L.column("Column", 3.4, 0.38, m, broken=True, seed=5)
-    L.bake(c, size=1024, metal=False)
-    parent(c, r)
-    L.export_tree("column", r)
 
 
-def build_rubble():
-    """Mineral source: a heap of broken masonry."""
-    r = root("rubble")
-    m = ruin_stone("rubble_stone", moss=0.15)
-    parts = []
-    for k in range(14):
-        s = random.uniform(0.18, 0.45)
-        b = L.rock_obj("rb", s, 60 + k, (1.3, 1.0, 0.8), 0.18, m, sub=3, detail=0.03)
-        a, d = random.uniform(0, math.tau), random.uniform(0, 0.8) * (1 - k / 20)
-        place(b, (math.cos(a) * d, math.sin(a) * d, 0.1 + (14 - k) * 0.035), (random.uniform(-0.3, 0.3), random.uniform(-0.3, 0.3), random.uniform(0, 3)))
-        parts.append(b)
-    ob = join("Rubble", parts)
-    L.bake(ob, size=1024, metal=False)
-    parent(ob, r)
-    L.export_tree("rubble", r)
 
 
-def build_planks():
-    """Organic source: broken boards and a split barrel."""
-    r = root("planks")
-    m = L.mat_wood("planks_wood", base="#5e5246", dark="#221c16", light="#857868", rings=10, along="X", rough=0.9)
-    parts = []
-    for k in range(8):
-        bpy.ops.mesh.primitive_cube_add(size=1)
-        b = bpy.context.active_object
-        L_ = random.uniform(1.0, 1.8)
-        b.scale = (L_, 0.2, 0.04)
-        L.mod(b, "BEVEL", width=0.01, segments=1)
-        L.apply_all(b)
-        for v in b.data.vertices:   # splintered ends
-            if abs(v.co.x) > 0.45:
-                v.co.x += noise.noise(Vector((v.co.y * 20, k, 0))) * 0.06
-        place(b, (random.uniform(-0.4, 0.4), random.uniform(-0.4, 0.4), 0.05 + k * 0.05),
-              (random.uniform(-0.15, 0.15), random.uniform(-0.2, 0.2), random.uniform(0, math.pi)))
-        b.data.materials.append(m)
-        parts.append(b)
-    ob = join("Planks", parts)
-    L.bake(ob, size=1024, metal=False)
-    parent(ob, r)
-    L.export_tree("planks", r)
 
 
-def build_scrap():
-    """Metal source: pipes, bent plates, a cart wheel and a can, rusting together."""
-    r = root("scrap")
-    m = L.mat_metal("scrap_iron", base="#5a5856", patina="#7a3a18", patina_amt=0.7, rough=0.5, metal_max=0.85)
-    m2 = L.mat_metal("scrap_tin", base="#8a8a86", patina="#6a3a1c", patina_amt=0.5, rough=0.4, metal_max=0.9)
-    parts = []
-    for k in range(5):
-        p = sweep("pipe", [[((-0.6, 0, 0), 0.05), ((0.0, 0.05 * k, 0.1), 0.05), ((0.6, 0.0, 0.0), 0.05)]], seg=10, sub=2)
-        place(p, (random.uniform(-0.3, 0.3), random.uniform(-0.3, 0.3), 0.06 + k * 0.08), (0, random.uniform(-0.3, 0.3), random.uniform(0, math.pi)))
-        p.data.materials.append(m)
-        parts.append(p)
-    for k in range(4):
-        bpy.ops.mesh.primitive_grid_add(x_subdivisions=6, y_subdivisions=6, size=1)
-        g = bpy.context.active_object
-        g.scale = (random.uniform(0.6, 1.0), random.uniform(0.5, 0.8), 1)
-        L.apply_all(g)
-        L.transform_apply(g)
-        for v in g.data.vertices:
-            v.co.z += 0.12 * math.sin(v.co.x * 3 + k) * math.cos(v.co.y * 2)
-        L.mod(g, "SOLIDIFY", thickness=0.015)
-        L.apply_all(g)
-        place(g, (random.uniform(-0.4, 0.4), random.uniform(-0.4, 0.4), 0.15 + k * 0.1), (random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5), random.uniform(0, 3)))
-        g.data.materials.append(m2)
-        parts.append(g)
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.4, minor_radius=0.035, location=(0.3, 0.2, 0.5), rotation=(1.2, 0.3, 0))
-    wh = bpy.context.active_object
-    wh.data.materials.append(m)
-    parts.append(wh)
-    for k in range(6):
-        a = k / 6 * math.tau
-        s = tube("spoke", [(Vector((0.3, 0.2, 0.5)), 0.015), (Vector((0.3 + math.cos(a) * 0.38, 0.2 + math.sin(a) * 0.38 * math.cos(1.2), 0.5 + math.sin(a) * 0.38 * math.sin(1.2))), 0.015)], seg=6, sub=1)
-        s.data.materials.append(m)
-        parts.append(s)
-    ob = join("Scrap", parts)
-    L.bake(ob, size=1024)
-    parent(ob, r)
-    L.export_tree("scrap", r)
 
 
-def build_deadtree():
-    r = root("deadtree")
-    paths = [[((0, 0, 0), 0.3), ((0.1, 0, 1.2), 0.24), ((-0.1, 0.1, 2.4), 0.18), ((0.2, 0.0, 3.4), 0.12), ((0.5, -0.1, 4.2), 0.05)]]
-    for k in range(6):
-        h = random.uniform(1.6, 3.4)
-        a = random.uniform(0, math.tau)
-        d = Vector((math.cos(a), math.sin(a), 0))
-        b = Vector((0, 0, h))
-        L_ = random.uniform(1.0, 1.8)
-        paths.append([(tuple(b), 0.1), (tuple(b + d * L_ * 0.5 + UP * 0.4), 0.06), (tuple(b + d * L_ + UP * random.uniform(0.2, 0.9)), 0.015)])
-    roots_ = []
-    for k in range(5):
-        a = k / 5 * math.tau
-        d = Vector((math.cos(a), math.sin(a), 0))
-        roots_.append([((0, 0, 0.3), 0.18), (tuple(d * 0.6 + UP * 0.05), 0.1), (tuple(d * 1.1 - UP * 0.1), 0.03)])
-    ob = sweep("DeadTree", paths + roots_, seg=10, sub=4)
-    ob.data.materials.append(L.mat_driftwood("deadtree_wood", base="#5c5852", dark="#1e1c1a", light="#86827a", moss=0.1))
-    L.bake(ob, size=1024, metal=False)
-    parent(ob, r)
-    L.export_tree("deadtree", r)
 
 
 def build_lamp():
@@ -1992,12 +1890,13 @@ def build_hell_throne():
     parent(ob, r)
     L.export_tree("hell_throne", r)
 
+# column, rubble, planks, scrap, deadtree: import_creatures.py (sculpted, Models/lvl1)
 ASSETS = {
     "palm": build_palm, "beach_rocks": build_beach_rocks, "shelter": build_shelter, "driftwood": build_driftwood,
     "seaweed": build_seaweed, "morsel": build_morsel, "gull": build_gull,
     "house0": lambda: build_house(0), "house1": lambda: build_house(1), "tower": build_tower, "wall": build_wall,
-    "column": build_column, "rubble": build_rubble, "planks": build_planks, "scrap": build_scrap,
-    "deadtree": build_deadtree, "lamp": build_lamp, "beacon": build_beacon, "rift": build_rift,
+    
+    "lamp": build_lamp, "beacon": build_beacon, "rift": build_rift,
     "volcano": build_volcano, "spires": build_spires, "burnt_house": build_burnt_house, "burnt_wall": build_burnt_wall,
     "vent": build_vent, "totem": build_totem, "ribs": build_ribs, "burnt_tree": build_burnt_tree,
     "gold_wall": build_gold_wall, "gold_tower": build_gold_tower, "gold_house": build_gold_house, "gold_gate": build_gold_gate,
