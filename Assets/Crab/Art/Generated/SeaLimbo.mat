@@ -30,9 +30,9 @@ Material:
     - _WaveHeight: 0.18
     - _WaveScale: 0.25
     m_Colors:
-    - _Deep: {r: 0.08, g: 0.11, b: 0.12, a: 1}
+    - _Deep: {r: 0.04, g: 0.05, b: 0.06, a: 1}
     - _Foam: {r: 0.95, g: 0.96999997, b: 1, a: 1}
-    - _Shallow: {r: 0.32, g: 0.38, b: 0.38, a: 1}
-    - _Sky: {r: 0.5, g: 0.55, b: 0.56, a: 1}
+    - _Shallow: {r: 0.22, g: 0.25, b: 0.25, a: 1}
+    - _Sky: {r: 0.4, g: 0.43, b: 0.44, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

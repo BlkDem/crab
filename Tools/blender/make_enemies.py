@@ -8,8 +8,6 @@ Rigid parts with origins at the joints, one shared baked texture set per creatur
 keep a plain emissive material (not baked), so the game can pulse them.
 
 Part names (the contract with Crab.Game enemies):
-  shade:    Body > ArmL, ArmR, GlowEyes
-  crawler:  Body > Jaw, GlowEyes, Leg{L,R}{0..2}_0 > _1
   guardian: Body > Heart (glow), Head > GlowVisor, ArmL_0 > ArmL_1 > Lantern > GlowLantern,
             ArmR_0 > ArmR_1 > Blade
 Origin = ground under the creature; forward = Blender -Y (Unity +Z).
@@ -44,14 +42,6 @@ def mat_robe(name, base="#3b4341", dark="#121615"):
     return t.finish(col, rough=0.92, normal=t.bump(t.math("ADD", folds, t.math("MULTIPLY", weave, 0.2)), 0.5, 0.02))
 
 
-def mat_bone(name, base="#cfc3a2", dark="#4a4030", rot="#3e4a36"):
-    t = NT(name)
-    n = t.noise(t.vec(), 7, detail=6, rough=0.6)
-    pores = t.voronoi(t.vec(), 60, out="Distance")
-    col = t.ramp(n, [(0.3, C(dark)), (0.55, C(base)), (0.8, C("#e8dfc6"))])
-    col = t.mix(t.math("MULTIPLY", t.math("SUBTRACT", 1.0, t.ao(0.15)), 0.9), col, C("#14100a"))
-    col = t.mix(t.ramp(t.noise(t.vec(), 3, detail=4), [(0.55, 0.0), (0.7, 0.6)]), col, C(rot))
-    return t.finish(col, rough=0.6, normal=t.bump(t.math("ADD", n, t.math("MULTIPLY", pores, 0.3)), 0.5, 0.01))
 
 
 def ragged_hem(ob, below, amount, seed):
@@ -67,118 +57,6 @@ def ragged_hem(ob, below, amount, seed):
 
 
 # ----------------------------------------------------------------------------- the Shade
-def build_shade():
-    m_robe = mat_robe("shade_robe")
-    m_bone = mat_bone("shade_bone", base="#b9b4a4", dark="#3a3830", rot="#2f3a33")
-    robe = lathe("robe", [(0.48, 0.05), (0.44, 0.3), (0.36, 0.7), (0.3, 1.05), (0.33, 1.28), (0.24, 1.38), (0.12, 1.44), (0.0, 1.46)], steps=40)
-    L.mod(robe, "SUBSURF", levels=1)
-    L.apply_all(robe)
-    ragged_hem(robe, 0.35, 0.28, 1.0)
-    # the hood: a shell open at the front, and the darkness inside it
-    hood = uv_sphere("hood", 1.0, (0, 0, 0), seg=28, rings=18)
-    for v in hood.data.vertices:
-        v.co = Vector((v.co.x * 0.22, v.co.y * 0.24, v.co.z * 0.28)) + Vector((0, 0.02, 1.6))
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, -0.22, 1.57))
-    cut = bpy.context.active_object
-    cut.scale = (0.26, 0.22, 0.34)
-    L.boolean(hood, cut)
-    L.mod(hood, "SOLIDIFY", thickness=0.03, offset=-1)
-    L.apply_all(hood)
-    face = uv_sphere("face", 1.0, (0, 0.04, 1.58), scale=(0.17, 0.17, 0.21), seg=18, rings=12)
-    face.data.materials.append(L.mat_plain("shade_void", "#020303", rough=1.0))
-    for o in (robe, hood):
-        o.data.materials.append(m_robe)
-    body = join("Body", [robe, hood, face])
-    set_origin(body, (0, 0, 0))
-    parts = [body]
-    for side, sx in (("L", 1), ("R", -1)):
-        sh = Vector((sx * 0.3, 0.0, 1.3))
-        el = sh + Vector((sx * 0.08, -0.16, -0.3))
-        wr = el + Vector((sx * 0.0, -0.2, -0.16))
-        sleeve = tube("sleeve", [(sh, 0.085), (el, 0.1), (wr, 0.14)], seg=14, sub=3)
-        sleeve.data.materials.append(m_robe)
-        fingers = []
-        for k, ang in enumerate((-0.4, 0.0, 0.4)):
-            d = Vector((sx * 0.25 * math.sin(ang), -1, -0.6 + 0.1 * k)).normalized()
-            p0 = wr + Vector((sx * 0.03 * (k - 1), -0.02, -0.04))
-            fingers.append(tube("finger", [(p0, 0.016), (p0 + d * 0.09, 0.012), (p0 + d * 0.17 + Vector((0, 0, -0.04)), 0.004)], seg=6, sub=2))
-        for f in fingers:
-            f.data.materials.append(m_bone)
-        arm = join("Arm" + side, [sleeve] + fingers)
-        set_origin(arm, sh)
-        parent(arm, body)
-        parts.append(arm)
-    for o in parts:
-        L.shade_smooth(o, 60)
-    L.bake_group(parts, "shade", size=1024, ao_dist=0.25)
-    m_eye = glow("shade_eyes", "#b8ffd6", 9.0)
-    eyes = [uv_sphere("e", 0.022, (sx * 0.06, -0.12, 1.6), scale=(1.4, 0.6, 0.7), seg=10, rings=8) for sx in (-1, 1)]
-    for e in eyes:
-        e.data.materials.append(m_eye)
-    ge = join("GlowEyes", eyes)
-    parent(ge, body)
-    L.export_tree("shade", body)
-
-
-# ----------------------------------------------------------------------------- the Scavenger
-def build_crawler():
-    m_bone = mat_bone("crawler_bone")
-    # a long ribcage body: ribs as ridges across the back
-    rib = uv_sphere("ribs", 1.0, (0, 0, 0), seg=40, rings=24)
-    for v in rib.data.vertices:
-        x, y, z = v.co
-        r = 1 + 0.12 * max(0.0, math.sin(y * 9.0)) * (1 if z > -0.3 else 0.3)
-        v.co = Vector((x * 0.24 * r, y * 0.46, z * 0.17 * r + 0.42))
-    # vertebrae along the top of the back, from the neck to the tail
-    spine = [uv_sphere("vert", 0.05 - 0.002 * i, (0, -0.32 + i * 0.085, 0.6 - 0.004 * (i - 4) ** 2), seg=10, rings=6) for i in range(9)]
-    tail = tube("tail", [((0, 0.42, 0.5), 0.05), ((0, 0.62, 0.42), 0.035), ((0, 0.8, 0.3), 0.02), ((0, 0.92, 0.32), 0.006)], seg=8, sub=3)
-    skull = uv_sphere("skull", 1.0, (0, 0, 0), seg=28, rings=18)
-    for v in skull.data.vertices:
-        x, y, z = v.co
-        v.co = Vector((x * 0.15 * (1 - 0.25 * max(0.0, -y)), y * 0.19, z * 0.13)) + Vector((0, -0.52, 0.46))
-    for o in [rib, tail, skull] + spine:
-        o.data.materials.append(m_bone)
-    body = join("Body", [rib, tail, skull] + spine)
-    set_origin(body, (0, 0, 0))
-    parts = [body]
-    jaw = tube("jaw", [((-0.1, -0.5, 0.39), 0.025), ((-0.07, -0.64, 0.37), 0.022), ((0.0, -0.7, 0.36), 0.02), ((0.07, -0.64, 0.37), 0.022), ((0.1, -0.5, 0.39), 0.025)], seg=8, sub=3)
-    teeth = [tube("tooth", [(Vector((sx * 0.05, -0.64 - 0.02 * k, 0.385)), 0.012), (Vector((sx * 0.05, -0.645 - 0.02 * k, 0.43)), 0.001)], seg=6, sub=1)
-             for sx in (-1, 1) for k in range(2)]
-    for o in [jaw] + teeth:
-        o.data.materials.append(m_bone)
-    jaw = join("Jaw", [jaw] + teeth)
-    set_origin(jaw, (0, -0.48, 0.41))
-    parent(jaw, body)
-    parts.append(jaw)
-    for side, sx in (("L", 1), ("R", -1)):
-        for i, y in enumerate((-0.25, 0.0, 0.25)):
-            hip = Vector((sx * 0.2, y, 0.42))
-            out = Vector((sx * 1.0, -0.35 * (1 - i), 0)).normalized()
-            knee = hip + out * 0.32 + UP * 0.22
-            foot = knee + out * 0.22 - UP * 0.64
-            up = tube("u", [(hip, 0.035), (hip + (knee - hip) * 0.5, 0.04), (knee, 0.03)], seg=8, sub=2)
-            up = join(f"Leg{side}{i}_0", [up, uv_sphere("k", 0.04, hip, seg=8, rings=6)])
-            lo = tube("l", [(knee, 0.03), (knee + (foot - knee) * 0.6, 0.022), (foot, 0.004)], seg=8, sub=2)
-            lo = join(f"Leg{side}{i}_1", [lo, uv_sphere("k", 0.034, knee, seg=8, rings=6)])
-            for o in (up, lo):
-                o.data.materials.clear()
-                o.data.materials.append(m_bone)
-            set_origin(up, hip)
-            set_origin(lo, knee)
-            parent(up, body)
-            parent(lo, up)
-            parts += [up, lo]
-    for o in parts:
-        L.shade_smooth(o, 55)
-    L.bake_group(parts, "crawler", size=1024, ao_dist=0.12)
-    m_eye = glow("crawler_eyes", "#9dff7a", 8.0)
-    eyes = [uv_sphere("e", 0.024, (sx * 0.065, -0.64, 0.5), seg=10, rings=8) for sx in (-1, 1)]
-    for e in eyes:
-        e.data.materials.append(m_eye)
-    ge = join("GlowEyes", eyes)
-    parent(ge, body)
-    L.export_tree("crawler", body)
-
 
 # ----------------------------------------------------------------------------- the Guardian of Limbo
 def build_guardian():
@@ -1609,7 +1487,8 @@ def build_hell_lord():
     parent(ge, head)
     L.export_tree("hell_lord", body)
 
-ASSETS = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian,
+# shade, crawler: import_creatures.py (sculpted, from Models/lvl1)
+ASSETS = {"guardian": build_guardian,
           "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus,
           "collector": build_collector, "goldguard": build_goldguard, "usurer": build_usurer,
           "dweller": build_dweller, "envious": build_envious, "wraith": build_wraith, "devourer": build_devourer,

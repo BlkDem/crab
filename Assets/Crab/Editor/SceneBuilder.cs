@@ -54,6 +54,23 @@ namespace Crab.EditorTools
             Debug.Log("Crab scenes built");
         }
 
+        /// <summary>Only one scene, after its .blend was exported (Tools/blender/export_level.py).</summary>
+        static void BuildOnly(string name, Action build)
+        {
+            Directory.CreateDirectory(SceneDir);
+            ModelUnpack.All();
+            lib = BuildLibrary();
+            build();
+            AssetDatabase.SaveAssets();
+            Debug.Log(name + " built");
+        }
+
+        [MenuItem("Crab/Build Scene/Prologue")]
+        public static void BuildPrologueOnly() => BuildOnly("Prologue", BuildPrologue);
+
+        [MenuItem("Crab/Build Scene/Limbo")]
+        public static void BuildLimboOnly() => BuildOnly("Limbo", BuildLimbo);
+
         // ------------------------------------------------------------------ project
         static void ConfigureProject()
         {
@@ -173,8 +190,8 @@ namespace Crab.EditorTools
                 m.SetFloat("_Cull", 0);
             });
             l.fire = Mat("Fire", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(1f, 0.55f, 0.15f, 1f)); });
-            l.shade = EnemyPrefab<Shade>("Shade", Glb("Enemies/shade"), 0.35f, 1.8f, e => { e.maxHealth = 40; e.speed = 1.8f; e.attackRange = 1.7f; e.damage = 9; e.windup = 0.7f; e.attackCooldown = 1.5f; });
-            l.crawler = EnemyPrefab<Crawler>("Crawler", Glb("Enemies/crawler"), 0.35f, 0.6f, e => { e.maxHealth = 28; e.speed = 3.6f; e.attackRange = 1.1f; e.damage = 8; e.windup = 0.35f; e.attackCooldown = 1.2f; });
+            l.shade = EnemyPrefab<Shade>("Shade", Glb("Enemies/shade"), 0.4f, 2.4f, e => { e.maxHealth = 40; e.speed = 1.8f; e.attackRange = 1.7f; e.damage = 9; e.windup = 0.7f; e.attackCooldown = 1.5f; });
+            l.crawler = EnemyPrefab<Crawler>("Crawler", Glb("Enemies/crawler"), 0.45f, 0.8f, e => { e.maxHealth = 28; e.speed = 3.6f; e.attackRange = 1.1f; e.damage = 8; e.windup = 0.35f; e.attackCooldown = 1.2f; });
             l.imp = EnemyPrefab<Imp>("Imp", Glb("Enemies/imp"), 0.35f, 1.3f, e => { e.maxHealth = 45; e.speed = 3.4f; e.attackRange = 1.4f; e.damage = 11; e.windup = 0.4f; e.attackCooldown = 1.1f; e.aggro = 16; });
             l.brute = EnemyPrefab<Brute>("Brute", Glb("Enemies/brute"), 0.8f, 3.0f, e => { e.maxHealth = 220; e.speed = 1.7f; e.attackRange = 2.6f; e.damage = 26; e.windup = 1.0f; e.attackCooldown = 2.4f; e.aggro = 14; });
             l.burrower = EnemyPrefab<Burrower>("Burrower", Glb("Enemies/burrower"), 0.5f, 0.9f, e => { e.maxHealth = 70; e.speed = 1.6f; e.attackRange = 1.6f; e.damage = 14; e.windup = 0.5f; e.attackCooldown = 1.6f; e.aggro = 15; });
@@ -551,79 +568,125 @@ namespace Crab.EditorTools
             for (int i = 0; i < 10; i++) Place(weed, props, R(-25, 25), R(-3, 6), R(0, 360), R(0.8f, 1.4f), collider: "none", sink: 0);
         }
 
+        // ------------------------------------------------------------------ levels made in Blender
+        /// <summary>One thing of a level's layout (Tools/blender/level.py): where it stands, what it shows,
+        /// its role in the game and the role's properties.</summary>
+        sealed class Spot
+        {
+            public Newtonsoft.Json.Linq.JObject data;
+            public GameObject go;
+            public string Role => (string)data["role"] ?? "";
+            public string Str(string k, string d = "") => (string)data[k] ?? d;
+            public float Num(string k, float d = 0) => data[k] != null ? (float)data[k] : d;
+            public Vector3 Pos => new Vector3((float)data["pos"][0], (float)data["pos"][1], (float)data["pos"][2]);
+            public float Yaw => (float)data["yaw"];
+        }
+
+        /// <summary>A level from its Blender layout (Levels/&lt;name&gt;.blend → Models/Levels/&lt;Name&gt;): the land
+        /// (the height then is the land's own, by a ray), the props, the sun. Returns the game's places
+        /// to be given their roles.</summary>
+        static List<Spot> FromBlender(string level, Transform root, out Light sun)
+        {
+            var json = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText($"{Models}/Levels/{level}/layout.json"));
+            var land = (GameObject)PrefabUtility.InstantiatePrefab(Glb((string)json["ground"]), root);
+            land.name = "Ground";
+            foreach (var mf in land.GetComponentsInChildren<MeshFilter>())
+            {
+                mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
+                mf.gameObject.isStatic = true;
+                mf.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            }
+            Physics.SyncTransforms();
+            ground = (x, z) => Physics.Raycast(new Vector3(x, 500, z), Vector3.down, out var hit, 1000) ? hit.point.y : 0;
+            var s = json["sun"];
+            sun = null;
+            if (s != null && s.Type != Newtonsoft.Json.Linq.JTokenType.Null)
+            {
+                var d = new Vector3((float)s["dir"][0], (float)s["dir"][1], (float)s["dir"][2]);
+                sun = Sun(new Color((float)s["color"][0], (float)s["color"][1], (float)s["color"][2]), (float)s["intensity"], Quaternion.LookRotation(d).eulerAngles);
+            }
+            var props = Group("Scenery", root);
+            var spots = new List<Spot>();
+            foreach (Newtonsoft.Json.Linq.JObject o in json["objects"])
+            {
+                var spot = new Spot { data = o };
+                var asset = spot.Str("asset");
+                if (asset.Length > 0)
+                {
+                    var parts = asset.Split('/');
+                    var model = Glb(parts[0] + "/" + parts[1]);
+                    var p = spot.Pos;
+                    var col = spot.Str("collider", "mesh");
+                    var parent = spot.Str("group") == "Props" ? props : root;
+                    spot.go = parts.Length > 2
+                        ? Variant(model, parts[2], parent, p.x, p.z, spot.Yaw, spot.Num("scale", 1), col)
+                        : Place(model, parent, p.x, p.z, spot.Yaw, spot.Num("scale", 1), col, sink: spot.Role.Length > 0 ? 0 : 0.05f);
+                    if (spot.Num("snap", 1) < 0.5f) spot.go.transform.position = p;
+                    spot.go.name = spot.Str("name");
+                }
+                if (spot.Role.Length > 0) spots.Add(spot);
+            }
+            return spots;
+        }
+
         // ------------------------------------------------------------------ prologue
+        /// <summary>The beach is made in Blender (Levels/prologue.blend); the game's places get their roles here.</summary>
         static void BuildPrologue()
         {
             var scene = NewScene("Prologue");
-            ground = BeachHeight;
-            var (sand, sea) = BeachMaterials();
+            var (_, sea) = BeachMaterials();
             var root = Group("Beach");
-            Ground("BeachGround", new Rect(-60, -40, 120, 100), sand, 0.25f).transform.SetParent(root, false);
-            Sea(sea, -0.25f, 400).transform.SetParent(root, false);
+            var spots = FromBlender("Prologue", root, out var sun);
             Environment(new Color(0.5f, 0.5f, 0.52f), new Color(0.6f, 0.55f, 0.45f), 1.25f, new Color(0.55f, 0.65f, 0.8f), new Color(0.7f, 0.65f, 0.55f), new Color(0.35f, 0.3f, 0.25f), new Color(0.7f, 0.8f, 0.9f), 0.004f);
-            var sun = Sun(new Color(1f, 0.93f, 0.8f), 1.6f, new Vector3(42, -30, 0));
             Post("Prologue", 0.1f, 12, Color.white, 0.6f, 0.2f);
-            BeachScenery(root, true);
+            Spot One(string role) => spots.First(x => x.Role == role);
 
+            var seaSpot = One("sea");
+            Sea(sea, seaSpot.Pos.y, seaSpot.Num("size", 400)).transform.SetParent(root, false);
+            var s0 = One("start");
             var start = Group("Start", root);
-            start.position = new Vector3(0, H(0, 2), 2);
-            start.rotation = Quaternion.Euler(0, 180, 0);
-            var hero = BuildHero(start.position, 180, out var cam);
-            var setup = Setup("Prologue", start);
+            start.position = new Vector3(s0.Pos.x, H(s0.Pos.x, s0.Pos.z), s0.Pos.z);
+            start.rotation = Quaternion.Euler(0, s0.Yaw, 0);
+            var hero = BuildHero(start.position, s0.Yaw, out var cam);
+            Setup("Prologue", start);
 
             var dir = new GameObject("Prologue").AddComponent<PrologueDirector>();
-            // food
-            foreach (var (x, z) in new[] { (-4f, -1f), (5f, -3f), (2.5f, 6f) })
+            // food: the fish and all the weed
+            foreach (var f in spots.Where(x => x.Role == "food"))
             {
-                var m = Place(lib.morsel, root, x, z, R(0, 360), 1.6f, collider: "none", sink: 0);
-                var e = m.AddComponent<Edible>();
-                e.title = "Рыбёшка";
-                e.heal = 15;
+                var e = f.go.AddComponent<Edible>();
+                e.title = f.Str("title", "Еда");
+                e.heal = f.Num("heal", 10);
                 dir.morsels.Add(e);
             }
-            foreach (var (x, z) in new[] { (-8f, 3f), (9f, 1f) })
-            {
-                var w = Place(Glb("World/seaweed"), root, x, z, R(0, 360), 1.2f, collider: "none", sink: 0);
-                var e = w.AddComponent<Edible>();
-                e.title = "Водоросли";
-                e.heal = 20;
-                dir.morsels.Add(e);   // the crab may eat them, so they count as food too
-            }
-            // all the weed on the beach may be eaten, not just two that look like the rest
-            foreach (var t in root.GetComponentsInChildren<Transform>())
-                if (t.name.StartsWith("seaweed") && !t.GetComponent<Edible>() && !t.GetComponentInParent<Edible>() && t.parent && !t.parent.name.StartsWith("seaweed"))
-                {
-                    var e = t.gameObject.AddComponent<Edible>();
-                    e.title = "Водоросли";
-                    e.heal = 10;
-                    dir.morsels.Add(e);
-                }
-            // the shelter from the gull
-            var shelter = Place(Glb("World/shelter"), root, 8, 4.5f, 20, 1.0f);
+            // the shelter from the gull: a hollow under the slab
+            var shelter = One("shelter").go;
             var zone = new GameObject("ShelterZone").AddComponent<BoxCollider>();
             zone.isTrigger = true;
             zone.transform.SetParent(shelter.transform, false);
             zone.center = new Vector3(0, 0.35f, 0);
             zone.size = new Vector3(2.6f, 0.75f, 2.0f);
             dir.shelter = zone;
-            // the gull
+            // the gull circles over its spot
+            var gs = One("gull");
             var gull = (GameObject)PrefabUtility.InstantiatePrefab(lib.gull);
-            gull.transform.position = new Vector3(0, 10, 5);
-            gull.transform.localScale = Vector3.one * 1.3f;
+            gull.transform.position = new Vector3(gs.Pos.x, H(gs.Pos.x, gs.Pos.z) + gs.Num("height", 10), gs.Pos.z);
+            gull.transform.localScale = Vector3.one * gs.Num("scale", 1.3f);
             var g = gull.AddComponent<Gull>();
-            g.circleCenter = new Vector3(0, H(0, 4), 4);
+            g.circleCenter = new Vector3(gs.Pos.x, H(gs.Pos.x, gs.Pos.z), gs.Pos.z);
             dir.gull = g;
-            // the big wave: a long slab of water rolling up the beach
+            // the big wave: a long slab of water rolling up the beach from its spot
+            var ws = One("wave");
             var waveGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             waveGo.name = "Wave";
             UnityEngine.Object.DestroyImmediate(waveGo.GetComponent<Collider>());
-            waveGo.transform.localScale = new Vector3(90, 0.9f, 4);
-            waveGo.transform.position = new Vector3(0, 0.1f, -16);
+            waveGo.transform.localScale = new Vector3(ws.Num("width", 90), 0.9f, 4);
+            waveGo.transform.position = ws.Pos;
             waveGo.GetComponent<Renderer>().sharedMaterial = sea;
             var wave = waveGo.AddComponent<Wave>();
-            wave.startZ = -16;
-            wave.reachZ = 9;
-            wave.speed = 5.2f;
+            wave.startZ = ws.Pos.z;
+            wave.reachZ = ws.Num("reach_z", 9);
+            wave.speed = ws.Num("speed", 5.2f);
             waveGo.SetActive(false);
             dir.wave = wave;
             // the storm
@@ -632,16 +695,18 @@ namespace Crab.EditorTools
             storm.rain = Rain(storm.transform);
             dir.storm = storm;
             // driftwood: the first matter the crab ever draws in
-            var drift = Place(Glb("World/driftwood"), root, -5, 9, 30, 1.2f, collider: "none", sink: 0);
-            var src = drift.AddComponent<MatterSource>();
-            src.kind = Matter.Organic;
-            src.amount = 8;
-            dir.driftwood = src;
-            Place(Glb("World/driftwood"), root, 6, 11, -60, 1.0f, collider: "none", sink: 0).AddComponent<MatterSource>().kind = Matter.Organic;
+            foreach (var m in spots.Where(x => x.Role == "matter"))
+            {
+                var src = m.go.AddComponent<MatterSource>();
+                src.kind = Matter.Organic;
+                src.amount = (int)m.Num("amount", 5);
+                if (m.Num("first") > 0.5f) dir.driftwood = src;
+            }
             // the rift that opens at the end
-            var rift = RiftAt(root, 0, 19, 180, "prologue_exit");
-            rift.leadsTo = "Limbo";
-            rift.delay = 0.5f;
+            var rs = One("rift");
+            var rift = MakeRift(rs.go, rs.Str("id"));
+            rift.leadsTo = rs.Str("leads_to");
+            rift.delay = rs.Num("delay", 0.5f);
             dir.rift = rift;
             dir.sparkLight = hero.sparkLight;
             Ui<GameUI>();
@@ -674,9 +739,11 @@ namespace Crab.EditorTools
             return ps;
         }
 
-        static Rift RiftAt(Transform parent, float x, float z, float yaw, string id)
+        static Rift RiftAt(Transform parent, float x, float z, float yaw, string id) => MakeRift(Place(Glb("World/rift"), parent, x, z, yaw, 1.1f), id);
+
+        /// <summary>A rift in a standing frame: the membrane, its light.</summary>
+        static Rift MakeRift(GameObject frame, string id)
         {
-            var frame = Place(Glb("World/rift"), parent, x, z, yaw, 1.1f);
             var rift = frame.AddComponent<Rift>();
             rift.id = id;
             rift.reach = 3.2f;
@@ -694,138 +761,84 @@ namespace Crab.EditorTools
         }
 
         // ------------------------------------------------------------------ Limbo
-        static float LimboHeight(float x, float z)
-        {
-            float h = 0;
-            if (z < -26) h -= (-26 - z) * 0.12f;   // down to the grey sea
-            h += (Mathf.PerlinNoise(x * 0.05f + 7, z * 0.05f + 3) - 0.5f) * 1.2f;
-            h += (Mathf.PerlinNoise(x * 0.2f, z * 0.2f) - 0.5f) * 0.15f;
-            // a flatter square for the Guardian
-            float sq = Mathf.Clamp01(1 - (new Vector2(x, z - 72).magnitude - 14) / 6f);
-            return Mathf.Lerp(h, 0.2f, sq);
-        }
-
+        /// <summary>The first circle, made in Blender (Levels/limbo.blend): the grey valley of the souls before
+        /// the Noble Castle. The fog is thick and low, the light cold and dim, the colour almost gone.</summary>
         static void BuildLimbo()
         {
             var scene = NewScene("Limbo");
-            ground = LimboHeight;
-            var (ac, an) = TextureGen.Ash();
-            var ash = Mat("Ash", "Universal Render Pipeline/Lit", m =>
-            {
-                m.SetTexture("_BaseMap", ac);
-                m.SetTexture("_BumpMap", an);
-                m.EnableKeyword("_NORMALMAP");
-                m.SetFloat("_Smoothness", 0.08f);
-            });
             var sea = Mat("SeaLimbo", "Crab/Water", m =>
             {
-                m.SetColor("_Shallow", new Color(0.32f, 0.38f, 0.38f));
-                m.SetColor("_Deep", new Color(0.08f, 0.11f, 0.12f));
-                m.SetColor("_Sky", new Color(0.5f, 0.55f, 0.56f));
+                m.SetColor("_Shallow", new Color(0.22f, 0.25f, 0.25f));
+                m.SetColor("_Deep", new Color(0.04f, 0.05f, 0.06f));
+                m.SetColor("_Sky", new Color(0.4f, 0.43f, 0.44f));
                 m.SetFloat("_WaveHeight", 0.18f);
             });
+            var lake = Mat("LakeLimbo", "Crab/Water", m =>
+            {
+                m.SetColor("_Shallow", new Color(0.08f, 0.09f, 0.09f));
+                m.SetColor("_Deep", new Color(0.01f, 0.012f, 0.015f));
+                m.SetColor("_Sky", new Color(0.5f, 0.53f, 0.55f));
+                m.SetFloat("_WaveHeight", 0.02f);
+            });
             var root = Group("Limbo");
-            Ground("LimboGround", new Rect(-80, -60, 160, 170), ash, 0.25f).transform.SetParent(root, false);
-            Sea(sea, -1.2f, 500).transform.SetParent(root, false);
-            Environment(new Color(0.38f, 0.42f, 0.44f), new Color(0.2f, 0.21f, 0.21f), 0.7f, new Color(0.5f, 0.57f, 0.6f), new Color(0.36f, 0.4f, 0.4f), new Color(0.16f, 0.16f, 0.15f), new Color(0.4f, 0.46f, 0.47f), 0.018f, 0.0f);
-            Sun(new Color(0.8f, 0.88f, 0.9f), 1.1f, new Vector3(50, 30, 0));
-            // a cold, washed-out world; the orange crab is the one warm thing in it
-            Post("Limbo", 0.45f, -22, new Color(0.92f, 1f, 0.97f), 0.9f, 0.3f, 14);
+            var spots = FromBlender("Limbo", root, out var sun);
+            if (sun) { sun.shadowStrength = 1; }
+            Environment(new Color(0.3f, 0.32f, 0.33f), new Color(0.14f, 0.14f, 0.14f), 0.55f, new Color(0.34f, 0.37f, 0.39f), new Color(0.25f, 0.27f, 0.28f),
+                new Color(0.1f, 0.1f, 0.1f), new Color(0.33f, 0.35f, 0.36f), 0.024f, 0.0f);
+            // a world gone grey; the orange crab is the one warm thing in it
+            Post("Limbo", 0.25f, -48, new Color(0.9f, 0.97f, 1f), 0.7f, 0.42f, 20);
+            Mist(root, new Rect(-100, -80, 200, 240), new Color(0.62f, 0.65f, 0.66f, 0.16f), 420);
+            Spot One(string role) => spots.First(x => x.Role == role);
+            IEnumerable<Spot> All(string role) => spots.Where(x => x.Role == role);
 
-            // the town: houses along two streets, a tower, walls, columns, dead trees, lamps
-            var town = Group("Town", root);
-            var houses = new[] { Glb("World/house0"), Glb("World/house1") };
-            var placed = new List<Vector3>();
-            void House(float x, float z, float yaw, int v)
-            {
-                Place(houses[v], town, x, z, yaw, 1, sink: 0.2f);
-                placed.Add(new Vector3(x, 0, z));
-            }
-            for (int i = 0; i < 6; i++)
-            {
-                float z = -12 + i * 11;
-                House(-11 - R(0, 2), z, 90 + R(-6, 6), i % 2);
-                House(11 + R(0, 2), z + 3, -90 + R(-6, 6), (i + 1) % 2);
-                if (i % 2 == 0) House(-22 - R(0, 3), z + 4, R(0, 360), (i + 1) % 2);
-                if (i % 2 == 1) House(23 + R(0, 3), z, R(0, 360), i % 2);
-            }
-            Place(Glb("World/tower"), town, -20, 34, 25, 1, sink: 0.2f);
-            Place(Glb("World/tower"), town, 21, 52, -35, 1.1f, sink: 0.2f);
-            foreach (var (x, z, yaw) in new[] { (-6f, -16f, 10f), (7f, 26f, -80f), (-30f, 8f, 90f), (32f, 30f, 60f), (-5f, 60f, 0f), (6f, 61f, 0f) })
-                Place(Glb("World/wall"), town, x, z, yaw, 1, sink: 0.2f);
-            var lamp = Glb("World/lamp");
-            for (int i = 0; i < 9; i++) Place(lamp, town, (i % 2 == 0 ? -5.5f : 5.5f) + R(-0.3f, 0.3f), -14 + i * 8, i % 2 == 0 ? 90 : -90, 1, collider: "box");
-            var tree = Glb("World/deadtree");
-            for (int i = 0; i < 12; i++)
-            {
-                float x = R(-45, 45), z = R(-20, 80);
-                if (Mathf.Abs(x) < 8 || placed.Any(p => Vector3.Distance(p, new Vector3(x, 0, z)) < 7)) continue;
-                Place(tree, town, x, z, R(0, 360), R(0.8f, 1.3f), collider: "box");
-            }
-            var col = Glb("World/column");
-            for (int i = 0; i < 6; i++) Place(col, town, R(-30, 30), R(-15, 55), R(0, 360), R(0.8f, 1.1f));
-            var rocks = Glb("World/beach_rocks");
-            for (int i = 0; i < 10; i++) Variant(rocks, $"Rock{rnd.Next(4)}", town, R(-50, 50), R(-30, -20), R(0, 360), R(0.6f, 1.6f));
-
-            // the start on the grey shore and the beacons
+            foreach (var w in All("sea").Concat(All("water")))
+                Sea(w.Role == "sea" ? sea : lake, w.Pos.y, w.Num("size", 400)).transform.SetParent(root, false);
+            var s0 = One("start");
             var start = Group("Start", root);
-            start.position = new Vector3(0, H(0, -22), -22);
-            start.rotation = Quaternion.Euler(0, 0, 0);
-            var hero = BuildHero(start.position, 0, out _);
+            start.position = new Vector3(s0.Pos.x, H(s0.Pos.x, s0.Pos.z), s0.Pos.z);
+            start.rotation = Quaternion.Euler(0, s0.Yaw, 0);
+            BuildHero(start.position, s0.Yaw, out _);
             Setup("Limbo", start);
             var dir = new GameObject("Limbo").AddComponent<LimboDirector>();
-            dir.beacons.Add(BeaconAt(root, 3, -19, -30, "shore"));
-            dir.beacons.Add(BeaconAt(root, 0, 12, 180, "town"));
-            dir.beacons.Add(BeaconAt(root, 3, 50, 180, "square"));
-
-            // the first shades
-            foreach (var (x, z) in new[] { (-3f, -7f), (4f, -4f) })
+            foreach (var b in All("beacon")) dir.beacons.Add(MakeBeacon(b.go, b.Str("id")));
+            foreach (var f in All("first_shade"))
             {
                 var s = (GameObject)PrefabUtility.InstantiatePrefab(lib.shade);
-                s.transform.position = new Vector3(x, H(x, z), z);
-                s.transform.rotation = Quaternion.Euler(0, 180, 0);
+                s.transform.SetPositionAndRotation(new Vector3(f.Pos.x, H(f.Pos.x, f.Pos.z), f.Pos.z), Quaternion.Euler(0, f.Yaw, 0));
                 dir.firstShades.Add(s.GetComponent<Enemy>());
             }
-
-            // matter: rubble (mineral; teaches stones), planks (organic), scrap (metal; teaches the crowbar and the knife)
-            void Source(string model, float x, float z, Matter kind, int amount, float regrow, ItemId[] teaches, string thought)
-            {
-                var go = Place(Glb("World/" + model), root, x, z, R(0, 360), 1, collider: "none", sink: 0.05f);
-                var ms = go.AddComponent<MatterSource>();
-                ms.kind = kind;
-                ms.amount = amount;
-                ms.regrow = regrow;
-                ms.teaches = teaches.ToList();
-                ms.firstThought = thought;
-                ms.reach = 2.6f;
-            }
+            // matter: rubble teaches stones, scrap the crowbar and the knife; planks are organic
             const string rubbleT = "Камень. Из него можно сделать… просто камень. И метнуть.";
             const string scrapT = "Металл! Он тяжёлый и послушный. Лом. Нож. Я вижу, как их сложить.";
-            foreach (var (x, z) in new[] { (-4f, -14f), (6f, 4f), (-16f, 20f), (16f, 36f), (-8f, 44f) }) Source("rubble", x, z, Matter.Mineral, 6, 0, new[] { ItemId.Stone }, rubbleT);
-            foreach (var (x, z) in new[] { (5f, -12f), (-7f, 8f), (18f, 14f), (-18f, 40f) }) Source("planks", x, z, Matter.Organic, 6, 0, new ItemId[0], null);
-            foreach (var (x, z) in new[] { (-6f, -2f), (8f, 18f), (-24f, 14f), (26f, 22f), (2f, 36f), (-3f, 54f) }) Source("scrap", x, z, Matter.Metal, 7, 0, new[] { ItemId.Crowbar, ItemId.Knife }, scrapT);
-
-            // the rifts
-            dir.rifts.Add(RiftWithSpawns(root, -30, 16, 70, "west", 0.2f));
-            dir.rifts.Add(RiftWithSpawns(root, 31, 24, -70, "east", 0.5f));
-            dir.rifts.Add(RiftWithSpawns(root, 0, 38, 180, "north", 0.5f));
-
-            // the Guardian's square: a ring of columns and broken walls; matter that comes back for the fight
-            var square = Group("Square", root);
-            square.position = new Vector3(0, H(0, 72), 72);
-            for (int i = 0; i < 10; i++)
+            foreach (var m in All("matter"))
             {
-                float a = i / 10f * Mathf.PI * 2;
-                if (Mathf.Abs(Mathf.Sin(a) + 1) < 0.25f) continue;   // the way in from the south stays open
-                float x = Mathf.Cos(a) * 17, z = 72 + Mathf.Sin(a) * 17;
-                Place(i % 3 == 0 ? Glb("World/wall") : col, square, x, z, -a * Mathf.Rad2Deg + 90, i % 3 == 0 ? 0.7f : 1.2f);
+                var ms = m.go.AddComponent<MatterSource>();
+                var kind = m.Str("kind");
+                ms.kind = kind == "metal" ? Matter.Metal : kind == "mineral" ? Matter.Mineral : Matter.Organic;
+                ms.amount = (int)m.Num("amount", 6);
+                ms.regrow = m.Num("regrow");
+                ms.reach = 2.6f;
+                bool teach = ms.regrow <= 0;
+                ms.teaches = !teach ? new List<ItemId>() : ms.kind == Matter.Mineral ? new List<ItemId> { ItemId.Stone } : ms.kind == Matter.Metal ? new List<ItemId> { ItemId.Crowbar, ItemId.Knife } : new List<ItemId>();
+                ms.firstThought = !teach ? null : ms.kind == Matter.Mineral ? rubbleT : ms.kind == Matter.Metal ? scrapT : null;
             }
-            foreach (var (x, z) in new[] { (-11f, 66f), (11f, 66f), (-12f, 80f), (12f, 80f) }) Source("scrap", x, z, Matter.Metal, 5, 22, new ItemId[0], null);
-            foreach (var (x, z) in new[] { (0f, 60f), (-13f, 73f), (13f, 73f) }) Source("rubble", x, z, Matter.Mineral, 4, 25, new ItemId[0], null);
+            foreach (var r in All("rift"))
+            {
+                var rift = MakeRift(r.go, r.Str("id"));
+                rift.crawlerShare = r.Num("crawlers", 0.3f);
+                rift.budget = (int)r.Num("budget", 8);
+                rift.maxAlive = (int)r.Num("max_alive", 3);
+                rift.spawnEvery = r.Num("every", 6);
+                dir.rifts.Add(rift);
+            }
+            // the Guardian's ground before the gate
+            var ar = One("arena");
+            var square = Group("Square", root);
+            square.position = new Vector3(ar.Pos.x, H(ar.Pos.x, ar.Pos.z), ar.Pos.z);
+            var gs = One("guardian");
             var g = (GameObject)PrefabUtility.InstantiatePrefab(lib.guardian);
             var gRoot = new GameObject("Guardian");
-            gRoot.transform.position = new Vector3(0, H(0, 74), 74);
-            gRoot.transform.rotation = Quaternion.Euler(0, 180, 0);
+            gRoot.transform.SetPositionAndRotation(new Vector3(gs.Pos.x, H(gs.Pos.x, gs.Pos.z), gs.Pos.z), Quaternion.Euler(0, gs.Yaw, 0));
             g.transform.SetParent(gRoot.transform, false);
             var capsule = gRoot.AddComponent<CapsuleCollider>();
             capsule.center = new Vector3(0, 3, 0);
@@ -833,23 +846,96 @@ namespace Crab.EditorTools
             capsule.radius = 0.8f;   // the heart (0.4 m) sticks out in front, so shots at it reach it
             var guardian = gRoot.AddComponent<Guardian>();
             guardian.model = g.transform;
-            guardian.heartLight = AddLight(gRoot.transform, "HeartLight", gRoot.transform.position + new Vector3(0, 3.7f, 1.1f), new Color(0.5f, 1f, 0.7f), 1, 10);
-            AddLight(gRoot.transform, "LanternLight", gRoot.transform.position + new Vector3(-1.6f, 2.6f, 1.2f), new Color(0.75f, 1f, 0.85f), 2, 9);
+            guardian.heartLight = AddLight(gRoot.transform, "HeartLight", gRoot.transform.position + gRoot.transform.rotation * new Vector3(0, 3.7f, 1.1f), new Color(0.5f, 1f, 0.7f), 1, 10);
+            AddLight(gRoot.transform, "LanternLight", gRoot.transform.position + gRoot.transform.rotation * new Vector3(-1.6f, 2.6f, 1.2f), new Color(0.75f, 1f, 0.85f), 2, 9);
             dir.guardian = guardian;
             dir.square = square;
-            var exit = RiftAt(root, 0, 88, 180, "exit");
-            exit.leadsTo = "Wrath";
-            exit.delay = 6;
+            var ex = One("exit");
+            var exit = MakeRift(ex.go, ex.Str("id"));
+            exit.leadsTo = ex.Str("leads_to");
+            exit.delay = ex.Num("delay", 6);
             exit.membrane.sharedMaterial = Mat("RiftFire", "Crab/Rift", m => { m.SetColor("_Color", new Color(1f, 0.45f, 0.15f)); m.SetColor("_Core", new Color(0.08f, 0.01f, 0)); });
             exit.glow.color = new Color(1f, 0.5f, 0.2f);
             dir.exit = exit;
+            // the processions: pale souls walking the paths, not seeing the crab — until it comes close
+            var ghost = GhostMat();
+            foreach (var path in All("procession").GroupBy(p => p.Str("path")))
+            {
+                var pts = path.OrderBy(p => p.Num("order")).Select(p => new Vector3(p.Pos.x, H(p.Pos.x, p.Pos.z), p.Pos.z)).ToArray();
+                int n = (int)path.First().Num("count", 6);
+                var line = Group("Procession" + path.Key, root);
+                for (int i = 0; i < n; i++)
+                {
+                    var soul = (GameObject)PrefabUtility.InstantiatePrefab(Glb("Enemies/shade"), line);
+                    soul.name = "Soul";
+                    foreach (var rr in soul.GetComponentsInChildren<Renderer>())
+                    {
+                        rr.sharedMaterial = ghost;
+                        rr.shadowCastingMode = ShadowCastingMode.Off;
+                    }
+                    soul.transform.localScale = Vector3.one * R(0.95f, 1.15f);
+                    var pg = soul.AddComponent<Pilgrim>();
+                    pg.path = pts;
+                    pg.start = i * 2.2f;
+                    pg.speed = R(0.45f, 0.6f);
+                }
+            }
             Ui<GameUI>();
             SaveScene(scene, "Limbo");
         }
 
-        static Beacon BeaconAt(Transform parent, float x, float z, float yaw, string id)
+        /// <summary>A pale, see-through stuff for the souls of Limbo.</summary>
+        static Material GhostMat() => Mat("Ghost", "Universal Render Pipeline/Unlit", m =>
         {
-            var go = Place(Glb("World/beacon"), parent, x, z, yaw, 1);
+            m.SetFloat("_Surface", 1);
+            m.SetFloat("_Blend", 0);
+            m.SetFloat("_ZWrite", 0);
+            m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.renderQueue = (int)RenderQueue.Transparent;
+            m.SetColor("_BaseColor", new Color(0.66f, 0.7f, 0.72f, 0.14f));
+        });
+
+        /// <summary>Mist lying low over the land: big soft motes drifting slowly.</summary>
+        static void Mist(Transform parent, Rect area, Color color, int count)
+        {
+            var go = new GameObject("Mist");
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(area.center.x, 1.2f, area.center.y);
+            var ps = go.AddComponent<ParticleSystem>();
+            var main = ps.main;
+            main.loop = true;
+            main.prewarm = true;
+            main.startLifetime = 40;
+            main.startSpeed = 0.25f;
+            main.startSize = new ParticleSystem.MinMaxCurve(9, 18);
+            main.startRotation = new ParticleSystem.MinMaxCurve(0, Mathf.PI * 2);
+            main.startColor = color;
+            main.maxParticles = count;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            var em = ps.emission;
+            em.rateOverTime = count / 40f;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(area.width, 1.5f, area.height);
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            var gr = new Gradient();
+            gr.SetKeys(new[] { new GradientColorKey(Color.white, 0), new GradientColorKey(Color.white, 1) }, new[] { new GradientAlphaKey(0, 0), new GradientAlphaKey(1, 0.3f), new GradientAlphaKey(1, 0.7f), new GradientAlphaKey(0, 1) });
+            col.color = gr;
+            var r = go.GetComponent<ParticleSystemRenderer>();
+            r.sharedMaterial = lib.particle;
+            r.renderMode = ParticleSystemRenderMode.Billboard;
+            r.shadowCastingMode = ShadowCastingMode.Off;
+            r.sortingFudge = 10;
+        }
+
+        static Beacon BeaconAt(Transform parent, float x, float z, float yaw, string id) => MakeBeacon(Place(Glb("World/beacon"), parent, x, z, yaw, 1), id);
+
+        /// <summary>A beacon (a checkpoint) in its standing fire-bowl.</summary>
+        static Beacon MakeBeacon(GameObject go, string id)
+        {
             var b = go.AddComponent<Beacon>();
             b.id = id;
             b.glow = AddLight(go.transform, "Fire", go.transform.position + Vector3.up * 1.6f, new Color(0.5f, 1f, 0.7f), 0.4f, 8);

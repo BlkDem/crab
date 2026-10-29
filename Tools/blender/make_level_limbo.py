@@ -1,0 +1,320 @@
+"""
+The first circle, Limbo, laid out once into Levels/limbo.blend (after Dante: the grey valley of
+the virtuous souls before the Noble Castle of seven walls). From then on the .blend is the
+source: edit it by hand and export it with export_level.py. Won't overwrite an existing .blend
+(pass --force to start over).
+
+Run headless:
+  blender -b -P Tools/blender/make_level_limbo.py [-- --force]
+
+South to north (game z), the way the crab goes:
+  1 the grey shore   — the start by a dead sea; crags, a dead tree, a field of steles;
+  2 the ruins (west) — arches and an aqueduct on the hills, the round temple on the top; a rift;
+  3 the valley       — misty, cypress groves, the paths the processions of souls walk;
+  4 the dead lake    — black water, broken arches on its shore; a rift;
+  5 the poet's cliff — a colossal statue looking over the valley, a ramp up to it; a beacon;
+  6 the ravine       — the bridge across it; a rift at its foot;
+  7 the gate         — the Noble Castle's first wall, statues, the Guardian's ground before the
+                       gate, the way out through it; the castle itself far off in the fog.
+The paths are painted lighter into the land's Paint layer.
+"""
+import math
+import os
+import random
+import sys
+import bpy
+import numpy as np
+from mathutils import Vector, noise
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import lib as L  # noqa: E402
+import level as LV  # noqa: E402
+from level import from_unity  # noqa: E402
+
+NAME = "limbo"
+AREA = (-110, -96, 220, 300)   # game x, z, width, depth
+STEP = 0.75
+TILE = 0.2                     # the ground repeats every 5 m
+
+# the places (game x, z)
+START = (0, -74)
+RUINS = (-62, 0)
+TEMPLE = (-66, 8)
+LAKE = (55, 5)
+CLIFF = (84, 54)
+RAMP = ((56, 34), (77, 49))
+RAVINE_Z = 104
+BRIDGE_X = 20
+ARENA = (20, 134)
+GATE = (20, 158)
+PATHS = [
+    [(0, -76), (4, -60), (-4, -42), (-8, -26), (0, -8), (6, 10), (14, 32), (10, 56), (14, 74), (20, 86)],   # the way
+    [(-8, -26), (-26, -18), (-44, -10), (-58, -2), (-66, 6)],                                           # to the ruins
+    [(0, -8), (18, -2), (34, 4)],                                                                        # to the lake
+    [(14, 32), (34, 30), (56, 34), (77, 49)],                                                            # to the poet
+    [(20, 120), (20, 134), (20, 152)],                                                                   # the gate
+]
+
+
+def perlin01(a, b, s=0.37):
+    return 0.5 + 0.5 * noise.noise(Vector((a, b, s)))
+
+
+def smooth(a, b, x):
+    t = min(1.0, max(0.0, (x - a) / (b - a)))
+    return t * t * (3 - 2 * t)
+
+
+def dist(x, z, p):
+    return math.hypot(x - p[0], z - p[1])
+
+
+def seg_dist(x, z, a, b):
+    ax, az = a
+    bx, bz = b
+    dx, dz = bx - ax, bz - az
+    t = max(0.0, min(1.0, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)))
+    return math.hypot(x - ax - t * dx, z - az - t * dz), t
+
+
+def path_dist(x, z):
+    return min(seg_dist(x, z, p[i], p[i + 1])[0] for p in PATHS for i in range(len(p) - 1))
+
+
+def height(x, z):
+    h = (perlin01(x * 0.025 + 7, z * 0.025 + 3) - 0.5) * 2.4
+    h += (perlin01(x * 0.09, z * 0.09) - 0.5) * 0.6 + (perlin01(x * 0.3, z * 0.3) - 0.5) * 0.12
+    # the dead sea in the south
+    if z < -80:
+        h -= (-80 - z) * 0.3
+    # the valley's walls east and west, crags heaped on them
+    rim = max(0.0, abs(x) - 80)
+    h += rim * 0.6 + rim * perlin01(x * 0.05, z * 0.05, 1.3) * 0.8
+    # the rocky foreground (south-west) and the ruins' hills (west)
+    h += 9 * math.exp(-(dist(x, z, (-88, -62)) / 22) ** 2)
+    h += 7.5 * math.exp(-(dist(x, z, RUINS) / 24) ** 2)
+    # the lake's bowl
+    h = h + (-2.6 - h) * smooth(22, 13, dist(x, z, LAKE))
+    # the poet's cliff and the ramp up to it
+    h = max(h, 13 * smooth(15, 8, dist(x, z, CLIFF)))
+    d, t = seg_dist(x, z, *RAMP)
+    h = max(h, h + (1 + 11.5 * t - h) * smooth(6, 3, d))
+    # the gate's ground: level from the ravine to the wall
+    gate = smooth(4, 0, max(abs(x - BRIDGE_X) - 34, z < 116 and 116 - z or 0, z - 162))
+    h = h + (1.0 - h) * gate
+    # beyond the wall the land climbs toward the castle
+    if z > 162:
+        h += (z - 162) * 0.12
+    # the ravine across the valley, rough-bottomed; the bridge's ends level with each other
+    h = h + (-10 + noise.noise(Vector((x * 0.1, z * 0.1, 4.2))) * 1.5 - h) * smooth(10, 6, abs(z - RAVINE_Z))
+    for end in ((BRIDGE_X, RAVINE_Z - 17), (BRIDGE_X, RAVINE_Z + 17)):
+        h = h + (0.8 - h) * smooth(9, 5, dist(x, z, end))
+    # the paths sink a little into the ground
+    h -= 0.12 * smooth(2.5, 0.5, path_dist(x, z))
+    return h
+
+
+def at(x, z, sink=0.05):
+    return from_unity(x, height(x, z) - sink, z)
+
+
+def ash_images(n=1024):
+    """Dead ground: ash-grey dust with dry dark grass and grit, tiling."""
+    rng = np.random.default_rng(11)
+    hgt = sum(LV.periodic_noise(n, c, rng) * w for c, w in ((4, 0.5), (16, 0.3), (64, 0.2), (256, 0.15)))
+    grass = LV.periodic_noise(n, 128, rng) * LV.periodic_noise(n, 32, rng)
+    grass = np.clip((grass - 0.25) * 4, 0, 1)
+    grit = rng.random((n, n)) ** 8
+    tone = (hgt - hgt.mean()) / (hgt.std() + 1e-6)
+    dust = np.array([0.34, 0.33, 0.30])
+    dry = np.array([0.24, 0.24, 0.19])
+    col = dust[None, None, :] * (1 + 0.08 * tone[..., None])
+    col = col * (1 - grass[..., None]) + dry[None, None, :] * grass[..., None]
+    col -= 0.1 * grit[..., None]
+    col = np.clip(col, 0, 1)
+    return LV.image("ash_color", col, "sRGB"), LV.image("ash_normal", LV.normal_map(hgt + grass * 0.4, 5), "Non-Color")
+
+
+def paint(ground):
+    """The land's own paint: the paths lighter and dustier, the rest a little darker."""
+    me = ground.data
+    attr = me.color_attributes.new("Paint", "BYTE_COLOR", "POINT")
+    for v, c in zip(me.vertices, attr.data):
+        x, z = -v.co.x, -v.co.y
+        p = smooth(2.8, 0.6, path_dist(x, z))
+        k = 0.82 + 0.18 * p
+        c.color = (k * (1 + 0.04 * p), k * (1 + 0.03 * p), k, 1)
+
+
+def free(x, z, keep=4.0, places=()):
+    """Clear of the paths and of the given places."""
+    if path_dist(x, z) < keep:
+        return False
+    return all(dist(x, z, p) > r for p, r in places)
+
+
+def scenery(rng):
+    busy = [(START, 10), (RUINS, 12), (TEMPLE, 9), (LAKE, 24), (CLIFF, 12), ((BRIDGE_X, 86), 8), ((BRIDGE_X, 122), 10), (ARENA, 22), (GATE, 14)]
+    # cypress groves in the valley, single ones along the paths
+    groves = [(-20, 8), (30, -18), (-34, 34), (36, 50), (-14, 64), (52, 72), (-48, 60), (-30, -50), (28, -48)]
+    for gx, gz in groves:
+        for _ in range(rng.randint(6, 11)):
+            x, z = gx + rng.gauss(0, 6), gz + rng.gauss(0, 6)
+            if free(x, z, 3, busy):
+                LV.instance(f"World/cypress/Cypress{rng.randrange(3)}", at(x, z, 0.2), -rng.uniform(0, 360), rng.uniform(0.8, 1.25), collider="box", snap=1)
+    for _ in range(40):
+        x, z = rng.uniform(-75, 75), rng.uniform(-60, 90)
+        if free(x, z, 5, busy) and path_dist(x, z) < 12:
+            LV.instance(f"World/cypress/Cypress{rng.randrange(3)}", at(x, z, 0.2), -rng.uniform(0, 360), rng.uniform(0.7, 1.1), collider="box", snap=1)
+    # the field of steles by the shore and along the way
+    for _ in range(34):
+        x, z = rng.uniform(-30, 30), rng.uniform(-70, -34)
+        if free(x, z, 2.5, [(START, 6)]):
+            LV.instance(f"World/stele/Stele{rng.randrange(3)}", at(x, z, 0.1), -rng.uniform(0, 360), rng.uniform(0.8, 1.2), collider="mesh", snap=1)
+    # dead trees, one by the shore with a stone at its foot
+    LV.instance("World/deadtree", at(-12, -70), -40, 1.4, collider="box", snap=1)
+    LV.instance("World/stele/Stele2", at(-10.5, -68.5, 0.1), -70, 1.0, collider="mesh", snap=1)
+    for _ in range(14):
+        x, z = rng.uniform(-80, 80), rng.uniform(-70, 92)
+        if free(x, z, 4, busy):
+            LV.instance("World/deadtree", at(x, z), -rng.uniform(0, 360), rng.uniform(0.8, 1.3), collider="box", snap=1)
+    # crags: the rims, the foreground, round the poet's cliff and down into the ravine
+    for _ in range(60):
+        side = rng.choice((-1, 1))
+        x, z = side * rng.uniform(78, 106), rng.uniform(-90, 190)
+        LV.instance(f"World/crag/Crag{rng.choice((1, 2, 3, 3))}", at(x, z, 0.6), -rng.uniform(0, 360), rng.uniform(0.8, 1.6), collider="mesh", snap=1)
+    for _ in range(18):
+        x, z = rng.uniform(-105, -60), rng.uniform(-90, -40)
+        LV.instance(f"World/crag/Crag{rng.choice((1, 2, 3))}", at(x, z, 0.6), -rng.uniform(0, 360), rng.uniform(0.8, 1.5), collider="mesh", snap=1)
+    for a in range(10):
+        x, z = CLIFF[0] + math.cos(a * 0.63) * 13, CLIFF[1] + math.sin(a * 0.63) * 13
+        if seg_dist(x, z, *RAMP)[0] > 6:
+            LV.instance(f"World/crag/Crag{rng.choice((2, 3))}", at(x, z, 1.5), -rng.uniform(0, 360), rng.uniform(1.0, 1.4), collider="mesh", snap=1)
+    for _ in range(30):
+        x, z = rng.uniform(-105, 105), RAVINE_Z + rng.uniform(-6, 6)
+        if abs(x - BRIDGE_X) > 6:
+            LV.instance(f"World/crag/Crag{rng.choice((0, 1, 2))}", at(x, z, 0.5), -rng.uniform(0, 360), rng.uniform(0.8, 1.4), collider="mesh", snap=1)
+    for _ in range(30):
+        x, z = rng.uniform(-70, 70), rng.uniform(-60, 90)
+        if free(x, z, 3, busy):
+            LV.instance("World/crag/Crag0", at(x, z, 0.3), -rng.uniform(0, 360), rng.uniform(0.6, 1.3), collider="mesh", snap=1)
+    # the ruins on the hills: an aqueduct striding over them, arches, fallen columns, the temple on top
+    along = math.degrees(math.atan2(-6.5, -19.5))   # the run of the arches (Blender's angle of game (19.5, 6.5))
+    for k in range(4):
+        x, z = -86 + k * 19.5, -20 + k * 6.5
+        LV.instance("World/aqueduct", at(x, z, 0.4), along, 1.0, collider="mesh", snap=1)
+    for (x, z, yaw, v) in ((-50, -8, 20, 0), (-56, 12, -30, 1), (-72, -6, 75, 1), (-46, 6, 100, 0), (-60, 20, 10, 1)):
+        LV.instance(f"World/ruin_arch/Arch{v}", at(x, z, 0.2), -yaw, 1.0, collider="mesh", snap=1)
+    LV.instance("World/tholos", at(*TEMPLE, 0.3), -20, 1.0, collider="mesh", snap=1)
+    for _ in range(9):
+        x, z = RUINS[0] + rng.uniform(-18, 18), RUINS[1] + rng.uniform(-14, 18)
+        if free(x, z, 2, [(TEMPLE, 6)]):
+            LV.instance("World/column", at(x, z, 0.1), -rng.uniform(0, 360), rng.uniform(0.8, 1.1), collider="mesh", snap=1)
+    # the dead lake's shore: broken arches standing in the shallows
+    for (x, z, yaw, v) in ((38, 18, 40, 1), (44, -10, -20, 0), (64, 24, 70, 1), (70, -12, 120, 0)):
+        LV.instance(f"World/ruin_arch/Arch{v}", at(x, z, 0.6), -yaw, 1.0, collider="mesh", snap=1)
+    # the poet on the cliff, looking down over the valley (south-west)
+    LV.instance("World/poet", at(CLIFF[0] + 1, CLIFF[1] + 1, 0.2), -(-135), 1.0, into="Game", name="Poet", role="poet", collider="mesh", snap=1)
+    # the bridge over the ravine (its origin is the deck's top: not set down on the ravine's floor)
+    LV.instance("World/bridge", from_unity(BRIDGE_X, 0.8, RAVINE_Z), 0, 1.0, collider="mesh", snap=0)
+    # the castle's first wall across the north, the gate in it, statues before the gate
+    # (the gate is 20 m wide; runs of wall 16 m long out from it both ways, a tower at every other joint;
+    # the buttresses on the castle's side)
+    for side in (-1, 1):
+        for j in range(7):
+            x = GATE[0] + side * (10 + 8 + 16 * j)
+            LV.instance("World/castle_wall/CastleWall", at(x, GATE[1] + 1.5, 0.3), 0, 1.0, collider="mesh", snap=1)
+            if j % 2 == 1:
+                LV.instance("World/castle_wall/CastleTower", at(x + side * 8, GATE[1] + 2, 0.3), 0, 1.0, collider="mesh", snap=1)
+    LV.instance("World/castle_gate", at(*GATE, 0.2), 180, 1.0, collider="mesh", snap=1)
+    for side in (-1, 1):
+        LV.instance("World/gate_statue", from_unity(GATE[0] + side * 4.6, height(*GATE) + 1.6, GATE[1] - 4.5), 180, 1.0, collider="mesh", snap=0)
+    # the ring of broken columns round the Guardian's ground
+    for i in range(12):
+        a = i / 12 * math.tau
+        if abs(math.sin(a) + 1) < 0.3:   # the way in from the south stays open
+            continue
+        x, z = ARENA[0] + math.cos(a) * 19, ARENA[1] + math.sin(a) * 19
+        LV.instance("World/column", at(x, z, 0.1), -rng.uniform(0, 360), rng.uniform(1.0, 1.3), collider="mesh", snap=1)
+    # the castle far off, in the fog
+    LV.instance("World/castle_far", from_unity(30, -25, 430), 180, 1.0, collider="none", snap=0)
+
+
+def game(rng):
+    LV.marker("Start", at(*START, 0), 0, role="start")
+    LV.marker("Sea", from_unity(0, -1.2, -40), 0, role="sea", size=500.0)
+    LV.marker("Lake", from_unity(LAKE[0], -1.4, LAKE[1]), 0, role="water", size=48.0)
+    for (x, z, yaw, bid) in ((3, -70, 0, "shore"), (-40, -14, 60, "ruins"), (4, 24, 0, "valley"), (30, -2, 80, "lake"),
+                             (76, 47, -120, "poet"), (16, 84, 0, "bridge"), (20, 117, 0, "gate")):
+        LV.instance("World/beacon", at(x, z), -yaw, 1.0, into="Game", name=f"Beacon_{bid}", role="beacon", id=bid, collider="mesh", snap=1)
+    for (x, z, yaw, rid, crawl) in ((-50, -16, 70, "west", 0.2), (40, 14, -70, "east", 0.5), (10, 78, 180, "north", 0.5)):
+        LV.instance("World/rift", at(x, z), -yaw, 1.1, into="Game", name=f"Rift_{rid}", role="rift", id=rid, crawlers=crawl,
+                    budget=8, max_alive=3, every=6.0, collider="mesh", snap=1)
+    for (x, z) in ((-3, -60), (5, -56)):
+        LV.marker("Shade", at(x, z, 0), 180, role="first_shade")
+    # matter: rubble teaches stones, planks are organic, scrap teaches the crowbar and the knife
+    sources = [("rubble", "mineral", (-4, -50), (-44, -2), (-60, 14), (12, 40), (-8, 60)),
+               ("planks", "organic", (6, -46), (-20, -20), (24, 12), (-12, 46)),
+               ("scrap", "metal", (-6, -36), (30, 24), (-30, 6), (48, 30), (2, 52), (8, 70))]
+    for model, kind, *spots in sources:
+        for (x, z) in spots:
+            LV.instance(f"World/{model}", at(x, z, 0.05), -rng.uniform(0, 360), 1.0, into="Game", name=model.capitalize(),
+                        role="matter", kind=kind, amount=7 if model == "scrap" else 6, collider="none", snap=1)
+    # the Guardian's ground: matter that comes back for the fight, the Guardian, the way out in the gate
+    for (x, z, model, kind) in ((9, 128, "scrap", "metal"), (31, 128, "scrap", "metal"), (8, 142, "scrap", "metal"), (32, 142, "scrap", "metal"),
+                                (20, 122, "rubble", "mineral"), (7, 135, "rubble", "mineral"), (33, 135, "rubble", "mineral")):
+        LV.instance(f"World/{model}", at(x, z, 0.05), -rng.uniform(0, 360), 1.0, into="Game", name=model.capitalize(),
+                    role="matter", kind=kind, amount=5 if model == "scrap" else 4, regrow=22.0 if model == "scrap" else 25.0, collider="none", snap=1)
+    LV.marker("Arena", at(*ARENA, 0), 0, role="arena")
+    LV.marker("Guardian", at(ARENA[0], ARENA[1] + 3, 0), 180, role="guardian")
+    LV.instance("World/rift", at(GATE[0], GATE[1] + 1), 180, 1.1, into="Game", name="Exit", role="exit", id="exit", leads_to="Wrath", delay=6.0,
+                collider="mesh", snap=1)
+    # the processions: pale souls walking the paths, slowly, forever
+    for pid, pts in (("A", PATHS[0][1:8]), ("B", PATHS[1]), ("C", PATHS[3])):
+        for k, (x, z) in enumerate(pts):
+            LV.marker(f"Procession_{pid}{k}", at(x, z, 0), 0, role="procession", path=pid, order=k, count=6)
+
+
+def sun():
+    # a low, cold, overcast light from the south-east: long shadows across the valley
+    ld = bpy.data.lights.new("Sun", "SUN")
+    ld.color = (0.78, 0.83, 0.88)
+    ld.energy = 0.75 * LV.SUN
+    ld.angle = math.radians(6)
+    ob = bpy.data.objects.new("Sun", ld)
+    u = Vector((-0.55, -0.42, 0.72)).normalized()   # where the light runs, in game axes
+    ob.rotation_euler = Vector((-u.x, -u.z, u.y)).to_track_quat("-Z", "Y").to_euler()
+    ob.location = (0, 0, 60)
+    bpy.context.scene.collection.objects.link(ob)
+
+
+def main():
+    force = "--force" in sys.argv
+    os.makedirs(LV.BLENDS, exist_ok=True)
+    path = os.path.join(LV.BLENDS, NAME + ".blend")
+    if os.path.exists(path) and not force:
+        print("EXISTS", path, "— the .blend is the source now; pass --force to lay it out anew")
+        return
+    L.reset()
+    sc = bpy.context.scene
+    sc.render.engine = "CYCLES"
+    w = bpy.data.worlds.new("Sky")
+    w.use_nodes = True
+    w.node_tree.nodes["Background"].inputs["Color"].default_value = (0.32, 0.34, 0.35, 1)
+    w.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.7
+    sc.world = w
+    rng = random.Random(NAME)
+    col, nrm = ash_images()
+    ground = LV.ground_mesh(AREA, STEP, height, TILE, LV.tiled_material("Ash", col, nrm, 0.95))
+    paint(ground)
+    scenery(rng)
+    game(rng)
+    sun()
+    LV.exclude_assets()
+    LV.embed_panel()
+    bpy.ops.wm.save_as_mainfile(filepath=path, compress=True)
+    print("WROTE", path)
+
+
+if __name__ == "__main__":
+    main()

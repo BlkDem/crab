@@ -14,32 +14,16 @@ namespace Crab.Game
 
     public sealed class CrabRig : MonoBehaviour
     {
-        /// <summary>A moving part: its pose at rest, and the rest turn relative to the body.</summary>
-        sealed class Joint
-        {
-            public Transform t;
-            public Quaternion rest, frame, turn = Quaternion.identity;
-
-            /// <summary>Turn the joint by q (in the body's axes, about the joint).</summary>
-            public void Set(Quaternion q)
-            {
-                turn = q;
-                t.localRotation = rest * (Quaternion.Inverse(frame) * q * frame);
-            }
-
-            public void Toward(Quaternion q, float k) => Set(Quaternion.Slerp(turn, q, k));
-        }
-
         sealed class Leg
         {
-            public Joint hip, knee, ankle;
+            public BoneTurn hip, knee, ankle;
             public Vector3 outDir, liftAxis, tangent;
             public float phaseOffset;
         }
 
         sealed class Claw
         {
-            public Joint merus, carpus, finger;
+            public BoneTurn merus, carpus, finger;
             public Vector3 hinge;   // the movable finger opens about this (body axes)
             public float side;   // -1 left, +1 right
         }
@@ -60,7 +44,7 @@ namespace Crab.Game
 
         readonly List<Leg> legs = new List<Leg>();
         readonly Claw[] claws = new Claw[2];
-        Joint eyeL, eyeR;
+        BoneTurn eyeL, eyeR;
         float phase, bob, idleT;
         Quaternion tilt = Quaternion.identity, bodyRestRot;
         Vector3 bodyRest;
@@ -123,12 +107,7 @@ namespace Crab.Game
             if (gripLeft) gripLeft.rotation = body.rotation;
         }
 
-        Joint JointOf(Transform t) => t ? new Joint
-        {
-            t = t,
-            rest = t.localRotation,
-            frame = Quaternion.Inverse(body.rotation) * t.rotation,
-        } : null;
+        BoneTurn JointOf(Transform t) => BoneTurn.Of(t, body);
 
         /// <summary>Put another model on the rig (the crab's new form): the old one goes.</summary>
         public Transform Swap(GameObject prefab)

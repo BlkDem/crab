@@ -1,0 +1,5438 @@
+{
+ "ground": "Levels/Limbo/ground",
+ "sun": {
+  "dir": [
+   -0.5507,
+   -0.4206,
+   0.721
+  ],
+  "color": [
+   0.78,
+   0.83,
+   0.88
+  ],
+  "intensity": 0.75
+ },
+ "objects": [
+  {
+   "name": "Cypress2",
+   "pos": [
+    -18.307,
+    0.0007,
+    9.1085
+   ],
+   "yaw": -54.15,
+   "scale": 1.0107,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0",
+   "pos": [
+    -11.7821,
+    0.05,
+    9.0778
+   ],
+   "yaw": -20.65,
+   "scale": 1.247,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.002",
+   "pos": [
+    -21.3388,
+    0.2972,
+    20.0624
+   ],
+   "yaw": 126.65,
+   "scale": 0.9334,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.003",
+   "pos": [
+    -17.6794,
+    0.0367,
+    4.6152
+   ],
+   "yaw": -164.72,
+   "scale": 0.9566,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.002",
+   "pos": [
+    -5.5726,
+    0.3907,
+    16.1585
+   ],
+   "yaw": 19.18,
+   "scale": 0.9133,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.003",
+   "pos": [
+    -18.4039,
+    0.0663,
+    4.2024
+   ],
+   "yaw": 145.57,
+   "scale": 0.8851,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.004",
+   "pos": [
+    22.5728,
+    -0.2,
+    -8.1449
+   ],
+   "yaw": -147.17,
+   "scale": 0.9829,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1",
+   "pos": [
+    20.8353,
+    0.1432,
+    -24.5919
+   ],
+   "yaw": -166.65,
+   "scale": 0.9913,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.005",
+   "pos": [
+    24.5297,
+    -0.2,
+    -6.5276
+   ],
+   "yaw": -71.5,
+   "scale": 1.2201,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.006",
+   "pos": [
+    23.8125,
+    -0.0498,
+    -21.961
+   ],
+   "yaw": 58.83,
+   "scale": 1.0136,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.002",
+   "pos": [
+    24.1581,
+    -0.2,
+    -18.429
+   ],
+   "yaw": -62.0,
+   "scale": 1.2301,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.004",
+   "pos": [
+    26.9792,
+    -0.0506,
+    -22.7539
+   ],
+   "yaw": -89.18,
+   "scale": 1.1742,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.007",
+   "pos": [
+    25.5789,
+    -0.2,
+    -15.8093
+   ],
+   "yaw": 57.47,
+   "scale": 0.9304,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.005",
+   "pos": [
+    32.7789,
+    -0.1323,
+    -24.2676
+   ],
+   "yaw": -27.41,
+   "scale": 0.9015,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.003",
+   "pos": [
+    -27.166,
+    0.089,
+    29.1382
+   ],
+   "yaw": -175.66,
+   "scale": 0.9922,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.004",
+   "pos": [
+    -31.9275,
+    0.1299,
+    29.9393
+   ],
+   "yaw": 159.8,
+   "scale": 1.0021,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.005",
+   "pos": [
+    -23.6587,
+    0.0953,
+    43.7549
+   ],
+   "yaw": 13.99,
+   "scale": 1.0407,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.006",
+   "pos": [
+    -21.6721,
+    0.2709,
+    23.3665
+   ],
+   "yaw": -113.0,
+   "scale": 1.2226,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.007",
+   "pos": [
+    -19.3825,
+    0.1084,
+    43.0756
+   ],
+   "yaw": 72.43,
+   "scale": 0.9627,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.008",
+   "pos": [
+    -41.7411,
+    0.3776,
+    32.8744
+   ],
+   "yaw": 18.18,
+   "scale": 1.2268,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.009",
+   "pos": [
+    -31.0721,
+    0.1812,
+    29.0013
+   ],
+   "yaw": 178.29,
+   "scale": 1.1625,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.010",
+   "pos": [
+    -39.5573,
+    -0.1323,
+    43.6185
+   ],
+   "yaw": 113.26,
+   "scale": 0.8876,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.008",
+   "pos": [
+    -40.7309,
+    0.0556,
+    38.5115
+   ],
+   "yaw": -36.99,
+   "scale": 1.2472,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.011",
+   "pos": [
+    -26.4907,
+    0.055,
+    29.9141
+   ],
+   "yaw": -160.76,
+   "scale": 1.0122,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.012",
+   "pos": [
+    -42.4892,
+    0.6766,
+    29.9028
+   ],
+   "yaw": 2.01,
+   "scale": 1.0788,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.009",
+   "pos": [
+    44.1029,
+    -0.2,
+    47.5802
+   ],
+   "yaw": 25.72,
+   "scale": 1.1202,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.010",
+   "pos": [
+    30.3406,
+    -0.2,
+    50.8568
+   ],
+   "yaw": -44.05,
+   "scale": 0.808,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.006",
+   "pos": [
+    34.889,
+    0.0249,
+    62.1454
+   ],
+   "yaw": -133.53,
+   "scale": 1.0552,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.011",
+   "pos": [
+    50.8574,
+    -0.0888,
+    62.4192
+   ],
+   "yaw": 61.82,
+   "scale": 1.1521,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.013",
+   "pos": [
+    38.5227,
+    -0.2,
+    45.148
+   ],
+   "yaw": -8.68,
+   "scale": 1.0788,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.014",
+   "pos": [
+    37.1948,
+    -0.2,
+    44.1195
+   ],
+   "yaw": -88.7,
+   "scale": 0.9658,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.012",
+   "pos": [
+    36.4169,
+    -0.2,
+    41.6416
+   ],
+   "yaw": -134.91,
+   "scale": 0.8099,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.013",
+   "pos": [
+    40.1556,
+    -0.0055,
+    60.286
+   ],
+   "yaw": -58.37,
+   "scale": 0.9962,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.015",
+   "pos": [
+    45.4432,
+    -0.2,
+    46.3144
+   ],
+   "yaw": 67.48,
+   "scale": 1.051,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.016",
+   "pos": [
+    34.2422,
+    -0.2,
+    48.8433
+   ],
+   "yaw": 131.23,
+   "scale": 1.2034,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.007",
+   "pos": [
+    42.094,
+    -0.2,
+    46.1182
+   ],
+   "yaw": 66.75,
+   "scale": 0.9396,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.017",
+   "pos": [
+    -18.4479,
+    -0.1437,
+    63.573
+   ],
+   "yaw": 91.25,
+   "scale": 1.2155,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.018",
+   "pos": [
+    -17.6847,
+    -0.0951,
+    66.1946
+   ],
+   "yaw": -73.4,
+   "scale": 0.9269,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.008",
+   "pos": [
+    -13.6409,
+    -0.1352,
+    53.9178
+   ],
+   "yaw": 81.74,
+   "scale": 1.2339,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.009",
+   "pos": [
+    -15.7157,
+    -0.1768,
+    63.0223
+   ],
+   "yaw": 89.44,
+   "scale": 1.0634,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.019",
+   "pos": [
+    -21.4528,
+    -0.2,
+    67.9923
+   ],
+   "yaw": 22.4,
+   "scale": 0.9116,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.010",
+   "pos": [
+    -21.8733,
+    -0.2,
+    64.1887
+   ],
+   "yaw": -111.18,
+   "scale": 1.0499,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.014",
+   "pos": [
+    -24.557,
+    -0.2,
+    61.4624
+   ],
+   "yaw": 68.89,
+   "scale": 1.0275,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.011",
+   "pos": [
+    58.0584,
+    -0.2,
+    56.7084
+   ],
+   "yaw": 83.61,
+   "scale": 1.1755,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.012",
+   "pos": [
+    51.0656,
+    -0.0689,
+    75.4841
+   ],
+   "yaw": 77.22,
+   "scale": 1.1429,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.020",
+   "pos": [
+    49.5127,
+    0.0106,
+    60.604
+   ],
+   "yaw": -125.86,
+   "scale": 0.9204,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.021",
+   "pos": [
+    50.9196,
+    -0.1532,
+    70.6358
+   ],
+   "yaw": 178.2,
+   "scale": 1.0225,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.013",
+   "pos": [
+    52.8235,
+    -0.0809,
+    60.7605
+   ],
+   "yaw": 39.73,
+   "scale": 0.9098,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.015",
+   "pos": [
+    53.5709,
+    -0.162,
+    69.1403
+   ],
+   "yaw": 140.86,
+   "scale": 0.9728,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.016",
+   "pos": [
+    -50.6953,
+    -0.0909,
+    54.2155
+   ],
+   "yaw": -107.42,
+   "scale": 1.2276,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.022",
+   "pos": [
+    -49.1221,
+    -0.1222,
+    55.8773
+   ],
+   "yaw": -94.73,
+   "scale": 1.1325,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.014",
+   "pos": [
+    -51.292,
+    -0.2,
+    61.1889
+   ],
+   "yaw": 127.84,
+   "scale": 0.9237,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.023",
+   "pos": [
+    -49.9858,
+    -0.2,
+    69.822
+   ],
+   "yaw": 122.86,
+   "scale": 0.9712,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.017",
+   "pos": [
+    -47.3555,
+    -0.2,
+    63.6726
+   ],
+   "yaw": -104.06,
+   "scale": 0.9015,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.024",
+   "pos": [
+    -42.2686,
+    -0.2,
+    66.1062
+   ],
+   "yaw": -164.84,
+   "scale": 1.2284,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.015",
+   "pos": [
+    -50.7097,
+    -0.2,
+    59.1706
+   ],
+   "yaw": 31.77,
+   "scale": 0.8335,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.016",
+   "pos": [
+    -47.4539,
+    0.0145,
+    53.8601
+   ],
+   "yaw": -95.84,
+   "scale": 1.0087,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.017",
+   "pos": [
+    -58.4105,
+    0.1096,
+    45.4731
+   ],
+   "yaw": 45.41,
+   "scale": 1.209,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.018",
+   "pos": [
+    -21.9632,
+    -0.1106,
+    -51.7402
+   ],
+   "yaw": -59.38,
+   "scale": 1.0111,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.025",
+   "pos": [
+    -28.1302,
+    -0.2,
+    -45.7203
+   ],
+   "yaw": -136.93,
+   "scale": 0.8971,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.018",
+   "pos": [
+    -30.3024,
+    -0.2,
+    -49.2527
+   ],
+   "yaw": 160.62,
+   "scale": 1.1614,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.019",
+   "pos": [
+    -30.492,
+    -0.2,
+    -48.0914
+   ],
+   "yaw": 171.62,
+   "scale": 1.202,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.020",
+   "pos": [
+    -31.031,
+    -0.2,
+    -53.0691
+   ],
+   "yaw": -71.01,
+   "scale": 1.0438,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.019",
+   "pos": [
+    -23.6274,
+    -0.0889,
+    -50.234
+   ],
+   "yaw": -105.74,
+   "scale": 1.1798,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.021",
+   "pos": [
+    -28.973,
+    -0.2,
+    -58.5374
+   ],
+   "yaw": -113.51,
+   "scale": 1.118,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.020",
+   "pos": [
+    -16.9937,
+    -0.0036,
+    -51.2487
+   ],
+   "yaw": 89.76,
+   "scale": 1.225,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.021",
+   "pos": [
+    -21.8856,
+    0.0822,
+    -39.1636
+   ],
+   "yaw": -93.61,
+   "scale": 0.8982,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.026",
+   "pos": [
+    -36.2239,
+    -0.2,
+    -45.7548
+   ],
+   "yaw": 80.17,
+   "scale": 1.1184,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.022",
+   "pos": [
+    27.1,
+    0.7074,
+    -47.8814
+   ],
+   "yaw": 34.02,
+   "scale": 1.0486,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.027",
+   "pos": [
+    23.6189,
+    0.7876,
+    -43.4645
+   ],
+   "yaw": -38.42,
+   "scale": 0.9141,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.022",
+   "pos": [
+    21.8225,
+    0.7515,
+    -43.2961
+   ],
+   "yaw": -78.33,
+   "scale": 0.9828,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.023",
+   "pos": [
+    23.8054,
+    0.7613,
+    -45.6471
+   ],
+   "yaw": 4.05,
+   "scale": 0.8516,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.024",
+   "pos": [
+    41.1703,
+    0.4945,
+    -43.8445
+   ],
+   "yaw": -42.33,
+   "scale": 1.1821,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.025",
+   "pos": [
+    28.0578,
+    0.3277,
+    -55.7267
+   ],
+   "yaw": -128.07,
+   "scale": 0.9974,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.023",
+   "pos": [
+    25.2308,
+    0.4549,
+    -52.4298
+   ],
+   "yaw": 70.04,
+   "scale": 1.0441,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.024",
+   "pos": [
+    35.3104,
+    0.5106,
+    -50.3315
+   ],
+   "yaw": -99.2,
+   "scale": 1.1978,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.025",
+   "pos": [
+    39.0475,
+    0.5209,
+    -52.713
+   ],
+   "yaw": 5.68,
+   "scale": 1.0174,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.028",
+   "pos": [
+    31.2763,
+    0.6219,
+    -46.7179
+   ],
+   "yaw": 96.05,
+   "scale": 1.1211,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.029",
+   "pos": [
+    26.026,
+    0.7482,
+    -38.3985
+   ],
+   "yaw": 83.09,
+   "scale": 1.0785,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress0.030",
+   "pos": [
+    3.2598,
+    -0.1083,
+    55.8251
+   ],
+   "yaw": 160.19,
+   "scale": 0.975,
+   "asset": "World/cypress/Cypress0",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.026",
+   "pos": [
+    -50.0268,
+    5.2533,
+    6.3337
+   ],
+   "yaw": -96.72,
+   "scale": 0.9244,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.026",
+   "pos": [
+    19.4428,
+    -0.1672,
+    61.784
+   ],
+   "yaw": -9.57,
+   "scale": 1.0493,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.027",
+   "pos": [
+    63.7264,
+    -0.1099,
+    48.3741
+   ],
+   "yaw": 152.83,
+   "scale": 1.0032,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.028",
+   "pos": [
+    68.1788,
+    0.3074,
+    35.8649
+   ],
+   "yaw": -41.3,
+   "scale": 0.798,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.029",
+   "pos": [
+    9.2443,
+    -0.2,
+    0.8085
+   ],
+   "yaw": 52.99,
+   "scale": 1.0119,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.030",
+   "pos": [
+    30.7182,
+    -0.2,
+    -9.1441
+   ],
+   "yaw": -60.72,
+   "scale": 0.9213,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress1.027",
+   "pos": [
+    14.6454,
+    -0.2,
+    -8.9423
+   ],
+   "yaw": 50.0,
+   "scale": 1.0401,
+   "asset": "World/cypress/Cypress1",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Cypress2.031",
+   "pos": [
+    -27.5107,
+    0.0541,
+    -24.2207
+   ],
+   "yaw": -176.08,
+   "scale": 0.8335,
+   "asset": "World/cypress/Cypress2",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0",
+   "pos": [
+    -19.001,
+    0.1863,
+    -40.3347
+   ],
+   "yaw": 31.67,
+   "scale": 1.1152,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.002",
+   "pos": [
+    -14.436,
+    -0.1,
+    -63.2199
+   ],
+   "yaw": 29.57,
+   "scale": 1.1061,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.003",
+   "pos": [
+    -8.3772,
+    0.1212,
+    -48.9416
+   ],
+   "yaw": 149.69,
+   "scale": 1.0024,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele1",
+   "pos": [
+    9.061,
+    0.7815,
+    -34.1732
+   ],
+   "yaw": 5.92,
+   "scale": 0.9801,
+   "asset": "World/stele/Stele1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.004",
+   "pos": [
+    29.2715,
+    0.9097,
+    -42.8351
+   ],
+   "yaw": 75.15,
+   "scale": 0.8607,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele1.002",
+   "pos": [
+    29.7934,
+    0.8094,
+    -39.3012
+   ],
+   "yaw": -38.56,
+   "scale": 1.1829,
+   "asset": "World/stele/Stele1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.005",
+   "pos": [
+    -10.7186,
+    0.1339,
+    -43.1599
+   ],
+   "yaw": 83.52,
+   "scale": 1.0887,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.006",
+   "pos": [
+    -7.8271,
+    -0.1,
+    -59.3424
+   ],
+   "yaw": -106.43,
+   "scale": 0.9324,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.007",
+   "pos": [
+    23.2983,
+    -0.1,
+    -69.8322
+   ],
+   "yaw": -11.75,
+   "scale": 1.1801,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele1.003",
+   "pos": [
+    -28.8901,
+    -0.1,
+    -56.9363
+   ],
+   "yaw": -10.39,
+   "scale": 1.1498,
+   "asset": "World/stele/Stele1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.008",
+   "pos": [
+    5.4389,
+    0.4808,
+    -41.2864
+   ],
+   "yaw": -17.93,
+   "scale": 0.8908,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele1.004",
+   "pos": [
+    -12.2236,
+    -0.0239,
+    -53.8023
+   ],
+   "yaw": 174.66,
+   "scale": 0.8981,
+   "asset": "World/stele/Stele1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2",
+   "pos": [
+    -5.4663,
+    -0.1,
+    -64.117
+   ],
+   "yaw": -21.73,
+   "scale": 0.8589,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.009",
+   "pos": [
+    2.9396,
+    0.5286,
+    -40.1059
+   ],
+   "yaw": 154.57,
+   "scale": 0.9156,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele1.005",
+   "pos": [
+    9.7932,
+    0.2525,
+    -53.6706
+   ],
+   "yaw": 98.69,
+   "scale": 1.1016,
+   "asset": "World/stele/Stele1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.010",
+   "pos": [
+    7.4597,
+    -0.1,
+    -65.3854
+   ],
+   "yaw": -28.45,
+   "scale": 0.9903,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2.002",
+   "pos": [
+    0.807,
+    0.4377,
+    -41.3367
+   ],
+   "yaw": -102.27,
+   "scale": 0.8664,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.011",
+   "pos": [
+    12.8076,
+    -0.1,
+    -63.8364
+   ],
+   "yaw": -14.66,
+   "scale": 0.8353,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele0.012",
+   "pos": [
+    25.7862,
+    0.8456,
+    -38.2115
+   ],
+   "yaw": -169.69,
+   "scale": 1.0085,
+   "asset": "World/stele/Stele0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2.003",
+   "pos": [
+    -4.5955,
+    -0.1,
+    -69.4376
+   ],
+   "yaw": 172.99,
+   "scale": 0.8221,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2.004",
+   "pos": [
+    16.4481,
+    0.5882,
+    -48.2497
+   ],
+   "yaw": 127.68,
+   "scale": 0.9365,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2.005",
+   "pos": [
+    -14.9375,
+    -0.1,
+    -61.9153
+   ],
+   "yaw": 177.93,
+   "scale": 0.8959,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2.006",
+   "pos": [
+    24.1082,
+    0.8972,
+    -43.8294
+   ],
+   "yaw": 43.59,
+   "scale": 1.0791,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2.007",
+   "pos": [
+    -3.367,
+    -0.1,
+    -54.6872
+   ],
+   "yaw": -103.76,
+   "scale": 0.8827,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele1.006",
+   "pos": [
+    25.7404,
+    0.2784,
+    -60.8092
+   ],
+   "yaw": -40.71,
+   "scale": 1.1413,
+   "asset": "World/stele/Stele1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2.008",
+   "pos": [
+    11.5861,
+    0.7577,
+    -36.9193
+   ],
+   "yaw": 65.58,
+   "scale": 0.9014,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele1.007",
+   "pos": [
+    -27.4665,
+    -0.1,
+    -58.2437
+   ],
+   "yaw": -59.47,
+   "scale": 1.1978,
+   "asset": "World/stele/Stele1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2.009",
+   "pos": [
+    -19.194,
+    -0.1,
+    -54.9731
+   ],
+   "yaw": -53.27,
+   "scale": 1.0613,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele1.008",
+   "pos": [
+    -29.0654,
+    -0.1,
+    -42.738
+   ],
+   "yaw": -32.3,
+   "scale": 1.0811,
+   "asset": "World/stele/Stele1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "deadtree",
+   "pos": [
+    -12.0,
+    -0.05,
+    -70.0
+   ],
+   "yaw": 40.0,
+   "scale": 1.4,
+   "asset": "World/deadtree",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Stele2.010",
+   "pos": [
+    -10.5,
+    -0.1,
+    -68.5
+   ],
+   "yaw": 70.0,
+   "scale": 1.0,
+   "asset": "World/stele/Stele2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "deadtree.002",
+   "pos": [
+    35.9101,
+    -0.05,
+    -9.8732
+   ],
+   "yaw": 100.97,
+   "scale": 0.8764,
+   "asset": "World/deadtree",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "deadtree.003",
+   "pos": [
+    -26.5502,
+    0.049,
+    45.9082
+   ],
+   "yaw": -31.55,
+   "scale": 0.8361,
+   "asset": "World/deadtree",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "deadtree.004",
+   "pos": [
+    64.4306,
+    -0.05,
+    53.6961
+   ],
+   "yaw": 39.81,
+   "scale": 0.8035,
+   "asset": "World/deadtree",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "deadtree.005",
+   "pos": [
+    -20.5472,
+    -0.0491,
+    90.7146
+   ],
+   "yaw": 39.64,
+   "scale": 1.2625,
+   "asset": "World/deadtree",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "deadtree.006",
+   "pos": [
+    62.8419,
+    -0.05,
+    59.4818
+   ],
+   "yaw": -159.82,
+   "scale": 1.1255,
+   "asset": "World/deadtree",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "deadtree.007",
+   "pos": [
+    -14.8334,
+    0.0926,
+    -52.3441
+   ],
+   "yaw": 39.0,
+   "scale": 0.8898,
+   "asset": "World/deadtree",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "deadtree.008",
+   "pos": [
+    44.2251,
+    0.3478,
+    -63.3554
+   ],
+   "yaw": -33.75,
+   "scale": 1.0939,
+   "asset": "World/deadtree",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "deadtree.009",
+   "pos": [
+    0.9255,
+    0.0028,
+    51.696
+   ],
+   "yaw": -166.66,
+   "scale": 1.0572,
+   "asset": "World/deadtree",
+   "collider": "box",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2",
+   "pos": [
+    -86.158,
+    -11.4183,
+    107.6442
+   ],
+   "yaw": -171.39,
+   "scale": 1.5918,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3",
+   "pos": [
+    -100.8255,
+    21.2115,
+    -22.1457
+   ],
+   "yaw": -24.12,
+   "scale": 1.5654,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.002",
+   "pos": [
+    93.4584,
+    14.2486,
+    23.8519
+   ],
+   "yaw": 52.02,
+   "scale": 1.1435,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1",
+   "pos": [
+    -91.2008,
+    17.4897,
+    -48.5536
+   ],
+   "yaw": -140.7,
+   "scale": 0.9195,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.002",
+   "pos": [
+    102.8441,
+    25.3855,
+    153.9973
+   ],
+   "yaw": -111.89,
+   "scale": 0.9961,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.003",
+   "pos": [
+    89.7859,
+    6.8371,
+    162.4742
+   ],
+   "yaw": -68.41,
+   "scale": 1.5249,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.004",
+   "pos": [
+    83.8412,
+    2.6287,
+    -23.4497
+   ],
+   "yaw": 88.16,
+   "scale": 1.4889,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.002",
+   "pos": [
+    91.922,
+    9.1884,
+    -68.8148
+   ],
+   "yaw": -156.15,
+   "scale": 1.3518,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.003",
+   "pos": [
+    85.657,
+    4.064,
+    -15.1332
+   ],
+   "yaw": 11.36,
+   "scale": 1.456,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.005",
+   "pos": [
+    -89.1269,
+    9.3802,
+    174.4637
+   ],
+   "yaw": 106.74,
+   "scale": 0.9552,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.006",
+   "pos": [
+    -103.2196,
+    30.3129,
+    -50.4008
+   ],
+   "yaw": 94.16,
+   "scale": 1.5414,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.004",
+   "pos": [
+    -91.7874,
+    12.8235,
+    -5.5742
+   ],
+   "yaw": -113.92,
+   "scale": 1.3452,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.005",
+   "pos": [
+    -93.9989,
+    12.6315,
+    82.636
+   ],
+   "yaw": 124.4,
+   "scale": 1.2109,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.007",
+   "pos": [
+    -83.0308,
+    5.8964,
+    2.69
+   ],
+   "yaw": -28.85,
+   "scale": 1.4252,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.008",
+   "pos": [
+    102.3812,
+    16.6611,
+    53.6477
+   ],
+   "yaw": 69.02,
+   "scale": 1.4682,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.009",
+   "pos": [
+    87.0618,
+    7.3639,
+    177.1321
+   ],
+   "yaw": 37.61,
+   "scale": 0.9122,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.006",
+   "pos": [
+    97.5589,
+    17.1475,
+    90.7552
+   ],
+   "yaw": 101.61,
+   "scale": 1.0345,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.007",
+   "pos": [
+    -95.8652,
+    19.23,
+    -75.8782
+   ],
+   "yaw": 159.62,
+   "scale": 1.0993,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.003",
+   "pos": [
+    -93.9792,
+    13.7925,
+    66.1193
+   ],
+   "yaw": 62.76,
+   "scale": 1.4507,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.010",
+   "pos": [
+    91.6177,
+    11.5582,
+    128.8877
+   ],
+   "yaw": -56.37,
+   "scale": 1.3134,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.011",
+   "pos": [
+    -95.9193,
+    14.98,
+    73.0989
+   ],
+   "yaw": -117.43,
+   "scale": 1.234,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.004",
+   "pos": [
+    -85.3909,
+    5.3019,
+    161.1572
+   ],
+   "yaw": 44.72,
+   "scale": 1.1794,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.012",
+   "pos": [
+    79.2241,
+    -0.6,
+    13.4243
+   ],
+   "yaw": 126.04,
+   "scale": 1.1004,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.005",
+   "pos": [
+    -84.1005,
+    8.3951,
+    -43.5591
+   ],
+   "yaw": -132.44,
+   "scale": 0.9067,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.008",
+   "pos": [
+    89.7385,
+    10.0072,
+    86.0107
+   ],
+   "yaw": 176.28,
+   "scale": 1.0297,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.009",
+   "pos": [
+    -97.3638,
+    16.4534,
+    172.6679
+   ],
+   "yaw": 120.72,
+   "scale": 1.0751,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.006",
+   "pos": [
+    80.9654,
+    -0.2686,
+    1.6972
+   ],
+   "yaw": 64.37,
+   "scale": 1.0113,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.007",
+   "pos": [
+    -99.8057,
+    17.8126,
+    47.9347
+   ],
+   "yaw": -108.17,
+   "scale": 1.2905,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.010",
+   "pos": [
+    -104.7175,
+    21.5209,
+    84.5918
+   ],
+   "yaw": -87.29,
+   "scale": 1.5046,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.013",
+   "pos": [
+    93.9027,
+    13.8004,
+    -36.8696
+   ],
+   "yaw": 120.58,
+   "scale": 0.8298,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.008",
+   "pos": [
+    93.9938,
+    13.4505,
+    -41.1036
+   ],
+   "yaw": -77.9,
+   "scale": 0.9566,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.011",
+   "pos": [
+    -79.0944,
+    3.9058,
+    4.6568
+   ],
+   "yaw": -39.27,
+   "scale": 1.2758,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.009",
+   "pos": [
+    81.0463,
+    2.836,
+    179.5461
+   ],
+   "yaw": -39.18,
+   "scale": 1.4312,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.010",
+   "pos": [
+    -83.3136,
+    10.9033,
+    -67.7577
+   ],
+   "yaw": 95.9,
+   "scale": 1.2791,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.014",
+   "pos": [
+    -85.4096,
+    5.3294,
+    73.6859
+   ],
+   "yaw": 98.17,
+   "scale": 0.8354,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.015",
+   "pos": [
+    100.9901,
+    14.7998,
+    -72.1522
+   ],
+   "yaw": -28.81,
+   "scale": 1.3009,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.012",
+   "pos": [
+    88.2759,
+    6.4009,
+    64.4814
+   ],
+   "yaw": 12.85,
+   "scale": 0.8464,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.011",
+   "pos": [
+    -81.3349,
+    7.7645,
+    -71.2301
+   ],
+   "yaw": 131.23,
+   "scale": 1.1323,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.016",
+   "pos": [
+    -105.684,
+    28.2909,
+    126.7124
+   ],
+   "yaw": -166.47,
+   "scale": 1.0409,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.017",
+   "pos": [
+    -79.489,
+    1.5249,
+    179.0902
+   ],
+   "yaw": 55.89,
+   "scale": 1.2035,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.012",
+   "pos": [
+    104.4812,
+    16.4895,
+    47.2187
+   ],
+   "yaw": 26.57,
+   "scale": 1.4261,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.013",
+   "pos": [
+    103.465,
+    19.1571,
+    -75.9304
+   ],
+   "yaw": 144.27,
+   "scale": 0.8712,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.014",
+   "pos": [
+    -92.3731,
+    13.4487,
+    -12.4633
+   ],
+   "yaw": -15.67,
+   "scale": 1.1931,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.015",
+   "pos": [
+    -103.1047,
+    26.2933,
+    183.4534
+   ],
+   "yaw": 1.39,
+   "scale": 0.9883,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.018",
+   "pos": [
+    82.3853,
+    2.8108,
+    127.1629
+   ],
+   "yaw": 171.81,
+   "scale": 1.5845,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.019",
+   "pos": [
+    78.9066,
+    -0.6,
+    80.7208
+   ],
+   "yaw": -28.11,
+   "scale": 0.9009,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.020",
+   "pos": [
+    -105.0682,
+    26.225,
+    91.8287
+   ],
+   "yaw": -137.18,
+   "scale": 0.8182,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.021",
+   "pos": [
+    -88.9371,
+    9.7693,
+    9.446
+   ],
+   "yaw": -114.77,
+   "scale": 1.4466,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.022",
+   "pos": [
+    -101.1756,
+    19.7481,
+    17.8332
+   ],
+   "yaw": -157.69,
+   "scale": 1.3005,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.016",
+   "pos": [
+    -99.2252,
+    15.3535,
+    12.5248
+   ],
+   "yaw": -158.82,
+   "scale": 1.0132,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.023",
+   "pos": [
+    -78.5699,
+    1.7917,
+    -26.3867
+   ],
+   "yaw": 50.49,
+   "scale": 1.3191,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.017",
+   "pos": [
+    90.4992,
+    12.1167,
+    184.1627
+   ],
+   "yaw": -130.51,
+   "scale": 0.8459,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.018",
+   "pos": [
+    -94.1686,
+    11.1051,
+    51.2543
+   ],
+   "yaw": 55.77,
+   "scale": 0.9793,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.024",
+   "pos": [
+    99.5342,
+    17.843,
+    -15.6768
+   ],
+   "yaw": 19.87,
+   "scale": 0.9487,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.025",
+   "pos": [
+    -78.765,
+    2.9636,
+    -13.5173
+   ],
+   "yaw": 15.45,
+   "scale": 1.1,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.013",
+   "pos": [
+    -80.6008,
+    -0.2384,
+    139.9738
+   ],
+   "yaw": 138.91,
+   "scale": 1.1504,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.014",
+   "pos": [
+    -89.3335,
+    2.2183,
+    112.4534
+   ],
+   "yaw": -60.84,
+   "scale": 1.5763,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.015",
+   "pos": [
+    100.5597,
+    18.3237,
+    2.8764
+   ],
+   "yaw": 101.46,
+   "scale": 1.4089,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.026",
+   "pos": [
+    99.7787,
+    18.2958,
+    -84.951
+   ],
+   "yaw": -112.64,
+   "scale": 1.3608,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.019",
+   "pos": [
+    100.6267,
+    18.8539,
+    -83.5054
+   ],
+   "yaw": 153.81,
+   "scale": 1.3018,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.016",
+   "pos": [
+    -89.33,
+    15.978,
+    -73.6359
+   ],
+   "yaw": 58.56,
+   "scale": 0.9828,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.020",
+   "pos": [
+    -100.104,
+    27.9335,
+    -52.7832
+   ],
+   "yaw": -45.55,
+   "scale": 0.8967,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.017",
+   "pos": [
+    -81.0954,
+    7.1866,
+    -52.4568
+   ],
+   "yaw": 66.11,
+   "scale": 1.0053,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.027",
+   "pos": [
+    -69.9752,
+    3.7243,
+    -62.6431
+   ],
+   "yaw": -30.92,
+   "scale": 0.93,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.021",
+   "pos": [
+    -62.9221,
+    0.2011,
+    -41.5534
+   ],
+   "yaw": 37.87,
+   "scale": 0.9711,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.028",
+   "pos": [
+    -77.2609,
+    6.1417,
+    -56.8157
+   ],
+   "yaw": 178.21,
+   "scale": 1.0883,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.022",
+   "pos": [
+    -81.0007,
+    6.2361,
+    -75.3896
+   ],
+   "yaw": 164.87,
+   "scale": 0.838,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.018",
+   "pos": [
+    -82.4201,
+    9.3636,
+    -70.6429
+   ],
+   "yaw": -54.98,
+   "scale": 1.1421,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.023",
+   "pos": [
+    -67.414,
+    1.5675,
+    -47.6059
+   ],
+   "yaw": -46.91,
+   "scale": 1.3372,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.029",
+   "pos": [
+    -73.96,
+    3.4408,
+    -76.151
+   ],
+   "yaw": -47.53,
+   "scale": 1.3451,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.030",
+   "pos": [
+    -75.8884,
+    -0.3813,
+    -86.3407
+   ],
+   "yaw": -46.69,
+   "scale": 1.1508,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.024",
+   "pos": [
+    -87.8704,
+    6.3567,
+    -88.4324
+   ],
+   "yaw": -36.14,
+   "scale": 1.2135,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.025",
+   "pos": [
+    -97.1755,
+    13.3254,
+    -88.202
+   ],
+   "yaw": 124.5,
+   "scale": 0.8033,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.031",
+   "pos": [
+    -84.5157,
+    9.7489,
+    -47.6372
+   ],
+   "yaw": 6.15,
+   "scale": 1.2353,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.026",
+   "pos": [
+    -89.8814,
+    17.5915,
+    -67.7175
+   ],
+   "yaw": 170.13,
+   "scale": 1.1084,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.019",
+   "pos": [
+    -65.8012,
+    1.7674,
+    -73.8588
+   ],
+   "yaw": -165.95,
+   "scale": 1.1632,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.032",
+   "pos": [
+    -63.3432,
+    1.3683,
+    -59.5251
+   ],
+   "yaw": 125.45,
+   "scale": 1.1581,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.020",
+   "pos": [
+    -81.3538,
+    6.6622,
+    -75.5667
+   ],
+   "yaw": 126.01,
+   "scale": 1.0653,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.033",
+   "pos": [
+    97.0,
+    10.4492,
+    54.0
+   ],
+   "yaw": -58.58,
+   "scale": 1.1981,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.027",
+   "pos": [
+    94.5044,
+    10.012,
+    61.6589
+   ],
+   "yaw": 141.5,
+   "scale": 1.3168,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.034",
+   "pos": [
+    87.9756,
+    5.4264,
+    66.3772
+   ],
+   "yaw": 157.0,
+   "scale": 1.2635,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.035",
+   "pos": [
+    79.9205,
+    1.0773,
+    66.3433
+   ],
+   "yaw": -113.79,
+   "scale": 1.3091,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.028",
+   "pos": [
+    73.4316,
+    1.0773,
+    61.5703
+   ],
+   "yaw": 64.3,
+   "scale": 1.141,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.036",
+   "pos": [
+    71.0005,
+    1.0773,
+    53.8907
+   ],
+   "yaw": 75.28,
+   "scale": 1.1729,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.037",
+   "pos": [
+    80.1286,
+    1.0773,
+    41.5898
+   ],
+   "yaw": 36.05,
+   "scale": 1.0108,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.038",
+   "pos": [
+    88.1832,
+    4.9732,
+    41.6914
+   ],
+   "yaw": -32.38,
+   "scale": 1.0238,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.029",
+   "pos": [
+    94.6316,
+    8.7064,
+    46.5188
+   ],
+   "yaw": 45.39,
+   "scale": 1.2717,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.021",
+   "pos": [
+    52.676,
+    -10.1768,
+    107.0718
+   ],
+   "yaw": -31.87,
+   "scale": 1.295,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.030",
+   "pos": [
+    -19.9497,
+    -10.0867,
+    98.095
+   ],
+   "yaw": -123.98,
+   "scale": 0.8161,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.031",
+   "pos": [
+    103.0836,
+    -10.2915,
+    103.5956
+   ],
+   "yaw": -41.52,
+   "scale": 1.0394,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.022",
+   "pos": [
+    -72.2884,
+    -10.8133,
+    99.003
+   ],
+   "yaw": 39.02,
+   "scale": 0.9552,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0",
+   "pos": [
+    70.074,
+    -10.6585,
+    108.5702
+   ],
+   "yaw": -31.49,
+   "scale": 1.011,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.032",
+   "pos": [
+    -29.354,
+    -10.8621,
+    104.7791
+   ],
+   "yaw": -26.56,
+   "scale": 1.3775,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.023",
+   "pos": [
+    -97.2104,
+    -9.3057,
+    102.9905
+   ],
+   "yaw": -51.28,
+   "scale": 0.9688,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.033",
+   "pos": [
+    41.2532,
+    -10.6374,
+    99.266
+   ],
+   "yaw": -66.13,
+   "scale": 1.2588,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.034",
+   "pos": [
+    -46.1573,
+    -10.628,
+    103.7217
+   ],
+   "yaw": 116.19,
+   "scale": 1.0111,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.035",
+   "pos": [
+    -66.2695,
+    -11.1921,
+    102.6023
+   ],
+   "yaw": -50.39,
+   "scale": 1.0654,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.024",
+   "pos": [
+    82.4105,
+    -10.3813,
+    105.1763
+   ],
+   "yaw": 95.56,
+   "scale": 0.9724,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.002",
+   "pos": [
+    80.2879,
+    -10.5189,
+    105.5477
+   ],
+   "yaw": 20.62,
+   "scale": 0.9973,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.025",
+   "pos": [
+    90.8443,
+    -10.9579,
+    104.2093
+   ],
+   "yaw": 83.62,
+   "scale": 1.1352,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.036",
+   "pos": [
+    -92.5495,
+    -10.2416,
+    106.9208
+   ],
+   "yaw": 63.11,
+   "scale": 1.1415,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.037",
+   "pos": [
+    70.8287,
+    -11.0896,
+    106.5388
+   ],
+   "yaw": -116.43,
+   "scale": 1.1526,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.038",
+   "pos": [
+    54.3664,
+    -9.997,
+    105.1565
+   ],
+   "yaw": -162.28,
+   "scale": 1.1847,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.026",
+   "pos": [
+    -17.731,
+    -10.364,
+    98.2295
+   ],
+   "yaw": 87.91,
+   "scale": 1.3234,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.039",
+   "pos": [
+    -32.5852,
+    -10.9753,
+    102.9356
+   ],
+   "yaw": 117.02,
+   "scale": 0.8526,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.027",
+   "pos": [
+    8.947,
+    -10.3697,
+    100.7119
+   ],
+   "yaw": 33.51,
+   "scale": 0.9164,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.040",
+   "pos": [
+    47.9109,
+    -10.85,
+    105.9027
+   ],
+   "yaw": -169.63,
+   "scale": 1.2153,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.003",
+   "pos": [
+    -19.4766,
+    -10.274,
+    109.6791
+   ],
+   "yaw": 70.05,
+   "scale": 1.3885,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.041",
+   "pos": [
+    45.3217,
+    -10.9004,
+    105.3806
+   ],
+   "yaw": -18.06,
+   "scale": 1.3116,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.042",
+   "pos": [
+    -46.8794,
+    -10.1605,
+    107.2631
+   ],
+   "yaw": -163.58,
+   "scale": 1.2049,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.004",
+   "pos": [
+    -2.6784,
+    -10.6349,
+    105.8925
+   ],
+   "yaw": 159.55,
+   "scale": 1.2386,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.005",
+   "pos": [
+    -64.614,
+    -10.5436,
+    108.2799
+   ],
+   "yaw": 102.88,
+   "scale": 1.3425,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.006",
+   "pos": [
+    56.3418,
+    -9.7631,
+    103.5522
+   ],
+   "yaw": 17.93,
+   "scale": 1.352,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.028",
+   "pos": [
+    45.7298,
+    -10.5021,
+    99.7395
+   ],
+   "yaw": 129.86,
+   "scale": 1.2044,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.007",
+   "pos": [
+    33.4808,
+    -0.1025,
+    59.258
+   ],
+   "yaw": -2.31,
+   "scale": 0.9621,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.008",
+   "pos": [
+    18.6966,
+    -0.2715,
+    40.1311
+   ],
+   "yaw": 70.3,
+   "scale": 1.1115,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.009",
+   "pos": [
+    10.6837,
+    -0.2265,
+    80.7023
+   ],
+   "yaw": 34.76,
+   "scale": 1.0119,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.010",
+   "pos": [
+    68.6179,
+    -0.0078,
+    -59.9805
+   ],
+   "yaw": -31.31,
+   "scale": 0.8965,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.011",
+   "pos": [
+    46.8518,
+    0.399,
+    -51.4598
+   ],
+   "yaw": 104.25,
+   "scale": 1.2094,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.012",
+   "pos": [
+    -51.4524,
+    -0.3,
+    64.7228
+   ],
+   "yaw": -127.05,
+   "scale": 0.8368,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.013",
+   "pos": [
+    -32.8596,
+    1.5013,
+    10.3692
+   ],
+   "yaw": 146.36,
+   "scale": 0.7929,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.014",
+   "pos": [
+    -39.9603,
+    0.9311,
+    24.5198
+   ],
+   "yaw": -32.98,
+   "scale": 0.6207,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.015",
+   "pos": [
+    22.0354,
+    0.6717,
+    -37.761
+   ],
+   "yaw": 15.83,
+   "scale": 1.1959,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.016",
+   "pos": [
+    24.0992,
+    -0.1258,
+    25.7444
+   ],
+   "yaw": 132.98,
+   "scale": 0.7113,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.017",
+   "pos": [
+    18.3328,
+    0.1281,
+    12.144
+   ],
+   "yaw": 73.34,
+   "scale": 1.2639,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.018",
+   "pos": [
+    5.4156,
+    0.351,
+    33.895
+   ],
+   "yaw": 48.1,
+   "scale": 0.652,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.019",
+   "pos": [
+    -63.957,
+    4.1775,
+    17.4886
+   ],
+   "yaw": 56.6,
+   "scale": 0.804,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.020",
+   "pos": [
+    -51.8052,
+    -0.3,
+    78.6743
+   ],
+   "yaw": 53.81,
+   "scale": 0.7959,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.021",
+   "pos": [
+    -66.7958,
+    1.764,
+    -27.7611
+   ],
+   "yaw": 41.14,
+   "scale": 1.1466,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.022",
+   "pos": [
+    3.4246,
+    -0.2523,
+    49.0715
+   ],
+   "yaw": -135.23,
+   "scale": 0.7947,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.023",
+   "pos": [
+    56.4026,
+    -0.2232,
+    -41.0056
+   ],
+   "yaw": -1.07,
+   "scale": 0.7799,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.024",
+   "pos": [
+    61.206,
+    -0.3,
+    -23.5655
+   ],
+   "yaw": 128.74,
+   "scale": 0.6504,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.025",
+   "pos": [
+    59.6202,
+    -0.3,
+    -33.0829
+   ],
+   "yaw": -84.23,
+   "scale": 1.2344,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.026",
+   "pos": [
+    -0.0494,
+    -0.2207,
+    57.7665
+   ],
+   "yaw": -67.38,
+   "scale": 1.078,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.027",
+   "pos": [
+    26.5248,
+    -0.268,
+    -2.6804
+   ],
+   "yaw": -5.76,
+   "scale": 1.0777,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.028",
+   "pos": [
+    24.7498,
+    -0.3,
+    -11.1891
+   ],
+   "yaw": 63.3,
+   "scale": 1.0616,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.029",
+   "pos": [
+    -58.9588,
+    3.5779,
+    -18.2202
+   ],
+   "yaw": -95.06,
+   "scale": 0.9172,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.030",
+   "pos": [
+    -54.9334,
+    2.8557,
+    -19.9684
+   ],
+   "yaw": -165.7,
+   "scale": 0.6997,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "aqueduct",
+   "pos": [
+    -86.0,
+    7.0882,
+    -20.0
+   ],
+   "yaw": 161.57,
+   "scale": 1.0,
+   "asset": "World/aqueduct",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "aqueduct.002",
+   "pos": [
+    -66.5,
+    4.7899,
+    -13.5
+   ],
+   "yaw": 161.57,
+   "scale": 1.0,
+   "asset": "World/aqueduct",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "aqueduct.003",
+   "pos": [
+    -47.0,
+    4.1637,
+    -7.0
+   ],
+   "yaw": 161.57,
+   "scale": 1.0,
+   "asset": "World/aqueduct",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "aqueduct.004",
+   "pos": [
+    -27.5,
+    0.5214,
+    -0.5
+   ],
+   "yaw": 161.57,
+   "scale": 1.0,
+   "asset": "World/aqueduct",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Arch0",
+   "pos": [
+    -50.0,
+    4.8246,
+    -8.0
+   ],
+   "yaw": 20.0,
+   "scale": 1.0,
+   "asset": "World/ruin_arch/Arch0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Arch1",
+   "pos": [
+    -56.0,
+    5.4884,
+    12.0
+   ],
+   "yaw": -30.0,
+   "scale": 1.0,
+   "asset": "World/ruin_arch/Arch1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Arch1.002",
+   "pos": [
+    -72.0,
+    5.5123,
+    -6.0
+   ],
+   "yaw": 75.0,
+   "scale": 1.0,
+   "asset": "World/ruin_arch/Arch1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Arch0.002",
+   "pos": [
+    -46.0,
+    4.3446,
+    6.0
+   ],
+   "yaw": 100.0,
+   "scale": 1.0,
+   "asset": "World/ruin_arch/Arch0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Arch1.003",
+   "pos": [
+    -60.0,
+    3.6324,
+    20.0
+   ],
+   "yaw": 10.0,
+   "scale": 1.0,
+   "asset": "World/ruin_arch/Arch1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "tholos",
+   "pos": [
+    -66.0,
+    6.3209,
+    8.0
+   ],
+   "yaw": 20.0,
+   "scale": 1.0,
+   "asset": "World/tholos",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column",
+   "pos": [
+    -54.5285,
+    6.0596,
+    7.648
+   ],
+   "yaw": 168.06,
+   "scale": 1.0595,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.002",
+   "pos": [
+    -46.7454,
+    4.6332,
+    -5.9836
+   ],
+   "yaw": -47.58,
+   "scale": 1.0458,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.003",
+   "pos": [
+    -75.3901,
+    4.4959,
+    -9.7568
+   ],
+   "yaw": 168.44,
+   "scale": 0.9401,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.004",
+   "pos": [
+    -60.571,
+    4.5916,
+    17.1258
+   ],
+   "yaw": -33.39,
+   "scale": 1.0639,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.005",
+   "pos": [
+    -47.4562,
+    4.9921,
+    4.2365
+   ],
+   "yaw": 98.86,
+   "scale": 0.9613,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.006",
+   "pos": [
+    -72.4528,
+    6.0157,
+    -1.5609
+   ],
+   "yaw": -67.61,
+   "scale": 0.8129,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.007",
+   "pos": [
+    -52.1173,
+    3.7765,
+    17.8866
+   ],
+   "yaw": 153.5,
+   "scale": 0.9915,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.008",
+   "pos": [
+    -61.5793,
+    7.0802,
+    -2.6028
+   ],
+   "yaw": -112.18,
+   "scale": 0.8957,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.009",
+   "pos": [
+    -44.9709,
+    4.6373,
+    0.8125
+   ],
+   "yaw": -150.24,
+   "scale": 0.8658,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Arch1.004",
+   "pos": [
+    38.0,
+    -0.5063,
+    18.0
+   ],
+   "yaw": 40.0,
+   "scale": 1.0,
+   "asset": "World/ruin_arch/Arch1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Arch0.003",
+   "pos": [
+    44.0,
+    -0.6,
+    -10.0
+   ],
+   "yaw": -20.0,
+   "scale": 1.0,
+   "asset": "World/ruin_arch/Arch0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Arch1.005",
+   "pos": [
+    64.0,
+    -0.6,
+    24.0
+   ],
+   "yaw": 70.0,
+   "scale": 1.0,
+   "asset": "World/ruin_arch/Arch1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Arch0.004",
+   "pos": [
+    70.0,
+    -0.6,
+    -12.0
+   ],
+   "yaw": 120.0,
+   "scale": 1.0,
+   "asset": "World/ruin_arch/Arch0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "bridge",
+   "pos": [
+    20.0,
+    0.8,
+    104.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/bridge",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall",
+   "pos": [
+    2.0,
+    0.7,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.002",
+   "pos": [
+    -14.0,
+    0.7,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleTower",
+   "pos": [
+    -22.0,
+    -0.0678,
+    160.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleTower",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.003",
+   "pos": [
+    -30.0,
+    0.1546,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.004",
+   "pos": [
+    -46.0,
+    0.161,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleTower.002",
+   "pos": [
+    -54.0,
+    -0.2487,
+    160.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleTower",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.005",
+   "pos": [
+    -62.0,
+    -0.3,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.006",
+   "pos": [
+    -78.0,
+    -0.3,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleTower.003",
+   "pos": [
+    -86.0,
+    6.2331,
+    160.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleTower",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.007",
+   "pos": [
+    -94.0,
+    15.1085,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.008",
+   "pos": [
+    38.0,
+    0.7,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.009",
+   "pos": [
+    54.0,
+    0.7,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleTower.004",
+   "pos": [
+    62.0,
+    0.6722,
+    160.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleTower",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.010",
+   "pos": [
+    70.0,
+    0.4199,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.011",
+   "pos": [
+    86.0,
+    4.4157,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleTower.005",
+   "pos": [
+    94.0,
+    10.9908,
+    160.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleTower",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.012",
+   "pos": [
+    102.0,
+    23.0721,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.013",
+   "pos": [
+    118.0,
+    37.5251,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleTower.006",
+   "pos": [
+    126.0,
+    32.7778,
+    160.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleTower",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "CastleWall.014",
+   "pos": [
+    134.0,
+    38.0275,
+    159.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/castle_wall/CastleWall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "castle_gate",
+   "pos": [
+    20.0,
+    0.8,
+    158.0
+   ],
+   "yaw": 180.0,
+   "scale": 1.0,
+   "asset": "World/castle_gate",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "gate_statue",
+   "pos": [
+    15.4,
+    2.6,
+    153.5
+   ],
+   "yaw": 180.0,
+   "scale": 1.0,
+   "asset": "World/gate_statue",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "gate_statue.001",
+   "pos": [
+    24.6,
+    2.6,
+    153.5
+   ],
+   "yaw": 180.0,
+   "scale": 1.0,
+   "asset": "World/gate_statue",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "column.010",
+   "pos": [
+    39.0,
+    0.9,
+    134.0
+   ],
+   "yaw": -31.06,
+   "scale": 1.2505,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.011",
+   "pos": [
+    36.4545,
+    0.9,
+    143.5
+   ],
+   "yaw": -130.67,
+   "scale": 1.2187,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.012",
+   "pos": [
+    29.5,
+    0.9,
+    150.4545
+   ],
+   "yaw": 41.59,
+   "scale": 1.1226,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.013",
+   "pos": [
+    20.0,
+    0.7987,
+    153.0
+   ],
+   "yaw": -74.7,
+   "scale": 1.2621,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.014",
+   "pos": [
+    10.5,
+    0.9,
+    150.4545
+   ],
+   "yaw": -21.19,
+   "scale": 1.1629,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.015",
+   "pos": [
+    3.5455,
+    0.9,
+    143.5
+   ],
+   "yaw": -65.17,
+   "scale": 1.1688,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.016",
+   "pos": [
+    1.0,
+    0.9,
+    134.0
+   ],
+   "yaw": 104.45,
+   "scale": 1.0427,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.017",
+   "pos": [
+    3.5455,
+    0.9,
+    124.5
+   ],
+   "yaw": -149.8,
+   "scale": 1.0247,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "column.018",
+   "pos": [
+    36.4545,
+    0.9,
+    124.5
+   ],
+   "yaw": 101.71,
+   "scale": 1.0986,
+   "asset": "World/column",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "castle_far",
+   "pos": [
+    30.0,
+    -25.0,
+    430.0
+   ],
+   "yaw": 180.0,
+   "scale": 1.0,
+   "asset": "World/castle_far",
+   "collider": "none",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Poet",
+   "pos": [
+    85.0,
+    12.8,
+    55.0
+   ],
+   "yaw": -135.0,
+   "scale": 1.0,
+   "asset": "World/poet",
+   "role": "poet",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Start",
+   "pos": [
+    -0.0,
+    -0.12,
+    -74.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "start",
+   "group": "Game"
+  },
+  {
+   "name": "Sea",
+   "pos": [
+    -0.0,
+    -1.2,
+    -40.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "sea",
+   "size": 500.0,
+   "group": "Game"
+  },
+  {
+   "name": "Lake",
+   "pos": [
+    55.0,
+    -1.4,
+    5.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "water",
+   "size": 48.0,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_shore",
+   "pos": [
+    3.0,
+    -0.114,
+    -70.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "shore",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_ruins",
+   "pos": [
+    -40.0,
+    1.9707,
+    -14.0
+   ],
+   "yaw": 60.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "ruins",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_valley",
+   "pos": [
+    4.0,
+    0.6075,
+    24.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "valley",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_lake",
+   "pos": [
+    30.0,
+    0.0404,
+    -2.0
+   ],
+   "yaw": 80.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "lake",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_poet",
+   "pos": [
+    76.0,
+    11.4713,
+    47.0
+   ],
+   "yaw": -120.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "poet",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_bridge",
+   "pos": [
+    16.0,
+    0.75,
+    84.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "bridge",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_gate",
+   "pos": [
+    20.0,
+    0.75,
+    117.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "gate",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rift_west",
+   "pos": [
+    -50.0,
+    3.3717,
+    -16.0
+   ],
+   "yaw": 70.0,
+   "scale": 1.1,
+   "asset": "World/rift",
+   "role": "rift",
+   "id": "west",
+   "crawlers": 0.2,
+   "budget": 8,
+   "max_alive": 3,
+   "every": 6.0,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rift_east",
+   "pos": [
+    40.0,
+    -0.05,
+    14.0
+   ],
+   "yaw": -70.0,
+   "scale": 1.1,
+   "asset": "World/rift",
+   "role": "rift",
+   "id": "east",
+   "crawlers": 0.5,
+   "budget": 8,
+   "max_alive": 3,
+   "every": 6.0,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rift_north",
+   "pos": [
+    10.0,
+    -0.05,
+    78.0
+   ],
+   "yaw": -180.0,
+   "scale": 1.1,
+   "asset": "World/rift",
+   "role": "rift",
+   "id": "north",
+   "crawlers": 0.5,
+   "budget": 8,
+   "max_alive": 3,
+   "every": 6.0,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Shade",
+   "pos": [
+    -3.0,
+    0.0,
+    -60.0
+   ],
+   "yaw": 180.0,
+   "scale": 1.0,
+   "role": "first_shade",
+   "group": "Game"
+  },
+  {
+   "name": "Shade.001",
+   "pos": [
+    5.0,
+    0.0,
+    -56.0
+   ],
+   "yaw": 180.0,
+   "scale": 1.0,
+   "role": "first_shade",
+   "group": "Game"
+  },
+  {
+   "name": "Rubble",
+   "pos": [
+    -4.0,
+    0.2252,
+    -50.0
+   ],
+   "yaw": 95.8,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 6,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.002",
+   "pos": [
+    -44.0,
+    4.3862,
+    -2.0
+   ],
+   "yaw": -1.69,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 6,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.003",
+   "pos": [
+    -60.0,
+    5.4358,
+    14.0
+   ],
+   "yaw": -133.1,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 6,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.004",
+   "pos": [
+    12.0,
+    0.1753,
+    40.0
+   ],
+   "yaw": 142.01,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 6,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.005",
+   "pos": [
+    -8.0,
+    -0.0292,
+    60.0
+   ],
+   "yaw": -11.34,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 6,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Planks",
+   "pos": [
+    6.0,
+    0.4872,
+    -46.0
+   ],
+   "yaw": -118.35,
+   "scale": 1.0,
+   "asset": "World/planks",
+   "role": "matter",
+   "kind": "organic",
+   "amount": 6,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Planks.002",
+   "pos": [
+    -20.0,
+    -0.1572,
+    -20.0
+   ],
+   "yaw": -123.39,
+   "scale": 1.0,
+   "asset": "World/planks",
+   "role": "matter",
+   "kind": "organic",
+   "amount": 6,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Planks.003",
+   "pos": [
+    24.0,
+    0.4841,
+    12.0
+   ],
+   "yaw": -22.9,
+   "scale": 1.0,
+   "asset": "World/planks",
+   "role": "matter",
+   "kind": "organic",
+   "amount": 6,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Planks.004",
+   "pos": [
+    -12.0,
+    0.194,
+    46.0
+   ],
+   "yaw": 1.67,
+   "scale": 1.0,
+   "asset": "World/planks",
+   "role": "matter",
+   "kind": "organic",
+   "amount": 6,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap",
+   "pos": [
+    -6.0,
+    0.3272,
+    -36.0
+   ],
+   "yaw": -172.9,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 7,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.002",
+   "pos": [
+    30.0,
+    -0.05,
+    24.0
+   ],
+   "yaw": 86.71,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 7,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.003",
+   "pos": [
+    -30.0,
+    1.4058,
+    6.0
+   ],
+   "yaw": 131.82,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 7,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.004",
+   "pos": [
+    48.0,
+    -0.05,
+    30.0
+   ],
+   "yaw": -66.8,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 7,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.005",
+   "pos": [
+    2.0,
+    0.0063,
+    52.0
+   ],
+   "yaw": 53.39,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 7,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.006",
+   "pos": [
+    8.0,
+    -0.05,
+    70.0
+   ],
+   "yaw": 140.92,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 7,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.007",
+   "pos": [
+    9.0,
+    0.95,
+    128.0
+   ],
+   "yaw": -103.39,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 5,
+   "regrow": 22.0,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.008",
+   "pos": [
+    31.0,
+    0.95,
+    128.0
+   ],
+   "yaw": 43.28,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 5,
+   "regrow": 22.0,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.009",
+   "pos": [
+    8.0,
+    0.95,
+    142.0
+   ],
+   "yaw": 114.89,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 5,
+   "regrow": 22.0,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.010",
+   "pos": [
+    32.0,
+    0.95,
+    142.0
+   ],
+   "yaw": -83.76,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 5,
+   "regrow": 22.0,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.006",
+   "pos": [
+    20.0,
+    0.63,
+    122.0
+   ],
+   "yaw": -35.09,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 4,
+   "regrow": 25.0,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.007",
+   "pos": [
+    7.0,
+    0.95,
+    135.0
+   ],
+   "yaw": -95.9,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 4,
+   "regrow": 25.0,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.008",
+   "pos": [
+    33.0,
+    0.95,
+    135.0
+   ],
+   "yaw": -152.38,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 4,
+   "regrow": 25.0,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Arena",
+   "pos": [
+    20.0,
+    0.88,
+    134.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "arena",
+   "group": "Game"
+  },
+  {
+   "name": "Guardian",
+   "pos": [
+    20.0,
+    0.88,
+    137.0
+   ],
+   "yaw": 180.0,
+   "scale": 1.0,
+   "role": "guardian",
+   "group": "Game"
+  },
+  {
+   "name": "Exit",
+   "pos": [
+    20.0,
+    0.95,
+    159.0
+   ],
+   "yaw": 180.0,
+   "scale": 1.1,
+   "asset": "World/rift",
+   "role": "exit",
+   "id": "exit",
+   "leads_to": "Wrath",
+   "delay": 6.0,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A0",
+   "pos": [
+    4.0,
+    -0.12,
+    -60.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 0,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A1",
+   "pos": [
+    -4.0,
+    0.2643,
+    -42.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 1,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A2",
+   "pos": [
+    -8.0,
+    0.2333,
+    -26.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 2,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A3",
+   "pos": [
+    -0.0,
+    -0.12,
+    -8.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 3,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A4",
+   "pos": [
+    6.0,
+    0.198,
+    10.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 4,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A5",
+   "pos": [
+    14.0,
+    0.2967,
+    32.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 5,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A6",
+   "pos": [
+    10.0,
+    -0.12,
+    56.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 6,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_B0",
+   "pos": [
+    -8.0,
+    0.2333,
+    -26.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "B",
+   "order": 0,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_B1",
+   "pos": [
+    -26.0,
+    0.0866,
+    -18.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "B",
+   "order": 1,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_B2",
+   "pos": [
+    -44.0,
+    3.3368,
+    -10.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "B",
+   "order": 2,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_B3",
+   "pos": [
+    -58.0,
+    6.9997,
+    -2.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "B",
+   "order": 3,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_B4",
+   "pos": [
+    -66.0,
+    6.7868,
+    6.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "B",
+   "order": 4,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_C0",
+   "pos": [
+    14.0,
+    0.2967,
+    32.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "C",
+   "order": 0,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_C1",
+   "pos": [
+    34.0,
+    -0.12,
+    30.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "C",
+   "order": 1,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_C2",
+   "pos": [
+    56.0,
+    0.88,
+    34.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "C",
+   "order": 2,
+   "count": 6,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_C3",
+   "pos": [
+    77.0,
+    12.6078,
+    49.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "C",
+   "order": 3,
+   "count": 6,
+   "group": "Game"
+  }
+ ]
+}

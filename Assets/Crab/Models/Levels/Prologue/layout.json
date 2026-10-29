@@ -1,0 +1,772 @@
+{
+ "ground": "Levels/Prologue/ground",
+ "sun": {
+  "dir": [
+   -0.3716,
+   -0.6691,
+   0.6436
+  ],
+  "color": [
+   1.0,
+   0.93,
+   0.8
+  ],
+  "intensity": 1.6
+ },
+ "objects": [
+  {
+   "name": "palm",
+   "pos": [
+    -16.5303,
+    1.7216,
+    16.7689
+   ],
+   "yaw": 91.81,
+   "scale": 1.1565,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.002",
+   "pos": [
+    -8.8658,
+    1.9844,
+    18.6672
+   ],
+   "yaw": 128.38,
+   "scale": 1.0207,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.003",
+   "pos": [
+    -2.5344,
+    1.9666,
+    23.9155
+   ],
+   "yaw": 75.62,
+   "scale": 1.0775,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.004",
+   "pos": [
+    5.8592,
+    1.279,
+    17.323
+   ],
+   "yaw": 115.81,
+   "scale": 1.0333,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.005",
+   "pos": [
+    10.111,
+    2.2266,
+    21.736
+   ],
+   "yaw": 140.99,
+   "scale": 1.1742,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.006",
+   "pos": [
+    18.2259,
+    0.8989,
+    15.2027
+   ],
+   "yaw": 31.66,
+   "scale": 1.0434,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.007",
+   "pos": [
+    -21.0694,
+    2.5514,
+    21.4561
+   ],
+   "yaw": 34.33,
+   "scale": 0.9208,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.008",
+   "pos": [
+    24.2545,
+    2.4708,
+    24.9518
+   ],
+   "yaw": 161.49,
+   "scale": 1.0748,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.009",
+   "pos": [
+    0.5005,
+    1.9459,
+    29.0068
+   ],
+   "yaw": 7.55,
+   "scale": 0.9528,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.010",
+   "pos": [
+    -11.1246,
+    2.2817,
+    28.0521
+   ],
+   "yaw": 87.64,
+   "scale": 1.145,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "palm.011",
+   "pos": [
+    12.7515,
+    2.8923,
+    30.8111
+   ],
+   "yaw": -14.4,
+   "scale": 0.8699,
+   "asset": "World/palm",
+   "collider": "none",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock1",
+   "pos": [
+    -18.4797,
+    0.3131,
+    8.3453
+   ],
+   "yaw": -48.9,
+   "scale": 0.6115,
+   "asset": "World/beach_rocks/Rock1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock1.002",
+   "pos": [
+    17.5387,
+    -0.4173,
+    -5.3111
+   ],
+   "yaw": 104.38,
+   "scale": 0.5721,
+   "asset": "World/beach_rocks/Rock1",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock0",
+   "pos": [
+    -29.3041,
+    2.253,
+    21.835
+   ],
+   "yaw": 135.68,
+   "scale": 0.993,
+   "asset": "World/beach_rocks/Rock0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock0.002",
+   "pos": [
+    20.5366,
+    1.1899,
+    17.1834
+   ],
+   "yaw": 50.09,
+   "scale": 0.6624,
+   "asset": "World/beach_rocks/Rock0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock0.003",
+   "pos": [
+    4.1769,
+    0.3794,
+    9.3924
+   ],
+   "yaw": 38.01,
+   "scale": 0.8564,
+   "asset": "World/beach_rocks/Rock0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock0.004",
+   "pos": [
+    12.3479,
+    2.8356,
+    29.8394
+   ],
+   "yaw": 56.56,
+   "scale": 0.6839,
+   "asset": "World/beach_rocks/Rock0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock3",
+   "pos": [
+    28.5052,
+    2.4476,
+    25.6583
+   ],
+   "yaw": -14.35,
+   "scale": 0.6054,
+   "asset": "World/beach_rocks/Rock3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock3.002",
+   "pos": [
+    7.5326,
+    0.7557,
+    13.7512
+   ],
+   "yaw": -121.97,
+   "scale": 0.6703,
+   "asset": "World/beach_rocks/Rock3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock2",
+   "pos": [
+    -11.2169,
+    -0.2515,
+    -3.7414
+   ],
+   "yaw": 122.22,
+   "scale": 0.6906,
+   "asset": "World/beach_rocks/Rock2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock2.002",
+   "pos": [
+    -0.897,
+    1.8844,
+    22.2633
+   ],
+   "yaw": 137.66,
+   "scale": 0.6113,
+   "asset": "World/beach_rocks/Rock2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock2.003",
+   "pos": [
+    25.2727,
+    2.7424,
+    27.5283
+   ],
+   "yaw": 146.1,
+   "scale": 1.1476,
+   "asset": "World/beach_rocks/Rock2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock0.005",
+   "pos": [
+    -8.5697,
+    0.2084,
+    6.2568
+   ],
+   "yaw": 5.31,
+   "scale": 1.2396,
+   "asset": "World/beach_rocks/Rock0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock3.003",
+   "pos": [
+    -25.6989,
+    2.4041,
+    22.6933
+   ],
+   "yaw": 52.69,
+   "scale": 1.0851,
+   "asset": "World/beach_rocks/Rock3",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock2.004",
+   "pos": [
+    23.2702,
+    0.2791,
+    7.9541
+   ],
+   "yaw": 102.48,
+   "scale": 1.1914,
+   "asset": "World/beach_rocks/Rock2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock2.005",
+   "pos": [
+    17.8544,
+    2.8469,
+    27.9791
+   ],
+   "yaw": 104.65,
+   "scale": 0.6914,
+   "asset": "World/beach_rocks/Rock2",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Rock0.006",
+   "pos": [
+    -22.4569,
+    -0.2186,
+    -3.4424
+   ],
+   "yaw": -117.51,
+   "scale": 0.5565,
+   "asset": "World/beach_rocks/Rock0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "seaweed",
+   "pos": [
+    4.0884,
+    0.0438,
+    1.6755
+   ],
+   "yaw": -58.06,
+   "scale": 0.8155,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "seaweed.002",
+   "pos": [
+    -12.0485,
+    -0.076,
+    -1.433
+   ],
+   "yaw": 174.04,
+   "scale": 1.0629,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "seaweed.003",
+   "pos": [
+    13.0147,
+    0.078,
+    1.9089
+   ],
+   "yaw": 178.61,
+   "scale": 1.2419,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "seaweed.004",
+   "pos": [
+    17.9942,
+    0.076,
+    1.9178
+   ],
+   "yaw": -6.08,
+   "scale": 0.8643,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "seaweed.005",
+   "pos": [
+    7.3726,
+    0.1346,
+    2.383
+   ],
+   "yaw": 112.45,
+   "scale": 1.1987,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "seaweed.006",
+   "pos": [
+    -14.7914,
+    0.227,
+    5.2922
+   ],
+   "yaw": 28.31,
+   "scale": 1.1172,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "seaweed.007",
+   "pos": [
+    10.6183,
+    0.2094,
+    4.4425
+   ],
+   "yaw": -54.65,
+   "scale": 1.0105,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "seaweed.008",
+   "pos": [
+    8.4867,
+    -0.0346,
+    -1.0038
+   ],
+   "yaw": -31.3,
+   "scale": 0.9747,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "seaweed.009",
+   "pos": [
+    -10.112,
+    -0.1625,
+    -2.8593
+   ],
+   "yaw": -153.41,
+   "scale": 1.1648,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "seaweed.010",
+   "pos": [
+    20.3483,
+    -0.0397,
+    -1.04
+   ],
+   "yaw": 142.94,
+   "scale": 1.3571,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 10,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Start",
+   "pos": [
+    -0.0,
+    0.0911,
+    2.0
+   ],
+   "yaw": -180.0,
+   "scale": 1.0,
+   "role": "start",
+   "group": "Game"
+  },
+  {
+   "name": "Fish",
+   "pos": [
+    -4.0,
+    -0.0361,
+    -1.0
+   ],
+   "yaw": 42.56,
+   "scale": 1.6,
+   "asset": "World/morsel",
+   "role": "food",
+   "title": "Рыбёшка",
+   "heal": 15,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Fish.001",
+   "pos": [
+    5.0,
+    -0.1696,
+    -3.0
+   ],
+   "yaw": -120.09,
+   "scale": 1.6,
+   "asset": "World/morsel",
+   "role": "food",
+   "title": "Рыбёшка",
+   "heal": 15,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Fish.002",
+   "pos": [
+    2.5,
+    0.2825,
+    6.0
+   ],
+   "yaw": -160.1,
+   "scale": 1.6,
+   "asset": "World/morsel",
+   "role": "food",
+   "title": "Рыбёшка",
+   "heal": 15,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Weed",
+   "pos": [
+    -8.0,
+    0.1136,
+    3.0
+   ],
+   "yaw": 158.26,
+   "scale": 1.2,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 20,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Weed.001",
+   "pos": [
+    9.0,
+    0.0713,
+    1.0
+   ],
+   "yaw": 126.26,
+   "scale": 1.2,
+   "asset": "World/seaweed",
+   "role": "food",
+   "title": "Водоросли",
+   "heal": 20,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Shelter",
+   "pos": [
+    8.0,
+    0.1912,
+    4.5
+   ],
+   "yaw": 20.0,
+   "scale": 1.0,
+   "asset": "World/shelter",
+   "role": "shelter",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Gull",
+   "pos": [
+    -0.0,
+    0.1904,
+    4.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.3,
+   "role": "gull",
+   "height": 10.0,
+   "group": "Game"
+  },
+  {
+   "name": "Wave",
+   "pos": [
+    -0.0,
+    0.1,
+    -16.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "wave",
+   "reach_z": 9.0,
+   "speed": 5.2,
+   "width": 90.0,
+   "group": "Game"
+  },
+  {
+   "name": "Driftwood",
+   "pos": [
+    -5.0,
+    0.4066,
+    9.0
+   ],
+   "yaw": 30.0,
+   "scale": 1.2,
+   "asset": "World/driftwood",
+   "role": "matter",
+   "kind": "organic",
+   "amount": 8,
+   "first": 1,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Driftwood2",
+   "pos": [
+    6.0,
+    0.5049,
+    11.0
+   ],
+   "yaw": -60.0,
+   "scale": 1.0,
+   "asset": "World/driftwood",
+   "role": "matter",
+   "kind": "organic",
+   "amount": 5,
+   "collider": "none",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rift",
+   "pos": [
+    -0.0,
+    1.4473,
+    19.0
+   ],
+   "yaw": -180.0,
+   "scale": 1.1,
+   "asset": "World/rift",
+   "role": "rift",
+   "id": "prologue_exit",
+   "leads_to": "Limbo",
+   "delay": 0.5,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Sea",
+   "pos": [
+    -0.0,
+    -0.25,
+    -0.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "sea",
+   "size": 400.0,
+   "group": "Game"
+  }
+ ]
+}

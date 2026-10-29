@@ -80,6 +80,15 @@ Tools/blender/    lib.py (общие помощники, запекание пр
 - Модели: `blender -b -P Tools/blender/make_world.py -- Assets/Crab/Models/World [имя ...]` (так же hero, items,
   enemies). Каждый ассет — процедурная геометрия + процедурные материалы, запечённые в текстуры (цвет с AO,
   нормали, шероховатость; с VII круга — JPEG в GLB, `CRAB_PNG=1` вернёт PNG). У существ части с началом координат в суставах — их двигает код.
+- Уровни из Blender (пролог и Лимб): исходник — `Levels/<имя>.blend`, его правят руками. Коллекции: `Ground` (земля),
+  `Props` (декор — экземпляры ассетов, свойство `asset`), `Game` (игровые точки — свойство `role`: start, food,
+  shelter, gull, wave, matter, rift, sea…), лампа Sun. После правки — кнопка «Экспорт в игру» на вкладке Crab
+  боковой панели 3D-вида (N; Blender спросит разрешить скрипты файла) или `blender -b -P Tools/blender/export_level.py -- prologue`:
+  запекает AO земли, пятна и мокрую полосу у воды в её цвета вершин, пишет `Models/Levels/<Имя>/ground.glb` и `layout.json`.
+  Затем в Unity `Crab → Build Scene → Prologue` (или `Crab → Build Scenes`).
+  Первую раскладку делает `make_level_<имя>.py` (существующий .blend не перезаписывает). Слой `Paint` земли
+  (тропы, сырость) можно дорисовывать кистью в Vertex Paint. Объекты Лимба — `make_limbo.py`; поэт, статуи врат,
+  замок вдали, Тень и Падальщик — модели Tripo из `Models/lvl1` (`import_creatures.py`: риг по форме тела).
 - Сцены (`Menu`, `Prologue`, `Limbo`, `Wrath`, `Greed`, `Envy`, `Gloom`, `Betrayal`, `Violence`, `Lies`, `Power`, `Epilogue`) строит `Crab → Build Scenes` (или `-executeMethod Crab.EditorTools.SceneBuilder.BuildAll`);
   руками сцены не правятся — правки вносятся в генератор.
 - Снимки: `-executeMethod Crab.EditorTools.Snapshot.All` → `Docs/shots` (JPEG; в git не хранятся, в README — `Docs/gallery`).

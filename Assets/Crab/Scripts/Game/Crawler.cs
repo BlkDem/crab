@@ -4,11 +4,13 @@ using UnityEngine;
 
 namespace Crab.Game
 {
-    /// <summary>A Scavenger: skitters fast on bony legs and leaps at the crab to bite.</summary>
+    /// <summary>A Scavenger: a skeletal beast that lopes on four bony legs, its skull snapping, and leaps
+    /// at the crab to bite. Legs Leg{L,R}{0 front, 1 back}_0 (hip) > _1 (knee); Jaw; Tail.</summary>
     public sealed class Crawler : Enemy
     {
-        Transform jaw, body;
-        readonly Transform[,] legs = new Transform[6, 2];
+        Transform body;
+        BoneTurn jaw, tail;
+        readonly BoneTurn[,] legs = new BoneTurn[4, 2];
         float phase, leapT = -1, leapCd;
         bool bit;
 
@@ -16,13 +18,15 @@ namespace Crab.Game
         {
             base.Awake();
             body = model ? CrabRig.BodyOf(model) : CrabRig.Find(transform, "Body");
-            jaw = CrabRig.Find(transform, "Jaw");
+            jaw = BoneTurn.Of(CrabRig.Find(transform, "Jaw"), body);
+            tail = BoneTurn.Of(CrabRig.Find(transform, "Tail"), body);
             int k = 0;
             foreach (var s in new[] { "L", "R" })
-                for (int i = 0; i < 3; i++, k++)
+                for (int i = 0; i < 2; i++, k++)
                 {
-                    legs[k, 0] = CrabRig.Find(transform, $"Leg{s}{i}_0");
-                    legs[k, 1] = legs[k, 0] ? CrabRig.Find(legs[k, 0], $"Leg{s}{i}_1") : null;
+                    var hip = CrabRig.Find(transform, $"Leg{s}{i}_0");
+                    legs[k, 0] = BoneTurn.Of(hip, body);
+                    legs[k, 1] = hip ? BoneTurn.Of(CrabRig.Find(hip, $"Leg{s}{i}_1"), body) : null;
                 }
         }
 
@@ -72,20 +76,24 @@ namespace Crab.Game
 
         protected override void Animate(float dt, float spd, float w)
         {
-            phase += dt * (3 + spd * 5);
-            for (int k = 0; k < 6; k++)
+            // a lope: the diagonal pairs (front left with back right) together, the knees folding
+            // as each leg swings forward; in a leap the front legs reach and the back ones kick
+            phase += dt * (3 + spd * 3.2f);
+            float amp = Mathf.Clamp01(spd / 2.5f);
+            for (int k = 0; k < 4; k++)
             {
-                if (!legs[k, 0]) continue;
-                float side = k < 3 ? -1 : 1;
-                float ph = phase + (k % 2 == 0 ? 0 : Mathf.PI) + (k >= 3 ? Mathf.PI : 0);
-                float lift = Mathf.Max(0, Mathf.Sin(ph)) * 30 * Mathf.Clamp01(spd / 2);
-                float swing = Mathf.Cos(ph) * 25 * Mathf.Clamp01(spd / 2);
-                if (leapT >= 0) { lift = 25; swing = -20; }
-                legs[k, 0].localRotation = Quaternion.Euler(0, swing, side * lift);
-                if (legs[k, 1]) legs[k, 1].localRotation = Quaternion.Euler(0, 0, -side * lift * 0.6f);
+                if (legs[k, 0] == null) continue;
+                bool front = k % 2 == 0;
+                float ph = phase + (k == 0 || k == 3 ? 0 : Mathf.PI);
+                float swing = -Mathf.Sin(ph) * 30 * amp;
+                float fold = Mathf.Max(0, Mathf.Cos(ph)) * 40 * amp;
+                if (leapT >= 0) { swing = front ? -40 : 35; fold = front ? 30 : 10; }
+                legs[k, 0].Set(Quaternion.Euler(swing, 0, 0));
+                legs[k, 1]?.Set(Quaternion.Euler(front ? -fold : fold, 0, 0));
             }
-            if (jaw) jaw.localRotation = Quaternion.Euler(w >= 0 || leapT >= 0 ? 35 : 5 + Mathf.Sin(life * 9) * 4, 0, 0);
-            if (body) body.localRotation = Quaternion.Euler(leapT >= 0 ? -15 : Mathf.Sin(phase * 2) * 2, 0, Mathf.Sin(phase) * 3);
+            jaw?.Toward(Quaternion.Euler(w >= 0 || leapT >= 0 ? 28 : 3 + Mathf.Sin(life * 9) * 3, 0, 0), dt * 12);
+            tail?.Set(Quaternion.Euler(0, Mathf.Sin(phase * 0.5f) * 18, 0));
+            if (body) body.localRotation = Quaternion.Euler(leapT >= 0 ? -12 : Mathf.Sin(phase * 2) * 2 * amp, 0, Mathf.Sin(phase) * 2.5f * amp);
         }
     }
 }
