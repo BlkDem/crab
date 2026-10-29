@@ -590,14 +590,25 @@ namespace Crab.EditorTools
             var json = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText($"{Models}/Levels/{level}/layout.json"));
             var land = (GameObject)PrefabUtility.InstantiatePrefab(Glb((string)json["ground"]), root);
             land.name = "Ground";
+            var landCols = new List<MeshCollider>();
             foreach (var mf in land.GetComponentsInChildren<MeshFilter>())
             {
-                mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
+                var mc = mf.gameObject.AddComponent<MeshCollider>();
+                mc.sharedMesh = mf.sharedMesh;
+                landCols.Add(mc);
                 mf.gameObject.isStatic = true;
                 mf.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
             }
             Physics.SyncTransforms();
-            ground = (x, z) => Physics.Raycast(new Vector3(x, 500, z), Vector3.down, out var hit, 1000) ? hit.point.y : 0;
+            // the land's own height: a ray against the land alone (not the roofs and bridges over it)
+            ground = (x, z) =>
+            {
+                var ray = new Ray(new Vector3(x, 500, z), Vector3.down);
+                float best = float.MaxValue, y = 0;
+                foreach (var c in landCols)
+                    if (c.Raycast(ray, out var hit, 1000) && hit.distance < best) { best = hit.distance; y = hit.point.y; }
+                return y;
+            };
             var s = json["sun"];
             sun = null;
             if (s != null && s.Type != Newtonsoft.Json.Linq.JTokenType.Null)
@@ -846,8 +857,11 @@ namespace Crab.EditorTools
             capsule.radius = 0.8f;   // the heart (0.4 m) sticks out in front, so shots at it reach it
             var guardian = gRoot.AddComponent<Guardian>();
             guardian.model = g.transform;
-            guardian.heartLight = AddLight(gRoot.transform, "HeartLight", gRoot.transform.position + gRoot.transform.rotation * new Vector3(0, 3.7f, 1.1f), new Color(0.5f, 1f, 0.7f), 1, 10);
-            AddLight(gRoot.transform, "LanternLight", gRoot.transform.position + gRoot.transform.rotation * new Vector3(-1.6f, 2.6f, 1.2f), new Color(0.75f, 1f, 0.85f), 2, 9);
+            // the lights ride with the heart and the lantern
+            var heartPart = CrabRig.Find(g.transform, "Heart");
+            var lanternPart = CrabRig.Find(g.transform, "GlowLantern");
+            guardian.heartLight = AddLight(heartPart ? heartPart : gRoot.transform, "HeartLight", (heartPart ? heartPart.position : gRoot.transform.position + Vector3.up * 4) + gRoot.transform.forward * 0.6f, new Color(0.5f, 1f, 0.7f), 1, 10);
+            AddLight(lanternPart ? lanternPart : gRoot.transform, "LanternLight", lanternPart ? lanternPart.position : gRoot.transform.position + Vector3.up * 2, new Color(0.75f, 1f, 0.85f), 2, 9);
             dir.guardian = guardian;
             dir.square = square;
             var ex = One("exit");

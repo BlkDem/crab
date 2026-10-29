@@ -232,7 +232,7 @@ def scenery(rng):
     # the ring of broken columns round the Guardian's ground
     for i in range(12):
         a = i / 12 * math.tau
-        if abs(math.sin(a) + 1) < 0.3:   # the way in from the south stays open
+        if abs(math.sin(a)) > 0.85:   # the ways in from the south and out to the gate stay open
             continue
         x, z = ARENA[0] + math.cos(a) * 19, ARENA[1] + math.sin(a) * 19
         LV.instance("World/column", at(x, z, 0.1), -rng.uniform(0, 360), rng.uniform(1.0, 1.3), collider="mesh", snap=1)

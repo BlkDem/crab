@@ -4425,20 +4425,6 @@
    "group": "Props"
   },
   {
-   "name": "column.013",
-   "pos": [
-    20.0,
-    0.7987,
-    153.0
-   ],
-   "yaw": -74.7,
-   "scale": 1.2621,
-   "asset": "World/column",
-   "collider": "mesh",
-   "snap": 1,
-   "group": "Props"
-  },
-  {
    "name": "column.014",
    "pos": [
     10.5,

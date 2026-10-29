@@ -1,5 +1,6 @@
 """
-Enemies of the first circle (Limbo): the Shade, the Scavenger and the boss, the Guardian of Limbo.
+The enemies of the circles after the first (the first's — the Shade, the Scavenger and the
+Guardian — are sculpted: import_creatures.py).
 
 Run headless:
   blender -b -P Tools/blender/make_enemies.py -- <out_dir> [asset ...]
@@ -7,9 +8,6 @@ Run headless:
 Rigid parts with origins at the joints, one shared baked texture set per creature. Glow* parts
 keep a plain emissive material (not baked), so the game can pulse them.
 
-Part names (the contract with Crab.Game enemies):
-  guardian: Body > Heart (glow), Head > GlowVisor, ArmL_0 > ArmL_1 > Lantern > GlowLantern,
-            ArmR_0 > ArmR_1 > Blade
 Origin = ground under the creature; forward = Blender -Y (Unity +Z).
 """
 import math
@@ -29,173 +27,14 @@ def glow(name, color, strength=6.0):
     return L.mat_plain(name, color, rough=0.4, emission=(color, strength))
 
 
-def mat_robe(name, base="#3b4341", dark="#121615"):
-    t = NT(name)
-    folds = t.noise(t.vec(scale=(3, 3, 0.4)), 4, detail=4, distortion=0.4)
-    stains = t.noise(t.vec(), 2.5, detail=5)
-    col = t.ramp(t.math("ADD", t.math("MULTIPLY", folds, 0.6), t.math("MULTIPLY", stains, 0.4)), [(0.3, C(dark)), (0.7, C(base))])
-    z = t.sep(t.coord)[2]
-    # the hem fades into dark rot, the shoulders catch a pale ghostly dust
-    col = t.mix(t.ramp(z, [(0.0, 0.85), (0.5, 0.0)]), col, C("#060807"))
-    col = t.mix(t.math("MULTIPLY", t.ramp(t.sep(t.geo("Normal"))[2], [(0.4, 0.0), (0.9, 1.0)]), 0.3), col, C("#7a8c86"))
-    weave = t.noise(t.vec(), 160, detail=2)
-    return t.finish(col, rough=0.92, normal=t.bump(t.math("ADD", folds, t.math("MULTIPLY", weave, 0.2)), 0.5, 0.02))
 
 
 
 
-def ragged_hem(ob, below, amount, seed):
-    """Tear the bottom of a robe: lift and wobble the vertices below `below`."""
-    for v in ob.data.vertices:
-        if v.co.z < below:
-            k = 1 - v.co.z / below
-            a = math.atan2(v.co.y, v.co.x)
-            n = noise.noise(Vector((math.cos(a) * 3 + seed, math.sin(a) * 3, 0.5)))
-            v.co.z += max(0.0, n) * amount * k
-            v.co.x *= 1 + 0.08 * n * k
-            v.co.y *= 1 + 0.08 * n * k
 
 
 # ----------------------------------------------------------------------------- the Shade
 
-# ----------------------------------------------------------------------------- the Guardian of Limbo
-def build_guardian():
-    m_armor = L.mat_stone("guardian_armor", base="#5a6062", dark="#23282a", light="#868c8c", block=2.2, stretch=(1, 1, 1.3),
-                          mortar=0.025, moss=0.18, dirt=0.8, rough=0.8)
-    m_robe = mat_robe("guardian_robe", base="#2f3634", dark="#0b0e0d")
-    m_iron = L.mat_metal("guardian_iron", base="#3c3a38", patina="#5a3a20", patina_amt=0.6, rough=0.55, metal_max=0.8)
-    m_blade = L.mat_rock("guardian_blade", base="#4c5254", dark="#1d2123", light="#7a8082", moss=0.0, scale=1.2)
-
-    skirt = lathe("skirt", [(1.7, 0.15), (1.55, 0.8), (1.3, 1.6), (1.05, 2.3), (0.92, 2.8), (0.8, 3.3), (0.0, 3.35)], steps=48)
-    L.mod(skirt, "SUBSURF", levels=1)
-    L.apply_all(skirt)
-    ragged_hem(skirt, 1.0, 0.7, 3.0)
-    skirt.data.materials.append(m_robe)
-    chest = L.blob("chest", 1.0, seed=4, squash=(1.25, 0.8, 1.15), rough=0.12, sub=4)
-    for v in chest.data.vertices:
-        v.co += Vector((0, 0, 3.7))
-    chest.data.materials.append(m_armor)
-    belt = bpy.data.objects.new("belt", bpy.data.meshes.new("belt"))
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.86, minor_radius=0.2, location=(0, 0, 2.8))
-    belt = bpy.context.active_object
-    belt.scale = (1.08, 0.9, 1.0)
-    belt.data.materials.append(m_iron)
-    pads = []
-    for sx in (-1, 1):
-        p = L.blob("pad", 0.62, seed=5 + sx, squash=(1.1, 1.0, 0.55), rough=0.15, sub=4)
-        for v in p.data.vertices:
-            v.co += Vector((sx * 1.35, 0, 4.35))
-        p.data.materials.append(m_armor)
-        pads.append(p)
-        for k in range(3):   # spikes along the pauldron
-            b = Vector((sx * (1.15 + 0.22 * k), 0.1 - 0.15 * k, 4.6))
-            sp = tube("spike", [(b, 0.09), (b + Vector((sx * 0.25, 0.05, 0.5)), 0.01)], seg=8, sub=2)
-            sp.data.materials.append(m_iron)
-            pads.append(sp)
-    body = join("Body", [skirt, chest, belt] + pads)
-    set_origin(body, (0, 0, 0))
-    parts = [body]
-
-    helm = L.blob("helm", 1.0, seed=9, squash=(0.42, 0.5, 0.62), rough=0.08, sub=4)
-    for v in helm.data.vertices:
-        v.co += Vector((0, 0, 5.15))
-    helm.data.materials.append(m_armor)
-    horns = []
-    for sx in (-1, 1):
-        b = Vector((sx * 0.32, 0.05, 5.45))
-        h = tube("horn", [(b, 0.12), (b + Vector((sx * 0.35, 0.15, 0.35)), 0.08), (b + Vector((sx * 0.5, 0.45, 0.85)), 0.04), (b + Vector((sx * 0.42, 0.75, 1.15)), 0.005)], seg=10, sub=3)
-        h.data.materials.append(m_iron)
-        horns.append(h)
-    head = join("Head", [helm] + horns)
-    set_origin(head, (0, 0, 4.7))
-    parent(head, body)
-    parts.append(head)
-
-    arm_parts = {}
-    for side, sx in (("L", 1), ("R", -1)):
-        sh = Vector((sx * 1.4, 0, 4.2))
-        el = sh + Vector((sx * 0.35, -0.35, -1.2))
-        wr = el + Vector((sx * -0.05, -0.85, -0.45))
-        up = tube("up", [(sh, 0.32), (sh + (el - sh) * 0.5, 0.36), (el, 0.28)], seg=14, sub=2)
-        up.data.materials.append(m_armor)
-        up = join(f"Arm{side}_0", [up])
-        fo = tube("fo", [(el, 0.28), (el + (wr - el) * 0.5, 0.3), (wr, 0.24)], seg=14, sub=2)
-        fist = L.blob("fist", 0.3, seed=11 + sx, squash=(1, 1.1, 0.9), rough=0.1, sub=3)
-        for v in fist.data.vertices:
-            v.co += wr + Vector((0, -0.15, 0))
-        for o in (fo, fist):
-            o.data.materials.append(m_armor)
-        fo = join(f"Arm{side}_1", [fo, fist])
-        set_origin(up, sh)
-        set_origin(fo, el)
-        parent(up, body)
-        parent(fo, up)
-        parts += [up, fo]
-        arm_parts[side] = (fo, wr + Vector((0, -0.15, 0)))
-
-    # the lantern hangs from the left fist on a chain-ring
-    fo, hand = arm_parts["L"]
-    lc = hand + Vector((0, -0.1, -0.75))
-    cage = []
-    bpy.ops.mesh.primitive_cylinder_add(vertices=8, radius=0.42, depth=0.12, location=lc + Vector((0, 0, 0.45)))
-    cage.append(bpy.context.active_object)
-    bpy.ops.mesh.primitive_cylinder_add(vertices=8, radius=0.36, depth=0.1, location=lc + Vector((0, 0, -0.45)))
-    cage.append(bpy.context.active_object)
-    for k in range(8):
-        a = k / 8 * math.tau
-        p = lc + Vector((math.cos(a) * 0.38, math.sin(a) * 0.38, 0))
-        cage.append(tube("bar", [(p + Vector((0, 0, -0.45)), 0.035), (p + Vector((0, 0, 0.45)), 0.035)], seg=6, sub=1))
-    cage.append(tube("chain", [(hand, 0.05), (hand + Vector((0, -0.05, -0.15)), 0.05), (lc + Vector((0, 0, 0.5)), 0.04)], seg=8, sub=2))
-    for o in cage:
-        o.data.materials.clear()
-        o.data.materials.append(m_iron)
-    lantern = join("Lantern", cage)
-    set_origin(lantern, hand)
-    parent(lantern, fo)
-    parts.append(lantern)
-
-    # the blade: a huge chipped stone sword held point-down in the right fist
-    fo, hand = arm_parts["R"]
-    bm = bmesh.new()
-    prof = [(0.0, 0.0), (0.34, 0.2), (0.3, 2.6), (0.0, 3.6), (-0.3, 2.6), (-0.34, 0.2)]
-    top = [bm.verts.new((x, 0.09, -z)) for x, z in prof]
-    bot = [bm.verts.new((x, -0.09, -z)) for x, z in prof]
-    bm.faces.new(top)
-    bm.faces.new(list(reversed(bot)))
-    n = len(prof)
-    for i in range(n):
-        bm.faces.new((top[i], top[(i + 1) % n], bot[(i + 1) % n], bot[i]))
-    blade = L.from_bmesh("blade", bm, smooth=False)
-    L.mod(blade, "BEVEL", width=0.04, segments=2)
-    L.mod(blade, "SUBSURF", levels=2)
-    L.apply_all(blade)
-    L.displace(blade, 0.06, 0.4, 13)
-    L.apply_all(blade)
-    hilt = tube("hilt", [(Vector((-0.55, 0, 0.12)), 0.08), (Vector((0, 0, 0.18)), 0.1), (Vector((0.55, 0, 0.12)), 0.08)], seg=8, sub=2)
-    grip = tube("grip", [(Vector((0, 0, 0.18)), 0.09), (Vector((0, 0, 0.75)), 0.08)], seg=8, sub=1)
-    blade.data.materials.append(m_blade)
-    for o in (hilt, grip):
-        o.data.materials.append(m_iron)
-    sword = join("Blade", [blade, hilt, grip])
-    sword.data.transform(Matrix.Translation(hand - Vector((0, 0, 0.5))))
-    set_origin(sword, hand)
-    parent(sword, fo)
-    parts.append(sword)
-
-    for o in parts:
-        L.shade_smooth(o, 50)
-    L.bake_group(parts, "guardian", size=2048, ao_dist=0.6)
-
-    heart = uv_sphere("Heart", 0.3, (0, -0.86, 3.75), scale=(1, 0.6, 1.1), seg=20, rings=14)
-    heart.data.materials.append(glow("guardian_heart", "#7dffb2", 10.0))
-    parent(heart, body)
-    visor = uv_sphere("GlowVisor", 1.0, (0, -0.44, 5.12), scale=(0.3, 0.06, 0.035), seg=16, rings=8)
-    visor.data.materials.append(glow("guardian_visor", "#b8ffd6", 12.0))
-    parent(visor, head)
-    core = uv_sphere("GlowLantern", 0.26, arm_parts["L"][1] + Vector((0, -0.1, -0.75)), seg=18, rings=12)
-    core.data.materials.append(glow("guardian_lantern", "#d8ffe0", 14.0))
-    parent(core, lantern)
-    L.export_tree("guardian", body)
 
 
 # ----------------------------------------------------------------------------- the second circle: Wrath
@@ -1487,8 +1326,8 @@ def build_hell_lord():
     parent(ge, head)
     L.export_tree("hell_lord", body)
 
-# shade, crawler: import_creatures.py (sculpted, from Models/lvl1)
-ASSETS = {"guardian": build_guardian,
+# shade, crawler, guardian: import_creatures.py (sculpted, from Models/lvl1)
+ASSETS = {
           "imp": build_imp, "brute": build_brute, "burrower": build_burrower, "colossus": build_colossus,
           "collector": build_collector, "goldguard": build_goldguard, "usurer": build_usurer,
           "dweller": build_dweller, "envious": build_envious, "wraith": build_wraith, "devourer": build_devourer,

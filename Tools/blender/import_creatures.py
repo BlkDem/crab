@@ -3,6 +3,7 @@ Sculpted models of the first circle (Models/lvl1, from Tripo) brought into the g
   creatures, rigged here to what their code moves —
     shade    (the Shade of Limbo, 2.5 m): Body > ArmL, ArmR; GlowEyes in the hood;
     crawler  (the Scavenger, 1.5 m long): Body > Jaw, Tail, Leg{L,R}{0,1}_0 > _1 (0 front, 1 back); GlowEyes;
+    guardian (the Guardian of Limbo, 5.6 m): Body > Head, Arm{L,R}_0 > _1; Heart, Lantern, GlowLantern;
   and things that only stand: poet (the colossus on the cliff), gate_statue, castle_far (in the fog).
 A creature's bones are placed from its shape: the arms where the shroud's sides reach out past the
 robe, the legs over the feet (where it touches the ground), the jaw under the skull's front. Each
@@ -197,6 +198,65 @@ def build_crawler():
     export("crawler", "Enemies", [arm, ob, ey])
 
 
+def build_guardian():
+    """The Guardian of Limbo (5.6 m): Body > Head, ArmL_0 > ArmL_1 (the lantern's arm), ArmR_0 > ArmR_1
+    (the sword's); Lantern and GlowLantern in the lantern, Heart (a glowing core the game hits) in the
+    chest. The arms are named by what they hold (the game's ArmL holds the lantern), not by side."""
+    ob = load("страж.glb", height=5.6)
+    H = 5.6
+    co = [v.co for v in ob.data.vertices]
+    # which side holds the lantern: the lantern hangs lower and wider than the sword's hand
+    low = [c for c in co if 0.27 * H < c.z < 0.37 * H and abs(c.x) > 0.24 * H]
+    lx = -1 if sum(1 for c in low if c.x < 0) > sum(1 for c in low if c.x > 0) else 1
+    arms = {"ArmL": lx, "ArmR": -lx}
+    sh, el, hd = 0.79 * H, 0.61 * H, 0.45 * H
+    bones = [("Body", (0, 0, 0), (0, 0, 0.6 * H), None), ("Head", (0, 0, 0.84 * H), (0, 0, 0.98 * H), "Body")]
+    for name, sx in arms.items():
+        bones += [(name + "_0", (sx * 0.16 * H, 0, sh), (sx * 0.21 * H, 0, el), "Body"),
+                  (name + "_1", (sx * 0.21 * H, 0, el), (sx * 0.23 * H, -0.02 * H, hd), name + "_0")]
+    arm = armature(bones)
+    weights = []
+    for c in co:
+        w = {"Body": 1.0}
+        x, z = c.x, c.z
+        for name, sx in arms.items():
+            out = x * sx
+            if z < 0.47 * H:        # the hand and what it holds (lantern, sword), out past the robe
+                k = smooth(0.18 * H, 0.205 * H, out)
+                if k > 0:
+                    w = {"Body": 1 - k, name + "_1": k}
+            elif z < 0.8 * H:       # forearm, then the upper arm, out past the chest
+                edge = 0.15 * H - 0.02 * H * smooth(0.62 * H, 0.78 * H, z)
+                k = smooth(edge - 0.01 * H, edge + 0.015 * H, out) * (1 - smooth(0.78 * H, 0.81 * H, z))
+                if k > 0:
+                    f = smooth(el - 0.03 * H, el + 0.03 * H, z)
+                    w = {"Body": 1 - k, name + "_1": k * (1 - f), name + "_0": k * f}
+        if z > 0.82 * H and abs(x) < 0.12 * H:
+            k = smooth(0.82 * H, 0.86 * H, z)
+            w = {"Body": 1 - k, "Head": k}
+        weights.append(w)
+    skin(ob, arm, weights)
+    # the heart: the green crystal on the chest, glowing a little out of it
+    chest = [c for c in co if 0.68 * H < c.z < 0.76 * H and abs(c.x) < 0.06 * H]
+    fy = min(c.y for c in chest)
+    heart = eyes(arm, "Body", [(0, fy + 0.05, 0.72 * H)], 0.028 * H, "#6dff9e")
+    heart.name = heart.data.name = "Heart"
+    lantern_pts = [c for c in co if 0.25 * H < c.z < 0.42 * H and c.x * lx > 0.22 * H]
+    lc = sum(lantern_pts, Vector()) / len(lantern_pts)
+    core = eyes(arm, "ArmL_1", [tuple(lc)], 0.025 * H, "#c8ffd8")
+    core.name = core.data.name = "GlowLantern"
+    lant = bpy.data.objects.new("Lantern", None)
+    L.link(lant)
+    lant.parent = arm
+    lant.parent_type = "BONE"
+    lant.parent_bone = "ArmL_1"
+    bpy.context.view_layer.update()
+    lant.matrix_world = Matrix.Translation(lc)
+    ob.name = ob.data.name = "Armour"
+    print("GUARDIAN lantern side", lx, "lantern", tuple(round(v, 2) for v in lc))
+    export("guardian", "Enemies", [arm, ob, heart, core, lant])
+
+
 # ----------------------------------------------------------------------------- things that stand
 def build_poet():
     ob = load("Статуя поэта.glb", height=11.0)
@@ -216,7 +276,7 @@ def build_castle_far():
     export("castle_far", "World", [ob])
 
 
-BUILD = {"shade": build_shade, "crawler": build_crawler, "poet": build_poet,
+BUILD = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guardian, "poet": build_poet,
          "gate_statue": build_gate_statue, "castle_far": build_castle_far}
 
 

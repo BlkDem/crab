@@ -24,7 +24,8 @@ namespace Crab.Game
         public event Action<int> PhaseChanged;
 
         Health health;
-        Transform body, head, armL0, armL1, armR0, armR1, lantern, heart, lanternCore;
+        Transform body, lantern, heart, lanternCore;
+        BoneTurn head, armL0, armR0;
         Vector3 center;
         bool fighting, dead;
         float yaw;
@@ -47,11 +48,9 @@ namespace Crab.Game
             yaw = transform.eulerAngles.y;
             if (!model && transform.childCount > 0) model = transform.GetChild(0);
             body = model ? CrabRig.BodyOf(model) : CrabRig.Find(transform, "Body");
-            head = CrabRig.Find(transform, "Head");
-            armL0 = CrabRig.Find(transform, "ArmL_0");
-            armL1 = CrabRig.Find(transform, "ArmL_1");
-            armR0 = CrabRig.Find(transform, "ArmR_0");
-            armR1 = CrabRig.Find(transform, "ArmR_1");
+            head = BoneTurn.Of(CrabRig.Find(transform, "Head"), body);
+            armL0 = BoneTurn.Of(CrabRig.Find(transform, "ArmL_0"), body);
+            armR0 = BoneTurn.Of(CrabRig.Find(transform, "ArmR_0"), body);
             lantern = CrabRig.Find(transform, "Lantern");
             lanternCore = CrabRig.Find(transform, "GlowLantern");
             heart = CrabRig.Find(transform, "Heart");
@@ -129,9 +128,9 @@ namespace Crab.Game
                 body.localPosition = new Vector3(0, Mathf.Lerp(-2.2f, 0, rise) + Mathf.Sin(Time.time * 0.8f) * 0.05f, 0);
                 body.localRotation = Quaternion.Slerp(body.localRotation, Quaternion.Euler(Mathf.Lerp(25, 0, rise), 0, 0) * bodyGoal, dt * 4);
             }
-            if (head) head.localRotation = Quaternion.Slerp(head.localRotation, Quaternion.Euler(Mathf.Lerp(30, 0, rise), 0, 0), dt * 3);
-            if (armL0) armL0.localRotation = Quaternion.Slerp(armL0.localRotation, armLGoal, dt * 5);
-            if (armR0) armR0.localRotation = Quaternion.Slerp(armR0.localRotation, armRGoal, dt * 5);
+            head?.Toward(Quaternion.Euler(Mathf.Lerp(30, 0, rise), 0, 0), dt * 3);
+            armL0?.Toward(armLGoal, dt * 5);
+            armR0?.Toward(armRGoal, dt * 5);
         }
 
         static Quaternion Raise(float deg) => Quaternion.AngleAxis(-deg, Vector3.right);
