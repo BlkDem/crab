@@ -283,8 +283,11 @@ namespace Crab.Game
             UpdateSlots(st);
             promptText.text = Story.Prompt ?? "";
             prompt.style.display = string.IsNullOrEmpty(Story.Prompt) ? DisplayStyle.None : DisplayStyle.Flex;
+            // the crosshair: whenever something in the claw shoots or flies; bright while aiming
             bool aim = hero.Combat && (hero.Combat.Aiming || hero.Combat.firstPerson);
-            crosshair.style.display = aim ? DisplayStyle.Flex : DisplayStyle.None;
+            bool ranged = eq != null && (eq.kind == WeaponKind.Gun || eq.kind == WeaponKind.Throw);
+            crosshair.style.display = aim || ranged ? DisplayStyle.Flex : DisplayStyle.None;
+            crosshair.style.opacity = aim ? 1 : 0.55f;
             bool fight = guardian != null && guardian.Fighting;
             if (fight) bossName.text = guardian.Title;
             boss.style.display = fight ? DisplayStyle.Flex : DisplayStyle.None;

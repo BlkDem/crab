@@ -35,6 +35,15 @@ namespace Crab.Game
             if (GameSession.Instance) State.Items.Changed -= Refresh;
         }
 
+        /// <summary>The claw is a new one (the crab changed its form): take the item up again.</summary>
+        public void Regrip()
+        {
+            if (held) Destroy(held);
+            held = null;
+            heldId = ItemId.None;
+            Refresh();
+        }
+
         /// <summary>Show the equipped item in the claw.</summary>
         void Refresh()
         {
@@ -243,11 +252,17 @@ namespace Crab.Game
             State.Items.Take(bp.ammo);
             var from = muzzle ? muzzle.position : (hero.Rig.gripRight ? hero.Rig.gripRight.position : transform.position + Vector3.up * 0.4f);
             var point = AimPoint(bp.range, out var col);
-            var tint = bp.energy ? new Color(0.45f, 0.9f, 1f) : new Color(1f, 0.85f, 0.5f);
-            Fx.Tracer(from, point, tint, bp.energy ? 0.06f : 0.03f, bp.energy ? 0.12f : 0.07f);
-            Fx.Flash(from, tint, 4, 5);
-            Fx.Burst(from, tint, 6, 3, 0.05f, 0.15f);
-            Sfx.Play("shot", from, 0.9f, bp.energy ? 1.6f : 1);
+            var look = Look(bp);
+            var tint = look.color;
+            // the shot flies (the harm is done at once; what it does where it lands, when it gets there)
+            Fx.Bolt(from, point, tint, look.width, look.length, look.speed, look.glow, at =>
+            {
+                Fx.Burst(at, tint, look.sparks, 2.5f, look.width * 0.8f, 0.35f, true, 0.8f);
+                if (look.glow > 0) Fx.Flash(at, tint, look.glow, 3, 0.1f);
+            });
+            Fx.Flash(from, tint, look.flash, 5);
+            Fx.Burst(from, tint, look.sparks / 2, 3, 0.05f, 0.15f);
+            Sfx.Play("shot", from, 0.9f, look.pitch);
             hero.Cam.Shake(0.2f);
             hero.Cam.Kick(3);
             hero.Rig.Play(ClawPose.Aim, 0.3f);
@@ -268,5 +283,24 @@ namespace Crab.Game
             }
             Fx.Burst(point, h != null ? new Color(0.6f, 1f, 0.7f) : new Color(0.8f, 0.75f, 0.7f), 10, 2.5f, 0.05f, 0.35f, h != null, 0.8f);
         }
+
+        struct ShotLook
+        {
+            public Color color;
+            public float width, length, speed, glow, flash, pitch;
+            public int sparks;
+        }
+
+        /// <summary>What a gun's shot looks like: a pistol's yellow bullet, the machine gun's short orange
+        /// tracers, the energy rifle's thick cyan bolt, the gravity gun's slow violet clot.</summary>
+        static ShotLook Look(Blueprint bp) => bp.id switch
+        {
+            ItemId.MachineGun => new ShotLook { color = new Color(1f, 0.55f, 0.2f), width = 0.06f, length = 1.4f, speed = 90, glow = 1, flash = 4, pitch = 1.15f, sparks = 6 },
+            ItemId.EnergyRifle => new ShotLook { color = new Color(0.4f, 0.9f, 1f), width = 0.16f, length = 2f, speed = 55, glow = 3, flash = 6, pitch = 1.6f, sparks = 14 },
+            ItemId.GravityGun => new ShotLook { color = new Color(0.75f, 0.45f, 1f), width = 0.32f, length = 0.6f, speed = 24, glow = 4, flash = 6, pitch = 0.7f, sparks = 20 },
+            _ => bp.energy
+                ? new ShotLook { color = new Color(0.45f, 0.9f, 1f), width = 0.12f, length = 1.5f, speed = 60, glow = 2, flash = 5, pitch = 1.6f, sparks = 10 }
+                : new ShotLook { color = new Color(1f, 0.85f, 0.4f), width = 0.1f, length = 1.1f, speed = 80, glow = 1.5f, flash = 4, pitch = 1, sparks = 8 },
+        };
     }
 }

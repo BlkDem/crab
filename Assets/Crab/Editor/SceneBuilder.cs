@@ -126,7 +126,9 @@ namespace Crab.EditorTools
             string path = $"{Gen}/Library.asset";
             var l = AssetDatabase.LoadAssetAtPath<Library>(path);
             if (!l) { l = ScriptableObject.CreateInstance<Library>(); AssetDatabase.CreateAsset(l, path); }
-            l.hero = Glb("Hero/hero");
+            l.hero = Glb("Hero/crab");
+            l.heroForms = new GameObject[7];
+            for (int lv = 2; lv <= 6; lv++) l.heroForms[lv] = Glb($"Hero/form{lv}");
             l.items = new List<Library.Named>();
             foreach (var (id, file) in new[] { (ItemId.Stick, "stick"), (ItemId.Stone, "stone"), (ItemId.Crowbar, "crowbar"), (ItemId.Knife, "knife"), (ItemId.Pistol, "pistol"), (ItemId.MachineGun, "machinegun"), (ItemId.EnergyRifle, "energy_rifle"), (ItemId.EnergyBlade, "energy_blade"), (ItemId.GravityGun, "gravity_gun") })
                 l.items.Add(new Library.Named { name = id.ToString(), model = Glb("Items/" + file) });

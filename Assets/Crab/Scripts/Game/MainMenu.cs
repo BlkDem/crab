@@ -1,5 +1,5 @@
 // The title screen: the crab on the beach behind a big "КРАБ ПРОТИВ АДА"; continue (with the
-// circle the save stands in), new game, settings, quit. The camera drifts slowly around the scene.
+// circle the save stands in), new game, settings, "Отладка" (any chapter at once: DebugMode), quit. The camera drifts slowly around the scene.
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,7 +11,7 @@ namespace Crab.Game
         public Transform orbitCenter;
         public Camera cam;
         float t;
-        VisualElement col, settings;
+        VisualElement col, settings, debug;
 
         public static string Chapter(string scene) => scene switch
         {
@@ -31,6 +31,7 @@ namespace Crab.Game
 
         void OnEnable()
         {
+            DebugMode.Leave();   // the title screen speaks of the real save
             var root = GetComponent<UIDocument>().rootVisualElement;
             root.Clear();
             root.AddToClassList("screen");
@@ -76,6 +77,12 @@ namespace Crab.Game
                 settings.AddToClassList("main-settings");
                 root.Add(settings);
             });
+            Btn(btns, "Отладка: любой круг", () =>
+            {
+                col.style.display = DisplayStyle.None;
+                debug = DebugPanel(() => { debug.RemoveFromHierarchy(); debug = null; col.style.display = DisplayStyle.Flex; });
+                root.Add(debug);
+            });
             Btn(btns, "Выход", () =>
             {
 #if UNITY_EDITOR
@@ -90,6 +97,36 @@ namespace Crab.Game
             btns.schedule.Execute(() => btns.Q<Button>()?.Focus());   // a gamepad starts on the first button
             UnityEngine.Cursor.lockState = CursorLockMode.None;
             UnityEngine.Cursor.visible = true;
+        }
+
+        /// <summary>Every chapter, started with what the crab would have by then.</summary>
+        static VisualElement DebugPanel(System.Action back)
+        {
+            var p = new VisualElement();
+            p.AddToClassList("main-settings");
+            p.AddToClassList("main-col");
+            var head = new Label("Отладка — начать с главы");
+            head.AddToClassList("main-sub");
+            p.Add(head);
+            var grid = new VisualElement();
+            grid.style.flexDirection = FlexDirection.Row;
+            grid.style.flexWrap = Wrap.Wrap;
+            grid.style.justifyContent = Justify.Center;
+            grid.style.width = 520;
+            p.Add(grid);
+            foreach (var scene in DebugMode.Chapters)
+            {
+                var b = Btn(grid, Chapter(scene), () => DebugMode.Start(scene));
+                b.style.width = 240;
+                b.style.marginLeft = b.style.marginRight = 6;
+            }
+            var note = new Label("Своё сохранение, настоящее не трогается. В игре: F7 / F8 — уровень краба ниже / выше, F6 — следующая глава.");
+            note.AddToClassList("menu-note");
+            note.style.width = 500;
+            p.Add(note);
+            Btn(p, "Назад", back);
+            p.schedule.Execute(() => grid.Q<Button>()?.Focus());
+            return p;
         }
 
         static Button Btn(VisualElement parent, string text, System.Action click)

@@ -18,6 +18,8 @@ namespace Crab.Game
         }
 
         public GameObject hero;
+        /// <summary>The crab's later forms by level (2..6; null where the form before goes on).</summary>
+        public GameObject[] heroForms = new GameObject[0];
         public List<Named> items = new List<Named>();
         public GameObject shade, crawler, guardian, gull, morsel, stone;
         public GameObject imp, brute, burrower, colossus, armor, drone;

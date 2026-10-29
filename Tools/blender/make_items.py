@@ -1,5 +1,6 @@
 """
-Items the crab creates from matter (level 1): stick, stone, crowbar, knife, crude pistol.
+Items the crab creates from matter and the things it wears and leads: stick, stone, crowbar,
+armour, drones, robots... (the guns and blades come from sculpted sheets: import_items.py).
 
 Run headless:
   blender -b -P Tools/blender/make_items.py -- <out_dir> [asset ...]
@@ -71,113 +72,10 @@ def build_crowbar():
     L.export_tree("crowbar", ob)
 
 
-def build_knife():
-    """A rough knife hammered out of a scrap plate, its handle wrapped in rag strips."""
-    bm = bmesh.new()
-    # blade outline (in the XY plane, pointing -Y), extruded thin, with a bevelled edge
-    outline = [(0.0, -0.04), (0.018, -0.045), (0.022, -0.12), (0.016, -0.2), (0.0, -0.26), (-0.006, -0.2),
-               (-0.01, -0.12), (-0.012, -0.045)]
-    top = [bm.verts.new((x, y, 0.003)) for x, y in outline]
-    bot = [bm.verts.new((x, y, -0.003)) for x, y in outline]
-    bm.faces.new(top)
-    bm.faces.new(list(reversed(bot)))
-    n = len(outline)
-    for i in range(n):
-        bm.faces.new((top[i], top[(i + 1) % n], bot[(i + 1) % n], bot[i]))
-    for v in top + bot:   # sharpen the cutting side
-        if v.co.x > 0.012 and v.co.y < -0.06:
-            v.co.z *= 0.2
-    blade = L.from_bmesh("blade", bm, smooth=False)
-    L.mod(blade, "BEVEL", width=0.0015, segments=1)
-    blade.data.materials.append(mat_iron("knife_blade", base="#8a8682", rust="#6a3416", amount=0.4))
-    handle = tube("handle", [((0, 0.07, 0), 0.013), ((0, 0.02, 0), 0.015), ((0, -0.04, 0), 0.014)], seg=10, sub=2)
-    handle.data.materials.append(L.mat_canvas("knife_rag", base="#6e6252", dark="#3a3024", moss=0.0))
-    ob = join("Knife", [blade, handle])
-    L.bake(ob, size=512)
-    empty("Tip", (0, -0.26, 0), ob)
-    L.export_tree("knife", ob)
 
 
-def build_pistol():
-    """A home-made pistol: a pipe barrel strapped with wire to a wooden grip, a nail trigger."""
-    m_pipe = mat_iron("pistol_pipe", base="#5a5753", rust="#7a3a18", amount=0.5)
-    m_wood = L.mat_wood("pistol_wood", base="#6a4428", dark="#2e1a0c", light="#946a40", rings=30, along="Y")
-    m_wire = L.mat_metal("pistol_wire", base="#9a7a4a", patina="#4a3a22", patina_amt=0.3, rough=0.4)
-    bpy.ops.mesh.primitive_cylinder_add(vertices=20, radius=0.018, depth=0.26, location=(0, -0.11, 0.06), rotation=(math.pi / 2, 0, 0))
-    barrel = bpy.context.active_object
-    bpy.ops.mesh.primitive_cylinder_add(vertices=20, radius=0.011, depth=0.27, location=(0, -0.11, 0.06), rotation=(math.pi / 2, 0, 0))
-    bore = bpy.context.active_object
-    L.boolean(barrel, bore)
-    barrel.data.materials.append(m_pipe)
-    # the grip block slanting down and back, and the stock plate under the barrel
-    bm = bmesh.new()
-    bmesh.ops.create_cube(bm, size=1)
-    for v in bm.verts:
-        v.co = Vector((v.co.x * 0.03, v.co.y * 0.05, v.co.z * 0.13))
-    bmesh.ops.transform(bm, matrix=Matrix.Translation((0, 0.02, -0.01)) @ Matrix.Rotation(-0.35, 4, "X"), verts=bm.verts)
-    grip = L.from_bmesh("grip", bm, smooth=False)
-    L.mod(grip, "BEVEL", width=0.006, segments=2)
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, -0.05, 0.035))
-    stock = bpy.context.active_object
-    stock.scale = (0.032, 0.18, 0.022)
-    L.mod(stock, "BEVEL", width=0.004, segments=2)
-    for o in (grip, stock):
-        o.data.materials.append(m_wood)
-    wraps = []
-    for y in (-0.02, -0.1, -0.17):
-        bpy.ops.mesh.primitive_torus_add(major_radius=0.024, minor_radius=0.0025, location=(0, y, 0.048), rotation=(math.pi / 2, 0, 0))
-        w = bpy.context.active_object
-        w.scale = (1.0, 1.0, 1.35)
-        w.data.materials.append(m_wire)
-        wraps.append(w)
-    trig = tube("trigger", [((0, 0.0, 0.015), 0.003), ((0, 0.005, -0.01), 0.003), ((0, 0.015, -0.025), 0.0025)], seg=6, sub=2)
-    trig.data.materials.append(m_wire)
-    ob = join("Pistol", [barrel, grip, stock, trig] + wraps)
-    L.bake(ob, size=512)
-    empty("Muzzle", (0, -0.24, 0.06), ob)
-    L.export_tree("pistol", ob)
 
 
-def build_machinegun():
-    """Three scrap pipes bound into a barrel cluster on an iron body, an ammo box hanging under it."""
-    m_pipe = mat_iron("mg_pipe", base="#4a4846", rust="#6a3416", amount=0.45)
-    m_body = mat_iron("mg_body", base="#3a3836", rust="#7a3a18", amount=0.6)
-    m_wood = L.mat_wood("mg_wood", base="#5a3a22", dark="#2a180a", light="#7a5838", rings=30, along="Y")
-    parts = []
-    for k in range(3):
-        a = k / 3 * math.tau
-        off = Vector((math.cos(a) * 0.022, 0, 0.07 + math.sin(a) * 0.022))
-        bpy.ops.mesh.primitive_cylinder_add(vertices=14, radius=0.013, depth=0.36, location=Vector((0, -0.2, 0)) + off, rotation=(math.pi / 2, 0, 0))
-        b = bpy.context.active_object
-        b.data.materials.append(m_pipe)
-        parts.append(b)
-    for y in (-0.08, -0.25, -0.36):
-        bpy.ops.mesh.primitive_torus_add(major_radius=0.042, minor_radius=0.006, location=(0, y, 0.07), rotation=(math.pi / 2, 0, 0))
-        r = bpy.context.active_object
-        r.data.materials.append(m_body)
-        parts.append(r)
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0.02, 0.06))
-    box = bpy.context.active_object
-    box.scale = (0.06, 0.16, 0.07)
-    L.mod(box, "BEVEL", width=0.008, segments=2)
-    box.data.materials.append(m_body)
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0.0, -0.02, -0.02))
-    ammo = bpy.context.active_object
-    ammo.scale = (0.07, 0.08, 0.07)
-    L.mod(ammo, "BEVEL", width=0.006, segments=2)
-    ammo.data.materials.append(m_body)
-    bm = bmesh.new()
-    bmesh.ops.create_cube(bm, size=1)
-    for v in bm.verts:
-        v.co = Vector((v.co.x * 0.03, v.co.y * 0.045, v.co.z * 0.12))
-    bmesh.ops.transform(bm, matrix=Matrix.Translation((0, 0.08, -0.02)) @ Matrix.Rotation(-0.3, 4, "X"), verts=bm.verts)
-    grip = L.from_bmesh("grip", bm, smooth=False)
-    L.mod(grip, "BEVEL", width=0.006, segments=2)
-    grip.data.materials.append(m_wood)
-    ob = join("MachineGun", parts + [box, ammo, grip])
-    L.bake(ob, size=512)
-    empty("Muzzle", (0, -0.39, 0.07), ob)
-    L.export_tree("machinegun", ob)
 
 
 def build_armor():
@@ -312,47 +210,6 @@ def build_heavy_armor():
     L.export_tree("heavy_armor", ob)
 
 
-def build_energy_rifle():
-    """The energy rifle: a steel body, a gold-ringed barrel and a crystal coil that glows (GlowCoil)."""
-    m = mat_steel("rifle_steel")
-    mg = mat_goldtrim("rifle_gold")
-    md = L.mat_metal("rifle_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.4, metal_max=0.7)
-    parts = []
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, -0.02, 0.06))
-    body = bpy.context.active_object
-    body.scale = (0.05, 0.22, 0.08)
-    L.apply_all(body)
-    L.transform_apply(body)   # the root of the item: it must carry no scale (the game resets it)
-    L.mod(body, "BEVEL", width=0.01, segments=3)
-    body.data.materials.append(m)
-    parts.append(body)
-    bar = tube("barrel", [((0, -0.12, 0.08), 0.018), ((0, -0.42, 0.08), 0.014)], seg=14, sub=1)
-    bar.data.materials.append(md)
-    parts.append(bar)
-    for y in (-0.2, -0.28, -0.36):
-        bpy.ops.mesh.primitive_torus_add(major_radius=0.024, minor_radius=0.005, location=(0, y, 0.08), rotation=(math.pi / 2, 0, 0))
-        r = bpy.context.active_object
-        r.data.materials.append(mg)
-        parts.append(r)
-    bm = bmesh.new()
-    bmesh.ops.create_cube(bm, size=1)
-    for v in bm.verts:
-        v.co = Vector((v.co.x * 0.035, v.co.y * 0.05, v.co.z * 0.12))
-    bmesh.ops.transform(bm, matrix=Matrix.Translation((0, 0.06, -0.02)) @ Matrix.Rotation(-0.3, 4, "X"), verts=bm.verts)
-    grip = L.from_bmesh("grip", bm, smooth=False)
-    L.mod(grip, "BEVEL", width=0.006, segments=2)
-    grip.data.materials.append(md)
-    parts.append(grip)
-    stock = tube("stock", [((0, 0.09, 0.06), 0.03), ((0, 0.2, 0.04), 0.035)], seg=10, sub=1, flat=0.6, flat_axis=(1, 0, 0))
-    stock.data.materials.append(md)
-    parts.append(stock)
-    ob = join("EnergyRifle", parts)
-    L.bake(ob, size=512)
-    coil = tube("GlowCoil", [((0, -0.04, 0.115), 0.012), ((0, -0.14, 0.115), 0.012)], seg=6, sub=1)
-    coil.data.materials.append(L.mat_plain("rifle_coil", "#4ad8ff", rough=0.2, emission=("#4ad8ff", 10.0)))
-    parent(coil, ob)
-    empty("Muzzle", (0, -0.43, 0.08), ob)
-    L.export_tree("energy_rifle", ob)
 
 
 def build_tank():
@@ -425,65 +282,8 @@ def build_tank():
 
 
 # ---------------------------------------------------------------------- level 4 (circle of Envy)
-def build_energy_blade():
-    """The energy blade: a gilded hilt with a crystal, the blade itself pure light (GlowBlade)."""
-    mg = mat_goldtrim("blade_gold")
-    md = L.mat_metal("blade_dark", base="#2a2c30", patina="#1a1a1c", patina_amt=0.2, rough=0.4, metal_max=0.6)
-    grip = tube("grip", [((0, 0.06, 0), 0.016), ((0, -0.05, 0), 0.016)], seg=10, sub=1)
-    grip.data.materials.append(md)
-    guard = tube("guard", [((-0.05, -0.055, 0), 0.01), ((0, -0.06, 0), 0.014), ((0.05, -0.055, 0), 0.01)], seg=8, sub=2)
-    guard.data.materials.append(mg)
-    pommel = uv_sphere("pommel", 0.02, (0, 0.07, 0), seg=10, rings=8)
-    pommel.data.materials.append(mg)
-    ob = join("EnergyBlade", [grip, guard, pommel])
-    L.bake(ob, size=256)
-    bm = bmesh.new()
-    pts = [(-0.018, -0.065), (0.018, -0.065), (0.012, -0.5), (0.0, -0.56), (-0.012, -0.5)]
-    f = [bm.verts.new((x, y, -0.004)) for x, y in pts]
-    b = [bm.verts.new((x, y, 0.004)) for x, y in pts]
-    bm.faces.new(f)
-    bm.faces.new(list(reversed(b)))
-    for i in range(len(pts)):
-        bm.faces.new((f[(i + 1) % len(pts)], f[i], b[i], b[(i + 1) % len(pts)]))
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    blade = L.from_bmesh("GlowBlade", bm, smooth=False)
-    blade.data.materials.append(L.mat_plain("blade_light", "#c8a0ff", rough=0.2, emission=("#c8a0ff", 10.0)))
-    parent(blade, ob)
-    empty("Tip", (0, -0.56, 0), ob)
-    L.export_tree("energy_blade", ob)
 
 
-def build_gravity_gun():
-    """The gravity gun: a short dark body with three gold prongs around a violet core (GlowCore)."""
-    md = L.mat_metal("grav_dark", base="#3a3a44", patina="#1a1a20", patina_amt=0.2, rough=0.35, metal_max=0.6)
-    mg = mat_goldtrim("grav_gold")
-    body = lathe("body", [(0.0, 0.12), (0.045, 0.12), (0.055, 0.0), (0.05, -0.12), (0.0, -0.12)], steps=20)
-    for v in body.data.vertices:
-        v.co = Vector((v.co.x, -v.co.z, v.co.y + 0.06))
-    body.data.materials.append(md)
-    parts = [body]
-    for k in range(3):
-        a = k / 3 * math.tau + math.pi / 2
-        o = Vector((math.cos(a) * 0.05, 0, math.sin(a) * 0.05 + 0.06))
-        pr = tube("prong", [(o + Vector((0, -0.08, 0)), 0.012), (o * 1.0 + Vector((0, -0.2, 0)) + (o - Vector((0, 0, 0.06))) * 0.6, 0.008)], seg=6, sub=1)
-        pr.data.materials.append(mg)
-        parts.append(pr)
-    bm = bmesh.new()
-    bmesh.ops.create_cube(bm, size=1)
-    for v in bm.verts:
-        v.co = Vector((v.co.x * 0.032, v.co.y * 0.045, v.co.z * 0.11))
-    bmesh.ops.transform(bm, matrix=Matrix.Translation((0, 0.06, -0.02)) @ Matrix.Rotation(-0.3, 4, "X"), verts=bm.verts)
-    grip = L.from_bmesh("grip", bm, smooth=False)
-    grip.data.materials.append(md)
-    parts.append(grip)
-    ob = join("GravityGun", parts)
-    L.transform_apply(ob)
-    L.bake(ob, size=512)
-    core = uv_sphere("GlowCore", 0.03, (0, -0.17, 0.06), seg=12, rings=8)
-    core.data.materials.append(L.mat_plain("grav_core", "#b07aff", rough=0.2, emission=("#b07aff", 12.0)))
-    parent(core, ob)
-    empty("Muzzle", (0, -0.2, 0.06), ob)
-    L.export_tree("gravity_gun", ob)
 
 
 def build_spark_core():
@@ -927,10 +727,10 @@ def build_matter_lord():
     parent(ring, halo)
     L.export_tree("matter_lord", ob)
 
-ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar, "knife": build_knife, "pistol": build_pistol,
-          "machinegun": build_machinegun, "armor": build_armor, "drone": build_drone,
-          "heavy_armor": build_heavy_armor, "energy_rifle": build_energy_rifle, "tank": build_tank,
-          "energy_blade": build_energy_blade, "gravity_gun": build_gravity_gun, "spark_core": build_spark_core,
+# knife, pistol, machinegun, energy_rifle, energy_blade, gravity_gun: import_items.py (from sculpted sheets)
+ASSETS = {"stick": build_stick, "stone": build_stone, "crowbar": build_crowbar,
+          "armor": build_armor, "drone": build_drone,
+          "heavy_armor": build_heavy_armor, "tank": build_tank, "spark_core": build_spark_core,
           "cyber_frame": build_cyber_frame, "hunter": build_hunter,
           "engineer": build_engineer, "mage_orb": build_mage_orb, "turret": build_turret,
           "battlebot": build_battlebot, "matter_lord": build_matter_lord}

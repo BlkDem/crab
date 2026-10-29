@@ -104,6 +104,114 @@ namespace Crab.Tests
         }
 
         [UnityTest]
+        public IEnumerator CrabGestures()
+        {
+            var hero = Hero.Instance;
+            hero.Invulnerable = true;
+            var model = hero.Rig.body;
+            for (int s = 0; s < 2; s++)
+            {
+                string side = s == 0 ? "L" : "R";
+                for (int i = 0; i < 4; i++)
+                    foreach (var j in new[] { "_0", "_1", "_2" }) Assert.That(CrabRig.Find(model, $"Leg{side}{i}{j}"), Is.Not.Null, $"Leg{side}{i}{j}");
+                for (int j = 0; j < 4; j++) Assert.That(CrabRig.Find(model, $"Claw{side}_{j}"), Is.Not.Null, $"Claw{side}_{j}");
+                Assert.That(CrabRig.Find(model, "Eye" + side), Is.Not.Null, "Eye" + side);
+            }
+            Assert.That(hero.Rig.gripRight && hero.Rig.gripLeft, "the grips");
+            var dir = Object.FindAnyObjectByType<LimboDirector>();
+            foreach (var e in dir.firstShades) if (e) Object.Destroy(e.gameObject);
+            var open = new Vector3(0, 0, -16);
+            open.y = Physics.Raycast(open + Vector3.up * 20, Vector3.down, out var hit, 40) ? hit.point.y : 0;
+            hero.Controller.Teleport(open, 0);
+            hero.Cam.Face(0);
+            yield return new WaitForSeconds(0.5f);
+            var front = Vector3.forward + Vector3.right * 0.6f + Vector3.up * 0.3f;
+            foreach (var pose in new[] { ClawPose.Strike, ClawPose.Throw, ClawPose.Eat, ClawPose.Create, ClawPose.Think, ClawPose.Hurt })
+            {
+                if (pose == ClawPose.Create || pose == ClawPose.Think) hero.Rig.Hold(pose);
+                else hero.Rig.Play(pose, 0.7f);
+                yield return Strip("crab-" + pose.ToString().ToLowerInvariant(), hero.transform, front, 0.3f, 2.2f, 0.12f);
+                hero.Rig.Release(pose);
+                yield return new WaitForSeconds(0.3f);
+            }
+            // things in the big claw: a stick swung, a pistol aimed
+            var st = GameSession.Instance.State;
+            st.Items.Add(ItemId.Stick);
+            st.Items.Equip(ItemId.Stick);
+            yield return new WaitForSeconds(0.3f);
+            hero.Rig.Play(ClawPose.Strike, 0.7f);
+            yield return Strip("crab-stick", hero.transform, front, 0.3f, 2.2f, 0.12f);
+            st.Items.Add(ItemId.Pistol);
+            st.Items.Add(ItemId.Ammo, 30);
+            st.Items.Equip(ItemId.Pistol);
+            yield return new WaitForSeconds(0.3f);
+            var g = hero.Rig.gripRight;
+            hero.Rig.Hold(ClawPose.Aim);
+            yield return Strip("crab-pistol", hero.transform, front, 0.3f, 2.2f, 0.2f);
+            hero.Rig.Release(ClawPose.Aim);
+            // the rest of the arsenal, each in the claw (the guns aimed)
+            foreach (var id in new[] { ItemId.Knife, ItemId.MachineGun, ItemId.EnergyRifle, ItemId.EnergyBlade, ItemId.GravityGun })
+            {
+                st.Items.Add(id);
+                st.Items.Equip(id);
+                yield return new WaitForSeconds(0.3f);
+                Assert.That(hero.Rig.gripRight.childCount, Is.EqualTo(1), id.ToString());
+                bool gun = Blueprints.Get(id).kind == WeaponKind.Gun;
+                if (gun) hero.Rig.Hold(ClawPose.Aim);
+                yield return Strip("crab-" + id.ToString().ToLowerInvariant(), hero.transform, front, 0.3f, 2.4f, 0.15f);
+                if (gun) hero.Rig.Release(ClawPose.Aim);
+            }
+            // the shots in flight, from the side: each gun its own (a shot at the start of each strip)
+            st.Items.Add(ItemId.Ammo, 60);
+            st.Items.Add(ItemId.EnergyCell, 30);
+            foreach (var id in new[] { ItemId.Pistol, ItemId.MachineGun, ItemId.EnergyRifle, ItemId.GravityGun })
+            {
+                st.Items.Equip(id);
+                yield return new WaitForSeconds(0.4f);
+                Assert.That(hero.Combat.Fire(), id.ToString());
+                yield return Strip("shot-" + id.ToString().ToLowerInvariant(), hero.transform, Vector3.right + Vector3.up * 0.3f, 0.4f, 6f, 0.03f);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CrabForms()
+        {
+            var hero = Hero.Instance;
+            hero.Invulnerable = true;
+            var st = GameSession.Instance.State;
+            foreach (var e in Object.FindAnyObjectByType<LimboDirector>().firstShades) if (e) Object.Destroy(e.gameObject);
+            var open = new Vector3(0, 0, -16);
+            open.y = Physics.Raycast(open + Vector3.up * 20, Vector3.down, out var hit, 40) ? hit.point.y : 0;
+            st.Items.Add(ItemId.Stick);
+            for (int level = 2; level <= 6; level++)
+            {
+                DebugMode.SetLevel(st, level);
+                yield return null;
+                Assert.That(hero.Form, Is.EqualTo(level), $"the form of level {level}");
+                var body = hero.Rig.body;
+                foreach (var side in new[] { "L", "R" })
+                {
+                    Assert.That(CrabRig.Find(body, $"Claw{side}_0"), Is.Not.Null, $"form {level}: Claw{side}");
+                    for (int i = 0; i < 4; i++) Assert.That(CrabRig.Find(body, $"Leg{side}{i}_1"), Is.Not.Null, $"form {level}: Leg{side}{i}");
+                }
+                Assert.That(hero.Rig.gripRight && hero.Rig.gripRight.childCount > 0, $"form {level}: the stick in the claw");
+                hero.Controller.Teleport(open, 90);
+                hero.Cam.Face(0);
+                yield return new WaitForSeconds(0.4f);
+                hero.Controller.autopilot = new Vector2(1, 0);
+                yield return new WaitForSeconds(0.6f);
+                yield return Strip($"form{level}-walk", hero.transform, Vector3.back + Vector3.up * 0.4f, 0.4f, 3.2f);
+                hero.Controller.autopilot = null;
+                yield return new WaitForSeconds(0.5f);
+                hero.Rig.Play(ClawPose.Strike, 0.7f);
+                yield return Strip($"form{level}-strike", hero.transform, hero.transform.forward + hero.transform.right * 0.6f + Vector3.up * 0.4f, 0.4f, 3.4f);
+            }
+            DebugMode.SetLevel(st, 1);
+            yield return null;
+            Assert.That(hero.Form, Is.EqualTo(1), "back to the crab after the Spark");
+        }
+
+        [UnityTest]
         public IEnumerator WrathDemons()
         {
             var st = GameSession.Instance.State;

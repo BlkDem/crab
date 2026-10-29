@@ -62,6 +62,9 @@ namespace Crab.Game
         public MatterLord Lord { get; private set; }
         GameObject lordForm;
         GameObject core, frame;
+        /// <summary>The level whose form the crab wears (1: the crab after the Spark).</summary>
+        public int Form { get; private set; } = 1;
+        Renderer[] skin = new Renderer[0];
         float regen;
 
         /// <summary>What the crab wears and who goes with it: armour on the shell (heavy over scrap),
@@ -69,10 +72,11 @@ namespace Crab.Game
         void RefreshGear()
         {
             var lib = Library.Current;
+            WearForm(lib);
             var wear = State.Items.Has(ItemId.HeavyArmor) ? ItemId.HeavyArmor : State.Items.Has(ItemId.ScrapArmor) ? ItemId.ScrapArmor : ItemId.None;
             if (armor && armorId != wear) Destroy(armor);
             var model = !lib ? null : wear == ItemId.HeavyArmor ? lib.heavyArmor : wear == ItemId.ScrapArmor ? lib.armor : null;
-            if (wear != ItemId.None && (!armor || armorId != wear) && model && Rig.body)
+            if (wear != ItemId.None && Form < 2 && (!armor || armorId != wear) && model && Rig.body)
             {
                 armor = Instantiate(model, Rig.body, false);
                 armor.name = "Armor";
@@ -108,7 +112,7 @@ namespace Crab.Game
                     foreach (var r in lordForm.GetComponentsInChildren<Renderer>())
                         if (r.name.StartsWith("GlowWings")) { r.sharedMaterial = light; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; }
                 }
-                Lord = gameObject.AddComponent<MatterLord>();
+                if (!Lord) Lord = gameObject.AddComponent<MatterLord>();
                 Lord.hero = this;
                 Controller.canGlide = true;
                 if (sparkLight) { sparkLight.color = new Color(1f, 0.92f, 0.7f); sparkLight.range = 5; }
@@ -119,7 +123,7 @@ namespace Crab.Game
                 Portal.hero = this;
             }
             // the Spark's core: a crystal crown on the shell, violet light
-            if (State.Mage && !core && lib && lib.sparkCore && Rig.body)
+            if (State.Mage && Form < 4 && !core && lib && lib.sparkCore && Rig.body)
             {
                 core = Instantiate(lib.sparkCore, Rig.body, false);
                 core.name = "SparkCore";
@@ -127,7 +131,7 @@ namespace Crab.Game
                 if (sparkLight) sparkLight.color = new Color(0.8f, 0.6f, 1f);
             }
             // the cyber-frame: mechanical limbs on the back, the scanner eye
-            if (State.Items.Has(ItemId.CyberFrame) && !frame && lib && lib.cyberFrame && Rig.body)
+            if (State.Items.Has(ItemId.CyberFrame) && Form < 5 && !frame && lib && lib.cyberFrame && Rig.body)
             {
                 frame = Instantiate(lib.cyberFrame, Rig.body, false);
                 frame.name = "CyberFrame";
@@ -174,6 +178,27 @@ namespace Crab.Game
             }
         }
 
+        /// <summary>The crab's body for its level: the latest form made for a level it has reached. The
+        /// forms are whole crabs (their armour, crystals, guns are their own), so they take the place of
+        /// the model, and the things put on the old body go with it.</summary>
+        void WearForm(Library lib)
+        {
+            if (!lib || lib.heroForms == null || !Rig) return;
+            int want = 1;
+            for (int l = Mathf.Min(State.Level, lib.heroForms.Length - 1); l >= 2; l--)
+                if (lib.heroForms[l]) { want = l; break; }
+            if (want == Form) return;
+            var model = Rig.Swap(want >= 2 ? lib.heroForms[want] : lib.hero);
+            Form = want;
+            if (armor) Destroy(armor);
+            if (core) Destroy(core);
+            if (frame) Destroy(frame);
+            if (lordForm) Destroy(lordForm);
+            armor = core = frame = lordForm = null;
+            skin = model.GetComponentsInChildren<Renderer>();
+            if (Combat) Combat.Regrip();
+        }
+
         /// <summary>The armour takes a share of every blow.</summary>
         public float Armor => State.Items.Has(ItemId.HeavyArmor) ? 0.45f : State.Items.Has(ItemId.ScrapArmor) ? 0.65f : 1f;
 
@@ -190,6 +215,9 @@ namespace Crab.Game
             if (core && core.activeSelf == Combat.firstPerson) core.SetActive(!Combat.firstPerson);
             if (frame && frame.activeSelf == Combat.firstPerson) frame.SetActive(!Combat.firstPerson);
             if (lordForm && lordForm.activeSelf == Combat.firstPerson) lordForm.SetActive(!Combat.firstPerson);
+            // a later form is a big crab around the eyes: in them it only casts its shadow
+            var cast = Combat.firstPerson && Form >= 2 ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On;
+            foreach (var r in skin) if (r && r.shadowCastingMode != cast) r.shadowCastingMode = cast;
             // the mage draws energy out of the air, slowly
             if (State.Mage && Alive)
             {

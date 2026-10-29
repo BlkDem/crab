@@ -1,6 +1,6 @@
 // Visual effects built in code from particle systems and line renderers (no hand-made prefabs):
 // bursts of sparks and dust, the stream of matter flowing into the crab, things assembling out
-// of glowing motes, shot tracers, muzzle flashes, lightning.
+// of glowing motes, shot tracers, shots in flight (bolts), muzzle flashes, lightning.
 using System.Collections;
 using UnityEngine;
 
@@ -116,6 +116,97 @@ namespace Crab.Game
             lr.endColor = new Color(color.r, color.g, color.b, 0);
             lr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             Object.Destroy(go, life);
+        }
+
+        /// <summary>A shot in flight: a glowing streak `length` long running from a to b at `speed`
+        /// (with its own light when `glow` > 0); `arrive` is called where it ends.</summary>
+        public static void Bolt(Vector3 a, Vector3 b, Color color, float width, float length, float speed, float glow = 0, System.Action<Vector3> arrive = null)
+        {
+            var go = new GameObject("bolt");
+            go.transform.SetParent(Root, false);
+            go.transform.position = a;
+            var lr = go.AddComponent<LineRenderer>();
+            lr.sharedMaterial = Library.Current ? Library.Current.tracer : null;
+            lr.positionCount = 2;
+            lr.startWidth = width;
+            lr.endWidth = width * 0.3f;
+            lr.startColor = color;
+            lr.endColor = new Color(color.r, color.g, color.b, 0.15f);
+            lr.numCapVertices = 4;
+            lr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            if (glow > 0)
+            {
+                var l = go.AddComponent<Light>();
+                l.type = LightType.Point;
+                l.color = color;
+                l.intensity = glow;
+                l.range = 2.5f;
+                l.shadows = LightShadows.None;
+            }
+            // the head: a bright mote leaving a trail of sparks behind it
+            var head = Make("bolt head", a, true, 0.25f);
+            head.transform.SetParent(go.transform, true);
+            var main = head.main;
+            main.startSize = width * 2.4f;
+            main.startSpeed = 0;
+            main.startColor = color;
+            main.gravityModifier = 0;
+            var em = head.emission;
+            em.rateOverDistance = 18 / Mathf.Max(0.05f, length);
+            em.SetBursts(new[] { new ParticleSystem.Burst(0, 1) });
+            var size = head.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1, AnimationCurve.Linear(0, 1, 1, 0.2f));
+            head.Play();
+            var f = go.AddComponent<BoltFlight>();
+            f.a = a;
+            f.b = b;
+            f.length = length;
+            f.speed = speed;
+            f.arrive = arrive;
+            f.line = lr;
+        }
+
+        sealed class BoltFlight : MonoBehaviour
+        {
+            public Vector3 a, b;
+            public float length, speed, t;
+            public System.Action<Vector3> arrive;
+            public LineRenderer line;
+
+            void Start() => Place();
+
+            void Update()
+            {
+                t += Time.deltaTime * speed;
+                Place();
+                if (t >= (b - a).magnitude && line.enabled)
+                {
+                    arrive?.Invoke(b);
+                    // the trail fades out behind before it all goes
+                    line.enabled = false;
+                    foreach (var ps in GetComponentsInChildren<ParticleSystem>())
+                    {
+                        var em = ps.emission;
+                        em.enabled = false;
+                    }
+                    var l = GetComponent<Light>();
+                    if (l) l.enabled = false;
+                    Destroy(gameObject, 0.3f);
+                }
+            }
+
+            void Place()
+            {
+                var d = b - a;
+                float n = d.magnitude;
+                var dir = n > 1e-4f ? d / n : Vector3.forward;
+                var head = a + dir * Mathf.Min(t, n);
+                var tail = a + dir * Mathf.Clamp(t - length, 0, n);
+                line.SetPosition(0, head);
+                line.SetPosition(1, tail);
+                transform.position = head;
+            }
         }
 
         /// <summary>A short flash of light (muzzle, impact, lightning).</summary>

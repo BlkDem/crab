@@ -945,3 +945,51 @@ def export_tree(name, root):
     obs = [root] + list(root.children_recursive)
     export(name, obs)
     print("TRIS", name, sum(len(p.vertices) - 2 for o in obs if o.type == "MESH" for p in o.data.polygons))
+
+
+def assemblies(bm, gap):
+    """The loose pieces of a bmesh grouped into assemblies: pieces closer than `gap` make one.
+    Returns lists of BMVerts, biggest first."""
+    from mathutils.kdtree import KDTree
+    bm.verts.ensure_lookup_table()
+    seen, pieces = set(), []
+    for v in bm.verts:
+        if v.index in seen:
+            continue
+        st, comp = [v], []
+        seen.add(v.index)
+        while st:
+            a = st.pop()
+            comp.append(a)
+            for e in a.link_edges:
+                b = e.other_vert(a)
+                if b.index not in seen:
+                    seen.add(b.index)
+                    st.append(b)
+        pieces.append(comp)
+    label = {}
+    for k, p in enumerate(pieces):
+        for v in p:
+            label[v.index] = k
+    tree = KDTree(len(bm.verts))
+    for v in bm.verts:
+        tree.insert(v.co, v.index)
+    tree.balance()
+    group = list(range(len(pieces)))
+
+    def top(k):
+        while group[k] != k:
+            group[k] = group[group[k]]
+            k = group[k]
+        return k
+
+    for k, p in enumerate(pieces):
+        for v in p[::max(1, len(p) // 300)]:
+            for _, i, _ in tree.find_range(v.co, gap):
+                a, b = top(k), top(label[i])
+                if a != b:
+                    group[a] = b
+    sets = {}
+    for k, p in enumerate(pieces):
+        sets.setdefault(top(k), []).extend(p)
+    return sorted(sets.values(), key=len, reverse=True)
