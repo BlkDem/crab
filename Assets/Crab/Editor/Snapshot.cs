@@ -11,6 +11,16 @@ namespace Crab.EditorTools
     {
         const string Out = "Docs/shots";
 
+        /// <summary>Only the II circle's proving ground.</summary>
+        public static void Lust()
+        {
+            EditorSettings.asyncShaderCompilation = false;
+            Directory.CreateDirectory(Out);
+            Scene("LustTest", new[] { ("start", (Vector3?)null, Vector3.zero), ("wide", new Vector3(-14, 16, -24), new Vector3(0, 6, 60)),
+                ("judge", new Vector3(0, 8, 60), new Vector3(0, 20, 124)), ("ruins", new Vector3(-20, 8, 50), new Vector3(-70, 6, 96)),
+                ("high", new Vector3(10, 13, 24), new Vector3(18, 10, 31)) });
+        }
+
         public static void All()
         {
             EditorSettings.asyncShaderCompilation = false;
@@ -21,6 +31,9 @@ namespace Crab.EditorTools
                 ("lake", new Vector3(26, 4, -14), new Vector3(58, 1, 12)), ("poet", new Vector3(62, 16, 28), new Vector3(85, 14, 55)), ("temple", new Vector3(-50, 10, -8), new Vector3(-66, 8, 8)),
                 ("bridge", new Vector3(14, 4, 82), new Vector3(20, 1, 110)), ("gate", new Vector3(20, 4, 118), new Vector3(20, 10, 158)),
                 ("map", new Vector3(-90, 90, -110), new Vector3(10, 0, 50)) });
+            Scene("LustTest", new[] { ("start", (Vector3?)null, Vector3.zero), ("wide", new Vector3(-14, 16, -24), new Vector3(0, 6, 60)),
+                ("judge", new Vector3(0, 8, 60), new Vector3(0, 20, 124)), ("ruins", new Vector3(-20, 8, 50), new Vector3(-70, 6, 96)),
+                ("high", new Vector3(10, 13, 24), new Vector3(18, 10, 31)) });
             Scene("Wrath", new[] { ("start", (Vector3?)null, Vector3.zero), ("river", new Vector3(-6, 4, -26), new Vector3(4, 0, -8)), ("town", new Vector3(-30, 22, -14), new Vector3(0, 0, 22)),
                 ("vent", new Vector3(-34, 3, 14), new Vector3(-40, 1, 22)), ("lake", new Vector3(0, 5, 58), new Vector3(0, 7, 106)), ("sky", new Vector3(40, 50, -60), new Vector3(0, 0, 40)) });
             Scene("Greed", new[] { ("start", (Vector3?)null, Vector3.zero), ("gate", new Vector3(-10, 4, -52), new Vector3(0, 6, -30)), ("city", new Vector3(-45, 30, -50), new Vector3(0, 0, 15)),

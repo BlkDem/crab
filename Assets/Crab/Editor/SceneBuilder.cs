@@ -1088,11 +1088,11 @@ namespace Crab.EditorTools
             var root = Group("LustTest");
             for (int i = 0; i < LustIslands.Length; i++) Island(root, i, rock);
             // the black-violet storm: dim, violet light, the dark below
-            Environment(new Color(0.22f, 0.12f, 0.3f), new Color(0.03f, 0.02f, 0.05f), 0.5f, new Color(0.3f, 0.22f, 0.4f), new Color(0.2f, 0.14f, 0.26f),
-                new Color(0.05f, 0.03f, 0.07f), new Color(0.14f, 0.09f, 0.2f), 0.02f, 0.0f);
-            var sun = Sun(new Color(0.75f, 0.6f, 1f), 0.8f, new Vector3(35, 200, 0));
-            sun.shadowStrength = 1;
-            Post("LustTest", 0.2f, -10, new Color(0.95f, 0.85f, 1f), 0.9f, 0.4f, 18);
+            Environment(new Color(0.3f, 0.18f, 0.42f), new Color(0.05f, 0.03f, 0.08f), 0.7f, new Color(0.5f, 0.38f, 0.66f), new Color(0.34f, 0.25f, 0.44f),
+                new Color(0.08f, 0.05f, 0.1f), new Color(0.2f, 0.13f, 0.28f), 0.014f, 0.0f);
+            var sun = Sun(new Color(0.8f, 0.65f, 1f), 1.3f, new Vector3(30, 160, 0));
+            sun.shadowStrength = 0.9f;
+            Post("LustTest", 0.55f, -5, new Color(0.95f, 0.85f, 1f), 0.9f, 0.35f, 18);
             // rocks to shelter behind (the wind blows north: the lee is on their north side)
             var crag = Glb("World/crag");
             foreach (var (x, z, s) in new[] { (-5f, -3f, 1.1f), (6f, 2f, 1.0f), (-2f, 22f, 1.0f), (3f, 52f, 1.1f), (-6f, 60f, 1.0f), (18f, 28f, 0.8f) })
@@ -1122,6 +1122,37 @@ namespace Crab.EditorTools
             dir.high = Mark("High", new Vector3(18, 0, 30));
             dir.far = Mark("Far", new Vector3(0, 0, 58));
             foreach (var (x, z, id) in new[] { (4f, -8f, "start"), (3f, 28f, "next"), (-3f, 62f, "far") }) BeaconAt(root, x, z, 0, "lust_" + id);
+            // the circle round the proving ground (Tripo's models, Models/lvl2): islands adrift in the storm with
+            // ruins on them, the judge on his far rock; none of it in the way (no colliders, far off)
+            var deco = Group("Deco", root);
+            GameObject Deco(string path, Vector3 p, float yaw, float scale = 1)
+            {
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(Glb(path), deco);
+                go.transform.SetPositionAndRotation(p, Quaternion.Euler(0, yaw, 0));
+                go.transform.localScale = Vector3.one * scale;
+                return go;
+            }
+            Deco("World/lust_island_large", new Vector3(0, 14, 120), 20);
+            Deco("Enemies/minos_judge", new Vector3(0, 14, 124), 180);
+            Deco("World/lust_island_medium", new Vector3(-58, 2, 34), 70);
+            Deco("World/lust_spire", new Vector3(-58, 2, 34), 0);
+            Deco("World/lust_island_medium", new Vector3(62, 10, 72), -40, 1.2f);
+            Deco("World/lust_spire", new Vector3(64, 10, 70), 30, 1.3f);
+            Deco("World/lust_island_large", new Vector3(-70, -4, 96), 110);
+            Deco("World/lust_palace_hall", new Vector3(-70, -4, 96), 20);
+            Deco("World/lust_island_large", new Vector3(80, -10, 6), 200, 1.1f);
+            Deco("World/lust_ziggurat", new Vector3(80, -10, 6), 15);
+            Deco("World/lust_islet", new Vector3(-30, 6, 70), 0, 1.5f);
+            Deco("World/lust_islet", new Vector3(36, 18, 40), 90, 1.2f);
+            Deco("World/lust_bridge", new Vector3(-40, 1, 60), 60);
+            Deco("World/paolo_francesca", new Vector3(-70, 2, 96), 160);
+            // on the walked islands: the toppled lovers on the far one, a wind-carved rock and the page on the high one
+            AddCollider(Deco("World/lust_lovers_statue", new Vector3(6, H(6, 63) - 0.2f, 63), 40), "mesh");
+            AddCollider(Deco("World/lust_wind_rock", new Vector3(21, H(21, 33) - 0.1f, 33), 0), "mesh");
+            var page = Deco("World/lust_page", new Vector3(17, H(17, 29) + 1.2f, 29), 0);
+            var spin = page.AddComponent<Spinner>();
+            spin.axis = Vector3.up;
+            AddLight(page.transform, "PageGlow", page.transform.position, new Color(1f, 0.35f, 0.3f), 2, 6);
             Ui<GameUI>();
             SaveScene(scene, "LustTest");
         }

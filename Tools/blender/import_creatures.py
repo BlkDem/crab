@@ -26,6 +26,7 @@ import lib as L  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 SRC = os.path.join(ROOT, "Models", "lvl1")
+SRC2 = os.path.join(ROOT, "Models", "lvl2")
 MODELS = os.path.join(ROOT, "Assets", "Crab", "Models")
 
 
@@ -279,12 +280,12 @@ def build_castle_far():
 
 
 # ----------------------------------------------------------------------------- the ruins of Limbo
-def piece(file, name, size, axis="z", rot=0, faces=20000, stretch=1.0):
+def piece(file, name, size, axis="z", rot=0, faces=20000, stretch=1.0, src=SRC):
     """One sculpted model into the open scene: its main mesh alone, turned `rot` degrees about Z (its
     long side to the one the game expects), cut down to `faces`, `size` m along `axis`, stretched
     `stretch` in height, centred on the ground."""
     before = set(bpy.data.objects)
-    bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, file))
+    bpy.ops.import_scene.gltf(filepath=os.path.join(src, file))
     new = [o for o in bpy.data.objects if o not in before]
     ob = max((o for o in new if o.type == "MESH"), key=lambda o: len(o.data.vertices))
     mw = ob.matrix_world.copy()
@@ -316,14 +317,58 @@ def shrink_images(size):
             im.scale(size, size)
 
 
-def stand(asset, children, tex=2048):
+def stand(asset, children, tex=2048, folder="World"):
     """Export the pieces as one asset: a root named after it, the pieces its children (the variants)."""
     r = bpy.data.objects.new(asset, None)
     L.link(r)
     for c in children:
         c.parent = r
     shrink_images(tex)
-    export(asset, "World", [r] + children)
+    export(asset, folder, [r] + children)
+
+
+def on_top(ob):
+    """The origin on the walkable top (an island, a ledge): the height most of its middle stands at."""
+    co = [v.co for v in ob.data.vertices]
+    wx = max(c.x for c in co) - min(c.x for c in co)
+    wy = max(c.y for c in co) - min(c.y for c in co)
+    mid = sorted(c.z for c in co if abs(c.x) < 0.25 * wx and abs(c.y) < 0.25 * wy)
+    top = mid[int(len(mid) * 0.97)] if mid else max(c.z for c in co)
+    ob.data.transform(Matrix.Translation((0, 0, -top)))
+    print("TOP", ob.name, round(top, 2))
+
+
+# ----------------------------------------------------------------------------- the second circle (Models/lvl2)
+LUST = {
+    # asset: (file, size m, axis, faces, origin on top, folder)
+    "lust_island_large": ("island_large.glb", 24, "x", 20000, True, "World"),
+    "lust_island_medium": ("island_medium.glb", 18, "x", 18000, True, "World"),
+    "lust_islet": ("islet_small.glb", 4.5, "x", 6000, True, "World"),
+    "lust_ledge": ("ruina_ledge.glb", 10, "x", 12000, True, "World"),
+    "lust_wind_rock": ("wind_rock.glb", 3.2, "z", 6000, False, "World"),
+    "lust_spire": ("ruined_spire.glb", 22, "z", 16000, False, "World"),
+    "lust_bridge": ("broken_bridge.glb", 12, "x", 12000, False, "World"),
+    "lust_throne": ("minos_throne.glb", 12, "z", 20000, False, "World"),
+    "lust_page": ("minos_page.glb", 0.8, "x", 3000, False, "World"),
+    "lust_palace_hall": ("palace_hall.glb", 9, "z", 20000, False, "World"),
+    "lust_ziggurat": ("ziggurat_ruin.glb", 18, "z", 20000, False, "World"),
+    "lust_lovers_statue": ("lovers_statue.glb", 5, "x", 12000, False, "World"),
+    "minos_book": ("minos_book.glb", 3, "x", 6000, False, "World"),
+    "paolo_francesca": ("paolo_francesca.glb", 2.4, "z", 14000, False, "World"),
+    "minos_judge": ("minos_judge.glb", 14, "z", 24000, False, "Enemies"),
+    "minos_demon": ("minos_demon.glb", 12, "z", 24000, False, "Enemies"),
+    "wind_demon": ("wind_demon.glb", 2.6, "z", 16000, False, "Enemies"),
+    "entwined": ("entwined.glb", 2.6, "z", 16000, False, "Enemies"),
+}
+
+
+def build_lust(asset):
+    file, size, axis, faces, top, folder = LUST[asset]
+    L.reset()
+    ob = piece(file, asset, size, axis=axis, faces=faces, src=SRC2)
+    if top:
+        on_top(ob)
+    stand(asset, [ob], tex=2048 if size > 5 else 1024, folder=folder)
 
 
 def variant(ob, name, scale):
@@ -440,6 +485,7 @@ BUILD = {"shade": build_shade, "crawler": build_crawler, "guardian": build_guard
          "rubble": lambda: build_matter("обломки.glb", "rubble", 2.0),
          "planks": lambda: build_matter("доски.glb", "planks", 2.2),
          "scrap": lambda: build_matter("металлолом.glb", "scrap", 1.8)}
+BUILD.update({a: (lambda a=a: build_lust(a)) for a in LUST})
 
 
 def main():
