@@ -13,6 +13,7 @@ never printed or written anywhere else.
       batch.json: [{"out": "Models/lvl2/imp.glb", "prompt": "..."} | {"out": ..., "image": "ref.png"}, ...]
       (each may also have "negative" and "faces"); a model already downloaded is skipped
   python Tools/tripo.py fetch <task_id> Models/lvl2/imp.glb      (a task started earlier)
+  python Tools/tripo.py picture "<prompt>" Models/lvl2/concept.png [--dry]   (a picture: a concept, a reference to model from; 5 credits)
 
 Every generation spends credits: --dry shows what would be sent and spends nothing. The balance
 is printed before and after.
@@ -75,6 +76,8 @@ def upload(picture):
 
 
 def task_body(job):
+    if job.get("picture"):
+        return {"type": "generate_image", "prompt": job["prompt"]}
     b = {"texture": True, "pbr": True}
     if job.get("faces"):
         b["face_limit"] = int(job["faces"])
@@ -114,7 +117,7 @@ def wait(task_id, label=""):
 
 def download(d, out):
     o = d.get("output") or {}
-    url = o.get("pbr_model") or o.get("model") or o.get("base_model")
+    url = o.get("pbr_model") or o.get("model") or o.get("base_model") or o.get("generated_image")
     if not url:
         sys.exit(f"Tripo task {d.get('task_id')}: no model in its output ({list(o)})")
     path = os.path.join(ROOT, out) if not os.path.isabs(out) else out
@@ -162,6 +165,10 @@ def main():
     p = sub.add_parser("batch")
     p.add_argument("file")
     p.add_argument("--dry", action="store_true")
+    p = sub.add_parser("picture")
+    p.add_argument("what")
+    p.add_argument("out")
+    p.add_argument("--dry", action="store_true")
     p = sub.add_parser("fetch")
     p.add_argument("task_id")
     p.add_argument("out")
@@ -177,6 +184,8 @@ def main():
         else:
             job["image"] = a.what
         run([job], a.dry)
+    elif a.cmd == "picture":
+        run([{"out": a.out, "prompt": a.what, "picture": True}], a.dry)
     elif a.cmd == "batch":
         base = os.path.dirname(os.path.abspath(a.file))
         jobs = json.load(open(a.file, encoding="utf-8"))
