@@ -16,7 +16,10 @@ South to north (game z), the way the crab goes:
   6 the ravine       — the bridge across it; a rift at its foot;
   7 the gate         — the Noble Castle's first wall, statues, the Guardian's ground before the
                        gate, the way out through it; the castle itself far off in the fog.
-The paths are painted lighter into the land's Paint layer.
+The paths are painted lighter into the land's Paint layer. Everything is laid out by level.Placer:
+the great structures first, then the game's places (each nudged to where it has room, the space
+round it kept clear), then the scenery by purpose — rows of steles, an avenue of columns, a
+portico, arches round the lake, groves, crags — each piece only where its real footprint fits.
 """
 import math
 import os
@@ -146,133 +149,209 @@ def paint(ground):
         c.color = (k * (1 + 0.04 * p), k * (1 + 0.03 * p), k, 1)
 
 
-def free(x, z, keep=4.0, places=()):
-    """Clear of the paths and of the given places."""
-    if path_dist(x, z) < keep:
-        return False
-    return all(dist(x, z, p) > r for p, r in places)
+def lake_dist(x, z):
+    return dist(x, z, LAKE)
 
 
-def scenery(rng):
-    busy = [(START, 10), (RUINS, 12), (TEMPLE, 9), (LAKE, 24), (CLIFF, 12), ((BRIDGE_X, 86), 8), ((BRIDGE_X, 122), 10), (ARENA, 22), (GATE, 14)]
-    # cypress groves in the valley, single ones along the paths
-    groves = [(-20, 8), (30, -18), (-34, 34), (36, 50), (-14, 64), (52, 72), (-48, 60), (-30, -50), (28, -48)]
-    for gx, gz in groves:
-        for _ in range(rng.randint(6, 11)):
-            x, z = gx + rng.gauss(0, 6), gz + rng.gauss(0, 6)
-            if free(x, z, 3, busy):
-                LV.instance(f"World/cypress/Cypress{rng.randrange(3)}", at(x, z, 0.2), -rng.uniform(0, 360), rng.uniform(0.8, 1.25), collider="box", snap=1)
-    for _ in range(40):
-        x, z = rng.uniform(-75, 75), rng.uniform(-60, 90)
-        if free(x, z, 5, busy) and path_dist(x, z) < 12:
-            LV.instance(f"World/cypress/Cypress{rng.randrange(3)}", at(x, z, 0.2), -rng.uniform(0, 360), rng.uniform(0.7, 1.1), collider="box", snap=1)
-    # the field of steles by the shore and along the way
-    for _ in range(34):
-        x, z = rng.uniform(-30, 30), rng.uniform(-70, -34)
-        if free(x, z, 2.5, [(START, 6)]):
-            LV.instance(f"World/stele/Stele{rng.randrange(3)}", at(x, z, 0.1), -rng.uniform(0, 360), rng.uniform(0.8, 1.2), collider="mesh", snap=1)
-    # dead trees, one by the shore with a stone at its foot
-    LV.instance("World/deadtree", at(-12, -70), -40, 1.4, collider="box", snap=1)
-    LV.instance("World/stele/Stele2", at(-10.5, -68.5, 0.1), -70, 1.0, collider="mesh", snap=1)
-    for _ in range(14):
-        x, z = rng.uniform(-80, 80), rng.uniform(-70, 92)
-        if free(x, z, 4, busy):
-            LV.instance("World/deadtree", at(x, z), -rng.uniform(0, 360), rng.uniform(0.8, 1.3), collider="box", snap=1)
-    # crags: the rims, the foreground, round the poet's cliff and down into the ravine
-    for _ in range(60):
-        side = rng.choice((-1, 1))
-        x, z = side * rng.uniform(78, 106), rng.uniform(-90, 190)
-        LV.instance(f"World/crag/Crag{rng.choice((1, 2, 3, 3))}", at(x, z, 0.6), -rng.uniform(0, 360), rng.uniform(0.8, 1.6), collider="mesh", snap=1)
-    for _ in range(18):
-        x, z = rng.uniform(-105, -60), rng.uniform(-90, -40)
-        LV.instance(f"World/crag/Crag{rng.choice((1, 2, 3))}", at(x, z, 0.6), -rng.uniform(0, 360), rng.uniform(0.8, 1.5), collider="mesh", snap=1)
-    for a in range(10):
-        x, z = CLIFF[0] + math.cos(a * 0.63) * 13, CLIFF[1] + math.sin(a * 0.63) * 13
-        if seg_dist(x, z, *RAMP)[0] > 6:
-            LV.instance(f"World/crag/Crag{rng.choice((2, 3))}", at(x, z, 1.5), -rng.uniform(0, 360), rng.uniform(1.0, 1.4), collider="mesh", snap=1)
-    for _ in range(30):
-        x, z = rng.uniform(-105, 105), RAVINE_Z + rng.uniform(-6, 6)
-        if abs(x - BRIDGE_X) > 6:
-            LV.instance(f"World/crag/Crag{rng.choice((0, 1, 2))}", at(x, z, 0.5), -rng.uniform(0, 360), rng.uniform(0.8, 1.4), collider="mesh", snap=1)
-    for _ in range(30):
-        x, z = rng.uniform(-70, 70), rng.uniform(-60, 90)
-        if free(x, z, 3, busy):
-            LV.instance("World/crag/Crag0", at(x, z, 0.3), -rng.uniform(0, 360), rng.uniform(0.6, 1.3), collider="mesh", snap=1)
-    # the ruins on the hills: an aqueduct striding over them, arches, fallen columns, the temple on top
-    along = math.degrees(math.atan2(-6.5, -19.5))   # the run of the arches (Blender's angle of game (19.5, 6.5))
-    for k in range(4):
-        x, z = -86 + k * 19.5, -20 + k * 6.5
-        LV.instance("World/aqueduct", at(x, z, 0.4), along, 1.0, collider="mesh", snap=1)
-    for (x, z, yaw, v) in ((-50, -8, 20, 0), (-56, 12, -30, 1), (-72, -6, 75, 1), (-46, 6, 100, 0), (-60, 20, 10, 1)):
-        LV.instance(f"World/ruin_arch/Arch{v}", at(x, z, 0.2), -yaw, 1.0, collider="mesh", snap=1)
-    LV.instance("World/tholos", at(*TEMPLE, 0.3), -20, 1.0, collider="mesh", snap=1)
-    for _ in range(9):
-        x, z = RUINS[0] + rng.uniform(-18, 18), RUINS[1] + rng.uniform(-14, 18)
-        if free(x, z, 2, [(TEMPLE, 6)]):
-            LV.instance("World/column", at(x, z, 0.1), -rng.uniform(0, 360), rng.uniform(0.8, 1.1), collider="mesh", snap=1)
-    # the dead lake's shore: broken arches standing in the shallows
-    for (x, z, yaw, v) in ((38, 18, 40, 1), (44, -10, -20, 0), (64, 24, 70, 1), (70, -12, 120, 0)):
-        LV.instance(f"World/ruin_arch/Arch{v}", at(x, z, 0.6), -yaw, 1.0, collider="mesh", snap=1)
-    # the poet on the cliff, looking down over the valley (south-west)
-    LV.instance("World/poet", at(CLIFF[0] + 1, CLIFF[1] + 1, 0.2), -(-135), 1.0, into="Game", name="Poet", role="poet", collider="mesh", snap=1)
-    # the bridge over the ravine (its origin is the deck's top: not set down on the ravine's floor)
-    LV.instance("World/bridge", from_unity(BRIDGE_X, 0.8, RAVINE_Z), 0, 1.0, collider="mesh", snap=0)
-    # the castle's first wall across the north, the gate in it, statues before the gate
-    # (the gate is 20 m wide; runs of wall 16 m long out from it both ways, a tower at every other joint;
-    # the buttresses on the castle's side)
+def clear(pts, group):
+    """Where a thing of `group` may stand (game points of its footprint): off the paths (avenue columns
+    may flank them closer), out of the water and the sea, out of the ravine (but its own crags)."""
+    keep = {"avenue": 1.6, "crag": 3.0, "ravine": 0.0, "shore": 2.0}.get(group, 3.2)
+    for x, z in pts:
+        if keep and path_dist(x, z) < keep:
+            return False
+        if z < -80 or abs(x) > 108:
+            return False
+        if group != "shore" and lake_dist(x, z) < 15.5:
+            return False
+        if group != "ravine" and abs(z - RAVINE_Z) < 11:
+            return False
+    return True
+
+
+P = LV.Placer(clear, merge=("crag", "castle", "ravine"))
+
+
+def along(ax, az, bx, bz):
+    """The Blender yaw that turns a model's X axis along the game direction a → b."""
+    return math.degrees(math.atan2(-(bz - az), -(bx - ax)))
+
+
+def nudge(path, x, z, yaw=0.0, scale=1.0, sink=0.05, group="spot", margin=0.3, **props):
+    """A game spot as close to (x, z) as there is room for it (spiral out up to 9 m)."""
+    for r in [0] + [1.5 * k for k in range(1, 7)]:
+        for a in range(0, 360, 30 if r else 360):
+            px, pz = x + r * math.cos(math.radians(a)), z + r * math.sin(math.radians(a))
+            ob = P.place(path, at(px, pz, sink), yaw, scale, group=group, margin=margin, **props)
+            if ob:
+                return ob, px, pz
+    ob = P.place(path, at(x, z, sink), yaw, scale, group=group, force=True, **props)
+    print("CROWDED", props.get("name", path), x, z)
+    return ob, x, z
+
+
+def gate_front():
+    """The game z of the gatehouse's south face."""
+    _, _, _, hy = LV.footprint("World/castle_gate")
+    return GATE[1] - hy
+
+
+def structures(rng):
+    """The great things first: they stand where they must, and the rest keeps out of their way."""
+    # the castle's first wall across the north: the gatehouse, runs of wall out from it both ways
+    # (as far as the valley's floor goes), a tower at every other joint
+    _, _, gx, _ = LV.footprint("World/castle_gate")
+    _, _, wx, _ = LV.footprint("World/castle_wall/CastleWall")
+    P.place("World/castle_gate", at(*GATE, 0.2), 180, 1.0, group="castle", force=True, collider="mesh", snap=1)
+    step = 2 * wx - 0.4
     for side in (-1, 1):
-        for j in range(7):
-            x = GATE[0] + side * (10 + 8 + 16 * j)
-            LV.instance("World/castle_wall/CastleWall", at(x, GATE[1] + 1.5, 0.3), 0, 1.0, collider="mesh", snap=1)
+        j = 0
+        while True:
+            x = GATE[0] + side * (gx - 0.5 + wx + j * step)
+            if abs(x + side * wx) > 86:
+                break
+            P.place("World/castle_wall/CastleWall", at(x, GATE[1] + 1.5, 0.3), 0, 1.0, group="castle", force=True, collider="mesh", snap=1)
             if j % 2 == 1:
-                LV.instance("World/castle_wall/CastleTower", at(x + side * 8, GATE[1] + 2, 0.3), 0, 1.0, collider="mesh", snap=1)
-    LV.instance("World/castle_gate", at(*GATE, 0.2), 180, 1.0, collider="mesh", snap=1)
+                P.place("World/castle_wall/CastleTower", at(x + side * wx, GATE[1] + 2.5, 0.3), 0, 1.0, group="castle", force=True, collider="mesh", snap=1)
+            j += 1
+    front = gate_front()
     for side in (-1, 1):
-        LV.instance("World/gate_statue", from_unity(GATE[0] + side * 4.6, height(*GATE) + 1.6, GATE[1] - 4.5), 180, 1.0, collider="mesh", snap=0)
-    # the ring of broken columns round the Guardian's ground
-    for i in range(12):
-        a = i / 12 * math.tau
-        if abs(math.sin(a)) > 0.85:   # the ways in from the south and out to the gate stay open
+        P.place("World/gate_statue", at(GATE[0] + side * 6.0, front - 3.5, 0.1), 180, 1.0, group="castle", force=True, collider="mesh", snap=1)
+    # the Guardian's ground: a ring of broken columns, open to the south (the bridge) and the north (the gate)
+    for i in range(14):
+        a = i / 14 * math.tau
+        if abs(math.sin(a)) > 0.8:
             continue
         x, z = ARENA[0] + math.cos(a) * 19, ARENA[1] + math.sin(a) * 19
-        LV.instance("World/column", at(x, z, 0.1), -rng.uniform(0, 360), rng.uniform(1.0, 1.3), collider="mesh", snap=1)
+        P.place("World/column", at(x, z, 0.1), -rng.uniform(0, 360), rng.uniform(1.0, 1.2), group="arena", force=True, collider="mesh", snap=1)
+    # the bridge over the ravine (its origin is the deck's top: not set down on the ravine's floor)
+    P.place("World/bridge", from_unity(BRIDGE_X, 0.8, RAVINE_Z), 0, 1.0, group="ravine", force=True, collider="mesh", snap=0)
+    # the poet on the cliff, looking down over the valley (south-west)
+    P.place("World/poet", at(CLIFF[0] + 1, CLIFF[1] + 1, 0.2), 135, 1.0, group="cliff", force=True, into="Game", name="Poet", role="poet", collider="mesh", snap=1)
+    # the round temple on the ruins' hill, the aqueduct striding over the hill
+    P.place("World/tholos", at(*TEMPLE, 0.3), -20, 1.0, group="temple", force=True, collider="mesh", snap=1)
+    yaw = along(0, 0, 19.5, 6.5)
+    for k in range(4):
+        x, z = -88 + k * 19.6, -26 + k * 6.55
+        P.place("World/aqueduct", at(x, z, 1.2), yaw, 1.0, group="aqueduct", force=True, collider="mesh", snap=0)
     # the castle far off, in the fog
-    LV.instance("World/castle_far", from_unity(30, -25, 430), 180, 1.0, collider="none", snap=0)
+    P.place("World/castle_far", from_unity(30, -25, 430), 180, 1.0, group="far", force=True, collider="none", snap=0)
 
 
 def game(rng):
+    """The game's places, each where there is room for it; the space round each kept clear."""
     LV.marker("Start", at(*START, 0), 0, role="start")
+    P.keep_clear(at(*START), 7)
     LV.marker("Sea", from_unity(0, -1.2, -40), 0, role="sea", size=500.0)
     LV.marker("Lake", from_unity(LAKE[0], -1.4, LAKE[1]), 0, role="water", size=48.0)
-    for (x, z, yaw, bid) in ((3, -70, 0, "shore"), (-40, -14, 60, "ruins"), (4, 24, 0, "valley"), (30, -2, 80, "lake"),
-                             (76, 47, -120, "poet"), (16, 84, 0, "bridge"), (20, 117, 0, "gate")):
-        LV.instance("World/beacon", at(x, z), -yaw, 1.0, into="Game", name=f"Beacon_{bid}", role="beacon", id=bid, collider="mesh", snap=1)
-    for (x, z, yaw, rid, crawl) in ((-50, -16, 70, "west", 0.2), (40, 14, -70, "east", 0.5), (10, 78, 180, "north", 0.5)):
-        LV.instance("World/rift", at(x, z), -yaw, 1.1, into="Game", name=f"Rift_{rid}", role="rift", id=rid, crawlers=crawl,
-                    budget=8, max_alive=3, every=6.0, collider="mesh", snap=1)
+    for (x, z, yaw, bid) in ((4, -66, 0, "shore"), (-40, -16, 60, "ruins"), (4, 22, 0, "valley"), (32, -4, 80, "lake"),
+                             (76, 47, -120, "poet"), (14, 84, 0, "bridge"), (22, 118, 0, "gate")):
+        _, px, pz = nudge("World/beacon", x, z, -yaw, into="Game", name=f"Beacon_{bid}", role="beacon", id=bid, collider="mesh", snap=1)
+        P.keep_clear(at(px, pz), 3.5)
+    for (x, z, yaw, rid, crawl) in ((-50, -18, 70, "west", 0.2), (38, 16, -70, "east", 0.5), (8, 76, 180, "north", 0.5)):
+        _, px, pz = nudge("World/rift", x, z, -yaw, 1.1, into="Game", name=f"Rift_{rid}", role="rift", id=rid, crawlers=crawl,
+                          budget=8, max_alive=3, every=6.0, collider="mesh", snap=1)
+        P.keep_clear(at(px, pz), 6)   # the demons come out in front of it
     for (x, z) in ((-3, -60), (5, -56)):
         LV.marker("Shade", at(x, z, 0), 180, role="first_shade")
+        P.keep_clear(at(x, z), 7)   # the first meeting in the open
     # matter: rubble teaches stones, planks are organic, scrap teaches the crowbar and the knife
-    sources = [("rubble", "mineral", (-4, -50), (-44, -2), (-60, 14), (12, 40), (-8, 60)),
-               ("planks", "organic", (6, -46), (-20, -20), (24, 12), (-12, 46)),
-               ("scrap", "metal", (-6, -36), (30, 24), (-30, 6), (48, 30), (2, 52), (8, 70))]
+    sources = [("rubble", "mineral", (-4, -50), (-44, -4), (-56, 16), (12, 40), (-8, 60)),
+               ("planks", "organic", (8, -46), (-20, -22), (24, 10), (-12, 46)),
+               ("scrap", "metal", (-6, -36), (28, 24), (-30, 8), (48, 32), (2, 52), (8, 70))]
     for model, kind, *spots in sources:
         for (x, z) in spots:
-            LV.instance(f"World/{model}", at(x, z, 0.05), -rng.uniform(0, 360), 1.0, into="Game", name=model.capitalize(),
-                        role="matter", kind=kind, amount=7 if model == "scrap" else 6, collider="none", snap=1)
-    # the Guardian's ground: matter that comes back for the fight, the Guardian, the way out in the gate
-    for (x, z, model, kind) in ((9, 128, "scrap", "metal"), (31, 128, "scrap", "metal"), (8, 142, "scrap", "metal"), (32, 142, "scrap", "metal"),
-                                (20, 122, "rubble", "mineral"), (7, 135, "rubble", "mineral"), (33, 135, "rubble", "mineral")):
-        LV.instance(f"World/{model}", at(x, z, 0.05), -rng.uniform(0, 360), 1.0, into="Game", name=model.capitalize(),
-                    role="matter", kind=kind, amount=5 if model == "scrap" else 4, regrow=22.0 if model == "scrap" else 25.0, collider="none", snap=1)
+            _, px, pz = nudge(f"World/{model}", x, z, -rng.uniform(0, 360), into="Game", name=model.capitalize(),
+                              role="matter", kind=kind, amount=7 if model == "scrap" else 6, collider="mesh", snap=1)
+            P.keep_clear(at(px, pz), 1.5)
+    # the Guardian's ground: matter that comes back for the fight, the Guardian, the way out before the gate
+    for (x, z, model, kind) in ((8, 128, "scrap", "metal"), (32, 128, "scrap", "metal"), (7, 142, "scrap", "metal"), (33, 142, "scrap", "metal"),
+                                (20, 121, "rubble", "mineral"), (5, 135, "rubble", "mineral"), (35, 135, "rubble", "mineral")):
+        nudge(f"World/{model}", x, z, -rng.uniform(0, 360), into="Game", name=model.capitalize(), role="matter", kind=kind,
+              amount=5 if model == "scrap" else 4, regrow=22.0 if model == "scrap" else 25.0, collider="mesh", snap=1)
     LV.marker("Arena", at(*ARENA, 0), 0, role="arena")
     LV.marker("Guardian", at(ARENA[0], ARENA[1] + 3, 0), 180, role="guardian")
-    LV.instance("World/rift", at(GATE[0], GATE[1] + 1), 180, 1.1, into="Game", name="Exit", role="exit", id="exit", leads_to="Wrath", delay=6.0,
-                collider="mesh", snap=1)
+    P.keep_clear(at(*ARENA), 21)
+    front = gate_front()
+    P.place("World/rift", at(GATE[0], front - 2.5), 180, 1.1, group="castle", force=True, into="Game", name="Exit", role="exit",
+            id="exit", leads_to="Wrath", delay=6.0, collider="mesh", snap=1)
     # the processions: pale souls walking the paths, slowly, forever
     for pid, pts in (("A", PATHS[0][1:8]), ("B", PATHS[1]), ("C", PATHS[3])):
         for k, (x, z) in enumerate(pts):
             LV.marker(f"Procession_{pid}{k}", at(x, z, 0), 0, role="procession", path=pid, order=k, count=6)
+
+
+def scenery(rng):
+    """What fills the land, laid out by purpose, each piece only where it has room."""
+    def cypress(x, z, s):
+        return P.place(f"World/cypress/Cypress{rng.randrange(3)}", at(x, z, 0.2), -rng.uniform(0, 360), s, group="tree", margin=0.1, collider="box", snap=1)
+
+    # the graveyard by the shore: steles in rows facing the sea, some fallen out of line or gone
+    for row in range(8):
+        z = -68 + row * 4.2
+        for col in range(-8, 9):
+            if rng.random() < 0.3:
+                continue
+            x = col * 3.4 + rng.uniform(-0.5, 0.5)
+            P.place(f"World/stele/Stele{rng.choice((0, 0, 1, 1, 2))}", at(x, z + rng.uniform(-0.4, 0.4), 0.1), 180 + rng.uniform(-10, 10), rng.uniform(0.9, 1.1),
+                    group="stele", margin=0.5, collider="mesh", snap=1)
+    # the dead tree by the shore, a stone at its foot
+    P.place("World/deadtree", at(-14, -72), -40, 1.3, group="tree", collider="mesh", snap=1)
+    # the avenue to the temple: columns flanking the path up the ruins' hill, many fallen or gone
+    route = PATHS[1][2:]
+    for a, b in zip(route, route[1:]):
+        n = int(math.hypot(b[0] - a[0], b[1] - a[1]) / 5)
+        dx, dz = (b[0] - a[0]) / max(1, n), (b[1] - a[1]) / max(1, n)
+        nx, nz = -dz, dx
+        ln = math.hypot(nx, nz) or 1
+        for k in range(n):
+            for side in (-1, 1):
+                if rng.random() < 0.35:
+                    continue
+                x, z = a[0] + dx * k + side * nx / ln * 3.6, a[1] + dz * k + side * nz / ln * 3.6
+                P.place("World/column", at(x, z, 0.1), -rng.uniform(0, 360), rng.uniform(0.85, 1.05), group="avenue", collider="mesh", snap=1)
+    # the portico: a row of arches along the hill below the aqueduct, whole and fallen
+    yaw = along(0, 0, 19.5, 6.5)
+    for line in ((-82, -40), (-74, 14)):
+        for k in range(5):
+            x, z = line[0] + k * 8.6 * 0.95, line[1] + k * 8.6 * 0.32
+            if rng.random() < 0.2:
+                continue
+            P.place(f"World/ruin_arch/Arch{k % 2}", at(x, z, 0.2), yaw, 1.0, group="arch", collider="mesh", snap=1)
+    # the dead lake: broken arches standing in the shallows round it, open toward the water
+    for t in (200, 235, 270, 305, 340, 20, 60):
+        a = math.radians(t)
+        x, z = LAKE[0] + math.cos(a) * 18.5, LAKE[1] + math.sin(a) * 18.5
+        P.place(f"World/ruin_arch/Arch{rng.randrange(2)}", at(x, z, 0.6), along(0, 0, -math.sin(a), math.cos(a)), 1.0, group="shore", collider="mesh", snap=1)
+    # cypress groves in the valley, single cypresses along the paths
+    for gx, gz in ((-22, 8), (30, -20), (-36, 34), (38, 52), (-16, 66), (54, 74), (-50, 60), (-32, -50), (30, -50), (-60, 36), (60, -30)):
+        for _ in range(rng.randint(7, 12)):
+            cypress(gx + rng.gauss(0, 6), gz + rng.gauss(0, 6), rng.uniform(0.8, 1.25))
+    for _ in range(140):
+        x, z = rng.uniform(-75, 75), rng.uniform(-60, 92)
+        if path_dist(x, z) < 10:
+            cypress(x, z, rng.uniform(0.7, 1.1))
+    # dead trees, here and there
+    for _ in range(40):
+        P.place("World/deadtree", at(rng.uniform(-80, 80), rng.uniform(-70, 92)), -rng.uniform(0, 360), rng.uniform(0.8, 1.2), group="tree", collider="mesh", snap=1)
+    # crags: heaped on the rims, round the poet's cliff (the ramp kept open), down in the ravine, a few boulders
+    for _ in range(120):
+        side = rng.choice((-1, 1))
+        P.place(f"World/crag/Crag{rng.choice((1, 2, 3, 3))}", at(side * rng.uniform(80, 106), rng.uniform(-90, 190), 0.6),
+                -rng.uniform(0, 360), rng.uniform(0.8, 1.6), group="crag", collider="mesh", snap=1)
+    for _ in range(30):
+        P.place(f"World/crag/Crag{rng.choice((1, 2, 3))}", at(rng.uniform(-105, -62), rng.uniform(-90, -42), 0.6),
+                -rng.uniform(0, 360), rng.uniform(0.8, 1.5), group="crag", collider="mesh", snap=1)
+    for a in range(12):
+        x, z = CLIFF[0] + math.cos(a * 0.52) * 13, CLIFF[1] + math.sin(a * 0.52) * 13
+        if seg_dist(x, z, *RAMP)[0] > 7:
+            P.place(f"World/crag/Crag{rng.choice((2, 3))}", at(x, z, 1.5), -rng.uniform(0, 360), rng.uniform(1.0, 1.4), group="crag", collider="mesh", snap=1)
+    for _ in range(60):
+        P.place(f"World/crag/Crag{rng.choice((0, 1, 2))}", at(rng.uniform(-105, 105), RAVINE_Z + rng.uniform(-7, 7), 0.5),
+                -rng.uniform(0, 360), rng.uniform(0.8, 1.4), group="ravine", collider="mesh", snap=1)
+    for _ in range(50):
+        P.place("World/crag/Crag0", at(rng.uniform(-70, 70), rng.uniform(-60, 92), 0.3), -rng.uniform(0, 360), rng.uniform(0.6, 1.2),
+                group="boulder", collider="mesh", snap=1)
 
 
 def sun():
@@ -307,8 +386,9 @@ def main():
     col, nrm = ash_images()
     ground = LV.ground_mesh(AREA, STEP, height, TILE, LV.tiled_material("Ash", col, nrm, 0.95))
     paint(ground)
-    scenery(rng)
+    structures(rng)
     game(rng)
+    scenery(rng)
     sun()
     LV.exclude_assets()
     LV.embed_panel()

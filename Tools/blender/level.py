@@ -269,3 +269,107 @@ def tiled_material(name, color_img, normal_img, rough=0.9):
     nt.links.new(nm.outputs["Normal"], bsdf.inputs["Normal"])
     bsdf.inputs["Roughness"].default_value = rough
     return m
+
+
+# ----------------------------------------------------------------------------- keeping things apart
+_footprints = {}
+
+
+def footprint(path):
+    """An asset's footprint on the ground in its own axes (Blender): centre x, y and half sizes."""
+    if path not in _footprints:
+        c = asset(path)
+        bpy.context.view_layer.update()
+        pts = [o.matrix_world @ Vector(b) for o in c.all_objects if o.type == "MESH" for b in o.bound_box]
+        x0, x1 = min(p.x for p in pts), max(p.x for p in pts)
+        y0, y1 = min(p.y for p in pts), max(p.y for p in pts)
+        _footprints[path] = ((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2)
+    return _footprints[path]
+
+
+def _corners(cx, cy, hx, hy, a):
+    c, s = math.cos(a), math.sin(a)
+    return [(cx + c * dx - s * dy, cy + s * dx + c * dy) for dx, dy in ((-hx, -hy), (hx, -hy), (hx, hy), (-hx, hy))]
+
+
+def _apart(p, q):
+    """Two convex polygons don't overlap (a separating axis exists)."""
+    for poly in (p, q):
+        for i in range(len(poly)):
+            (x1, y1), (x2, y2) = poly[i], poly[(i + 1) % len(poly)]
+            nx, ny = y2 - y1, x1 - x2
+            a = [nx * x + ny * y for x, y in p]
+            b = [nx * x + ny * y for x, y in q]
+            if max(a) < min(b) or max(b) < min(a):
+                return True
+    return False
+
+
+def _inside(poly, x, y):
+    sign = None
+    for i in range(len(poly)):
+        (x1, y1), (x2, y2) = poly[i], poly[(i + 1) % len(poly)]
+        s = (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1)
+        if sign is None:
+            sign = s > 0
+        elif (s > 0) != sign:
+            return False
+    return True
+
+
+def _seg_dist(x, y, a, b):
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    t = max(0.0, min(1.0, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy + 1e-12)))
+    return math.hypot(x - a[0] - t * dx, y - a[1] - t * dy)
+
+
+def samples(poly, step=2.0):
+    """Points over a footprint's outline and its middle (for testing it against paths and places)."""
+    out = [(sum(x for x, _ in poly) / len(poly), sum(y for _, y in poly) / len(poly))]
+    for i in range(len(poly)):
+        (x1, y1), (x2, y2) = poly[i], poly[(i + 1) % len(poly)]
+        n = max(1, int(math.hypot(x2 - x1, y2 - y1) / step))
+        out += [(x1 + (x2 - x1) * k / n, y1 + (y2 - y1) * k / n) for k in range(n)]
+    return out
+
+
+class Placer:
+    """Lays a level's things out without one standing in another: each placed thing's footprint
+    (its model's real size, turned and scaled) is kept; a new one must clear them all (unless both
+    are of a group that may merge, like crags heaped together), the places kept clear (circles round
+    the game's spots) and the level's own test `clear(game_points, group)` (paths, water...)."""
+
+    def __init__(self, clear=None, merge=("crag",)):
+        self.items = []
+        self.circles = []
+        self.clear = clear or (lambda pts, group: True)
+        self.merge = set(merge)
+
+    def rect(self, path, where, yaw, scale, margin):
+        cx, cy, hx, hy = footprint(path)
+        a = math.radians(yaw)
+        c, s = math.cos(a), math.sin(a)
+        return _corners(where.x + (c * cx - s * cy) * scale, where.y + (s * cx + c * cy) * scale,
+                        hx * scale + margin, hy * scale + margin, a)
+
+    def fits(self, poly, group):
+        for q, g in self.items:
+            if g == group and group in self.merge:
+                continue
+            if not _apart(poly, q):
+                return False
+        for x, y, r in self.circles:
+            if _inside(poly, x, y) or min(_seg_dist(x, y, poly[i], poly[(i + 1) % len(poly)]) for i in range(len(poly))) < r:
+                return False
+        return self.clear([(-x, -y) for x, y in samples(poly)], group)
+
+    def place(self, path, where, yaw=0.0, scale=1.0, group="", margin=0.4, force=False, **props):
+        """Place if it fits (or regardless, when forced); None if it doesn't."""
+        poly = self.rect(path, where, yaw, scale, margin)
+        if not force and not self.fits(poly, group):
+            return None
+        self.items.append((poly, group))
+        return instance(path, where, yaw, scale, **props)
+
+    def keep_clear(self, where, r):
+        self.circles.append((where.x, where.y, r))

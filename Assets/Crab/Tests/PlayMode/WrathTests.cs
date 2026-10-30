@@ -48,6 +48,12 @@ namespace Crab.Tests
             int shots = 0;
             foreach (var imp in imps)
             {
+                // as a player would: within sight of each (demons don't see, nor are hit, through walls)
+                if (imp && imp.Alive && Vector3.Distance(hero.transform.position, imp.transform.position) > 9)
+                {
+                    hero.Controller.Teleport(Nav.FreeSpot(imp.transform.position + Vector3.back * 7, 0.4f, 0.7f) + Vector3.up * 0.1f, 0);
+                    yield return Wait(0.3f);
+                }
                 float end = Time.realtimeSinceStartup + 8;
                 while (imp && imp.Alive && Time.realtimeSinceStartup < end)
                 {

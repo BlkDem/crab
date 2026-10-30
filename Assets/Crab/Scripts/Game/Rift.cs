@@ -130,6 +130,8 @@ namespace Crab.Game
             var prefab = pool != null && pool.Length > 0 ? pool[UnityEngine.Random.Range(0, pool.Length)] : lib ? (crawler ? lib.crawler : lib.shade) : null;
             if (!prefab) return null;
             var pos = transform.position + transform.forward * spawnAhead + transform.right * UnityEngine.Random.Range(-0.8f, 0.8f);
+            var cc = prefab.GetComponent<CharacterController>();
+            if (cc) pos = Nav.FreeSpot(pos, cc.radius, cc.height, 4);   // out where it fits, not into a wall or another demon
             var go = Instantiate(prefab, pos, Quaternion.LookRotation(transform.forward));
             var e = go.GetComponent<Enemy>();
             budget--;

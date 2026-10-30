@@ -339,9 +339,28 @@ def build_ruin_arch():
     stand("ruin_arch", [piece("Арка руин.glb", "Arch0", 7.0, faces=12000), piece("Рухнувшая арка.glb", "Arch1", 7.0, faces=12000)])
 
 
+def cut(ob, co, no):
+    """Cut the mesh by a plane, dropping what lies on the normal's side; the cut closed over."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    r = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=co, plane_no=no, clear_outer=True)
+    edges = [e for e in r["geom_cut"] if isinstance(e, bmesh.types.BMEdge) and e.is_boundary]
+    if edges:
+        bmesh.ops.holes_fill(bm, edges=edges, sides=0)
+    bm.to_mesh(ob.data)
+    bm.free()
+
+
 def build_aqueduct():
+    """Tripo's aqueduct stands on a slab with a solid block along one side: both cut away, the arcades left."""
     L.reset()
-    stand("aqueduct", [piece("Акведук.glb", "Aqueduct", 20.0, axis="x", rot=90, faces=20000)])
+    ob = piece("Акведук.glb", "Aqueduct", 20.0, axis="x", rot=90, faces=20000)
+    cut(ob, (0, -3.0, 0), (0, -1, 0))
+    cut(ob, (0, 0, 2.6), (0, 0, -1))
+    zmin = min(v.co.z for v in ob.data.vertices)
+    ob.data.transform(Matrix.Translation((0, 0, -zmin)))
+    stand("aqueduct", [ob])
 
 
 def build_tholos():

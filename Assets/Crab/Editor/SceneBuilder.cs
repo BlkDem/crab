@@ -278,6 +278,15 @@ namespace Crab.EditorTools
             go.transform.position = new Vector3(x, H(x, z) - sink * scale, z);
             go.transform.rotation = Quaternion.Euler(0, yaw, 0);
             go.transform.localScale = Vector3.one * scale;
+            AddCollider(go, collider);
+            foreach (var r in go.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = ShadowCastingMode.On;
+            return go;
+        }
+
+        /// <summary>A placed model's collider: "mesh" (exact, each part), "box" (round all of it, in its own
+        /// axes), or none.</summary>
+        static void AddCollider(GameObject go, string collider)
+        {
             if (collider == "mesh")
                 foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
                 {
@@ -288,11 +297,10 @@ namespace Crab.EditorTools
             {
                 var b = Bounds(go);
                 var bc = go.AddComponent<BoxCollider>();
+                var s = go.transform.lossyScale;
                 bc.center = go.transform.InverseTransformPoint(b.center);
-                bc.size = Vector3.Scale(b.size, new Vector3(1 / scale, 1 / scale, 1 / scale));
+                bc.size = new Vector3(b.size.x / s.x, b.size.y / s.y, b.size.z / s.z);
             }
-            foreach (var r in go.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = ShadowCastingMode.On;
-            return go;
         }
 
         static Bounds Bounds(GameObject go)
@@ -310,9 +318,7 @@ namespace Crab.EditorTools
             var go = Place(model, parent, x, z, yaw, scale, collider: "none");
             foreach (var c in go.transform.Cast<Transform>().ToArray())
                 if (c.name != child) UnityEngine.Object.DestroyImmediate(c.gameObject);
-            if (collider == "mesh")
-                foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
-                    if (!mf.name.StartsWith("Glow")) mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
+            AddCollider(go, collider);
             return go;
         }
 
@@ -515,7 +521,26 @@ namespace Crab.EditorTools
 
         static void SaveScene(UnityEngine.SceneManagement.Scene scene, string name)
         {
+            BakeNav(name);
             EditorSceneManager.SaveScene(scene, $"{SceneDir}/{name}.unity");
+        }
+
+        /// <summary>The ground the walkers know: a navmesh of everything solid in the scene (the
+        /// creatures themselves left out), kept as an asset beside the scene.</summary>
+        static void BakeNav(string name)
+        {
+            var movers = UnityEngine.Object.FindObjectsByType<CharacterController>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(c => c.enabled).ToList();
+            foreach (var c in movers) c.enabled = false;
+            var go = new GameObject("NavMesh");
+            var surf = go.AddComponent<Unity.AI.Navigation.NavMeshSurface>();
+            surf.collectObjects = Unity.AI.Navigation.CollectObjects.All;
+            surf.useGeometry = UnityEngine.AI.NavMeshCollectGeometry.PhysicsColliders;
+            surf.layerMask = ~0;
+            surf.BuildNavMesh();
+            foreach (var c in movers) c.enabled = true;
+            string path = $"{Gen}/NavMesh_{name}.asset";
+            AssetDatabase.DeleteAsset(path);
+            if (surf.navMeshData) AssetDatabase.CreateAsset(surf.navMeshData, path);
         }
 
         // ------------------------------------------------------------------ the beach (prologue and menu)

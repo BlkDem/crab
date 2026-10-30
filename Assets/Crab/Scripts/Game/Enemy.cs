@@ -1,10 +1,15 @@
-// The weak demons of Limbo. Shades — robed figures that drift slowly and reach out to drain the
-// crab's life; Scavengers — bony many-legged things that skitter fast and leap to bite. Both
-// wander near where they appeared until the crab comes close, then hunt it, and dissolve into
-// mist when killed. Movement is plain steering with a look-ahead around walls (no navmesh).
+// A demon on foot (the Shades and Scavengers of Limbo and every walker after them). It wanders
+// about where it appeared, by reachable places; it hunts the crab only once it sees it (not
+// through walls) or is struck, and walks to it by the navmesh's paths, not in a straight line:
+// from afar it comes round at its own angle, so a pack closes in from several sides; in the last
+// few metres it may circle and wait for its moment before it goes in; packed demons keep apart.
+// When the crab is lost from sight it goes where it was last seen, searches, then gives up and
+// goes home. A demon that stays stuck repaths, then steps aside, at last is put back on the
+// navmesh; it is set down at a free place when it appears. Dissolves into mist when killed.
 using System;
 using Crab.Core;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Crab.Game
 {
@@ -49,7 +54,20 @@ namespace Crab.Game
         float dieT = -1;
         // getting unstuck: when it wants to move but stays put, it goes around for a while
         Vector3 lastPos, detour;
-        float stuckT, detourT;
+        float stuckT, detourT, stuckFor;
+        // finding the way: the path to the current goal, its corners
+        NavMeshPath path;
+        Vector3[] corners = new Vector3[0];
+        int corner;
+        Vector3 pathGoal;
+        float repathT;
+        // the hunt: what it saw last, its own angle of approach, circling before it strikes
+        Vector3 lastSeen;
+        float unseenT, sightT, flank, stalkT, stalkCd, idleT;
+        bool sees;
+        int stalkDir = 1;
+        /// <summary>How often it circles and waits before going in (0: never).</summary>
+        protected virtual float StalkChance => 0.4f;
 
         protected virtual void Awake()
         {
@@ -58,6 +76,21 @@ namespace Crab.Game
             home = transform.position;
             wanderTo = home;
             if (!model && transform.childCount > 0) model = transform.GetChild(0);
+            path = new NavMeshPath();
+            flank = UnityEngine.Random.Range(-70f, 70f);
+            stalkDir = UnityEngine.Random.value < 0.5f ? 1 : -1;
+        }
+
+        /// <summary>Set down where it fits: on the navmesh, clear of walls and other creatures.</summary>
+        protected virtual void Start()
+        {
+            cc.enabled = false;
+            var p = transform.position;
+            var q = Nav.FreeSpot(p, cc.radius, cc.height);
+            if ((q - p).sqrMagnitude > 0.04f) transform.position = q;
+            cc.enabled = true;
+            home = transform.position;
+            wanderTo = home;
         }
 
         /// <summary>A shove from outside (the gravity gun): adds to the knockback.</summary>
@@ -67,6 +100,8 @@ namespace Crab.Game
         {
             if (!Alive) return;
             hunting = true;
+            unseenT = 0;
+            lastSeen = by ? by.transform.position : transform.position - dir;
             hurtT = 0.25f;
             dir.y = 0;
             knock += dir.normalized * 3.5f;
@@ -109,7 +144,24 @@ namespace Crab.Game
             provokedT -= dt;
             var foe = Provoked ? provoker.transform : hero ? hero.transform : null;
             float dist = foe ? Vector3.Distance(Flat(foe.position), Flat(transform.position)) : 999;
-            if (hero && hero.Alive && dist < aggro) hunting = true;
+            // sight: the crab must be near and in view (looked for a few times a second)
+            sightT -= dt;
+            if (sightT <= 0)
+            {
+                sightT = 0.25f;
+                sees = foe && dist < aggro && (Provoked || Sees(foe));
+            }
+            if (hero && hero.Alive && sees)
+            {
+                hunting = true;
+                unseenT = 0;
+                lastSeen = foe.position;
+            }
+            else if (hunting && !Provoked)
+            {
+                unseenT += dt;
+                if (unseenT > 8) { hunting = false; wanderTo = home; }   // lost: back home
+            }
             if (hero && !hero.Alive) hunting = false;
 
             Vector3 wish = Vector3.zero;
@@ -125,29 +177,80 @@ namespace Crab.Game
             }
             else if (hunting && hero && Flees)
             {
-                var away = Flat(transform.position - hero.transform.position);
-                wish = dist < aggro * 1.5f ? Steer(away.normalized) : Vector3.zero;
+                var away = Flat(transform.position - hero.transform.position).normalized;
+                wish = dist < aggro * 1.5f ? Way(transform.position + away * 8) : Vector3.zero;
                 if (wish.sqrMagnitude > 0.01f) FaceTowards(wish, dt);
                 Hunt(hero, dist, dt);
+            }
+            else if (hunting && foe && !sees && !Provoked && dist > attackRange)
+            {
+                // where it was seen last; there, a look round
+                var to = Flat(lastSeen - transform.position);
+                if (to.magnitude > 1.2f) { wish = Way(lastSeen) * 0.8f; FaceTowards(wish, dt); }
+                else transform.Rotate(0, 90 * dt * stalkDir, 0);
             }
             else if (hunting && foe)
             {
                 var to = Flat(foe.position - transform.position);
-                if (dist > attackRange * 0.85f) wish = Steer(to.normalized);
+                var dirTo = to.normalized;
+                stalkCd -= dt;
+                if (stalkT > 0) stalkT -= dt;
+                else if (stalkCd <= 0)
+                {
+                    stalkCd = 1;
+                    if (dist < 7 && dist > attackRange * 2 && UnityEngine.Random.value < StalkChance)
+                    {
+                        stalkT = UnityEngine.Random.Range(1.2f, 2.8f);
+                        stalkCd = UnityEngine.Random.Range(4f, 7f);
+                        stalkDir = -stalkDir;
+                    }
+                }
+                if (stalkT > 0 && dist > attackRange * 1.5f)
+                {
+                    // circling, edging a little nearer; it watches the crab all the while
+                    var round = Vector3.Cross(Vector3.up, dirTo) * stalkDir;
+                    wish = Steer((round + dirTo * (dist > 4.5f ? 0.35f : -0.1f)).normalized) * 0.55f;
+                }
+                else if (dist > 7)
+                {
+                    // from afar: round at its own angle, so a pack comes from several sides
+                    var off = Quaternion.Euler(0, flank, 0) * Flat(transform.position - foe.position).normalized;
+                    wish = Way(foe.position + off * Mathf.Min(5, dist - 4));
+                }
+                else if (dist > attackRange * 0.85f) wish = Way(foe.position);
                 FaceTowards(to, dt);
-                if (dist <= attackRange && attackT <= 0 && hurtT <= 0) BeginAttack();
+                if (dist <= attackRange && attackT <= 0 && hurtT <= 0) { stalkT = 0; BeginAttack(); }
                 Hunt(hero, dist, dt);
             }
             else
             {
-                wanderT -= dt;
-                if (wanderT <= 0 || Vector3.Distance(Flat(transform.position), Flat(wanderTo)) < 0.5f)
+                // wandering by reachable places near home, with pauses
+                if (idleT > 0) idleT -= dt;
+                else
                 {
-                    wanderT = UnityEngine.Random.Range(2f, 5f);
-                    wanderTo = home + new Vector3(UnityEngine.Random.Range(-4f, 4f), 0, UnityEngine.Random.Range(-4f, 4f));
+                    wanderT -= dt;
+                    if (wanderT <= 0 || Vector3.Distance(Flat(transform.position), Flat(wanderTo)) < 0.7f)
+                    {
+                        wanderT = UnityEngine.Random.Range(4f, 8f);
+                        idleT = UnityEngine.Random.Range(0.5f, 2.5f);
+                        wanderTo = Nav.Somewhere(home, 6);
+                    }
+                    var to = Flat(wanderTo - transform.position);
+                    if (to.magnitude > 0.5f) { wish = Way(wanderTo) * 0.4f; FaceTowards(wish, dt); }
                 }
-                var to = Flat(wanderTo - transform.position);
-                if (to.magnitude > 0.3f) { wish = Steer(to.normalized) * 0.4f; FaceTowards(to, dt); }
+            }
+            // packed demons keep apart
+            if (wish.sqrMagnitude > 0.01f || hunting)
+            {
+                var apart = Vector3.zero;
+                foreach (var e in All)
+                {
+                    if (e == this || !e || !e.Alive) continue;
+                    var d = Flat(transform.position - e.transform.position);
+                    float m = d.magnitude, r = cc.radius + e.cc.radius + 0.6f;
+                    if (m < r && m > 1e-3f) apart += d / m * (1 - m / r);
+                }
+                wish += apart * 0.8f;
             }
             if (wish.sqrMagnitude > 0.01f)
             {
@@ -157,9 +260,13 @@ namespace Crab.Game
                 {
                     if (Vector3.Distance(Flat(transform.position), Flat(lastPos)) < 0.25f * speed)
                     {
-                        detourT = UnityEngine.Random.Range(0.8f, 1.6f);
+                        stuckFor += stuckT;
+                        repathT = 0;   // a new way first, then a step aside
+                        detourT = UnityEngine.Random.Range(0.6f, 1.2f);
                         detour = Quaternion.Euler(0, UnityEngine.Random.value < 0.5f ? 80 : -80, 0) * wish.normalized;
+                        if (stuckFor > 4) Unstick();
                     }
+                    else stuckFor = 0;
                     stuckT = 0;
                     lastPos = transform.position;
                 }
@@ -168,7 +275,55 @@ namespace Crab.Game
             Animate(dt, new Vector3(velocity.x, 0, velocity.z).magnitude, windT >= 0 ? windT / windup : -1);
         }
 
+        /// <summary>Back on the navmesh at a free place near here (stuck in a corner for long).</summary>
+        void Unstick()
+        {
+            stuckFor = 0;
+            cc.enabled = false;
+            transform.position = Nav.FreeSpot(transform.position, cc.radius, cc.height, 4);
+            cc.enabled = true;
+            repathT = 0;
+        }
+
+        /// <summary>Nothing solid between its eyes and the foe.</summary>
+        protected bool Sees(Transform foe)
+        {
+            var eye = transform.position + Vector3.up * Mathf.Min(1.2f, cc.height * 0.8f);
+            var to = foe.position + Vector3.up * 0.4f - eye;
+            foreach (var h in Physics.RaycastAll(eye, to.normalized, to.magnitude, ~0, QueryTriggerInteraction.Ignore))
+            {
+                var t = h.collider.transform;
+                if (t.IsChildOf(transform) || t.IsChildOf(foe) || h.collider is CharacterController || Hits.Of(h.collider) != null) continue;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>The way toward a goal: along the navmesh's path (round what stands between),
+        /// steering past what moves; straight on where there is no navmesh.</summary>
+        protected Vector3 Way(Vector3 goal)
+        {
+            var here = transform.position;
+            repathT -= Time.deltaTime;
+            if (repathT <= 0 || (goal - pathGoal).sqrMagnitude > 2.25f)
+            {
+                repathT = UnityEngine.Random.Range(0.35f, 0.6f);
+                pathGoal = goal;
+                corners = new Vector3[0];
+                if (Nav.Snap(here, 2, out var from) && Nav.Snap(goal, 4, out var to) && NavMesh.CalculatePath(from, to, NavMesh.AllAreas, path) && path.status != NavMeshPathStatus.PathInvalid)
+                {
+                    corners = path.corners;
+                    corner = corners.Length > 1 ? 1 : 0;
+                }
+            }
+            while (corner < corners.Length - 1 && Flat(corners[corner] - here).magnitude < 0.9f) corner++;
+            var aim = corners.Length > 0 ? corners[corner] : goal;
+            var d = Flat(aim - here);
+            return d.sqrMagnitude < 1e-4f ? Vector3.zero : Steer(d.normalized);
+        }
+
         protected virtual void BeginAttack() => windT = 0;
+
         protected virtual void Hunt(Hero hero, float dist, float dt) { }
 
         /// <summary>The blow at the end of the wind-up: lands if the crab is still in reach.</summary>
