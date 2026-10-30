@@ -111,7 +111,8 @@ def wait(task_id, label=""):
         if st == "success":
             return d
         if st in ("failed", "cancelled", "unknown", "banned", "expired"):
-            sys.exit(f"Tripo task {task_id} ({label}): {st}")
+            print(f"  {label} FAILED: {st} (error {d.get('error_code')}, credits spent {d.get('consumed_credit', '?')})")
+            return None
         time.sleep(4)
 
 
@@ -143,12 +144,19 @@ def run(jobs, dry):
         return
     b0, _ = balance()
     print("balance before:", b0)
+    failed = []
     for j in todo:
         tid = start(j)
         print(" task", tid, "for", j["out"])
-        download(wait(tid, os.path.basename(j["out"])), j["out"])
+        d = wait(tid, os.path.basename(j["out"]))
+        if d:
+            download(d, j["out"])
+        else:
+            failed.append(j["out"])
     b1, _ = balance()
     print(f"balance after: {b1} (spent {b0 - b1})")
+    if failed:
+        print("not made (run again to retry):", ", ".join(failed))
 
 
 def main():
@@ -194,7 +202,9 @@ def main():
                 j["image"] = os.path.join(base, j["image"])
         run(jobs, a.dry)
     elif a.cmd == "fetch":
-        download(wait(a.task_id, os.path.basename(a.out)), a.out)
+        d = wait(a.task_id, os.path.basename(a.out))
+        if d:
+            download(d, a.out)
 
 
 if __name__ == "__main__":
