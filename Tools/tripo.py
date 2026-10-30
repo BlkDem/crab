@@ -49,11 +49,22 @@ def call(method, path, body=None, data=None, headers=None, timeout=60):
         h["Content-Type"] = "application/json"
     h.update(headers or {})
     req = urllib.request.Request(API + path, data=data, headers=h, method=method)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            out = json.loads(r.read())
-    except urllib.error.HTTPError as e:
-        sys.exit(f"Tripo {method} {path}: HTTP {e.code} {e.read()[:400].decode(errors='replace')}")
+    for attempt in range(6):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                out = json.loads(r.read())
+            break
+        except urllib.error.HTTPError as e:
+            # the gateway hiccups now and then: a look (GET) is safe to repeat; a new task is not
+            if method == "GET" and e.code in (429, 500, 502, 503, 504) and attempt < 5:
+                time.sleep(5 * (attempt + 1))
+                continue
+            sys.exit(f"Tripo {method} {path}: HTTP {e.code} {e.read()[:400].decode(errors='replace')}")
+        except (urllib.error.URLError, TimeoutError) as e:
+            if method == "GET" and attempt < 5:
+                time.sleep(5 * (attempt + 1))
+                continue
+            sys.exit(f"Tripo {method} {path}: {e}")
     if out.get("code") != 0:
         sys.exit(f"Tripo {method} {path}: {out}")
     return out["data"]
