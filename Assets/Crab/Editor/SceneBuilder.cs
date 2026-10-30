@@ -658,11 +658,50 @@ namespace Crab.EditorTools
                         ? Variant(model, parts[2], parent, p.x, p.z, spot.Yaw, spot.Num("scale", 1), col)
                         : Place(model, parent, p.x, p.z, spot.Yaw, spot.Num("scale", 1), col, sink: spot.Role.Length > 0 ? 0 : 0.05f);
                     if (spot.Num("snap", 1) < 0.5f) spot.go.transform.position = p;
+                    else Settle(spot.go, spot.Role.Length > 0 ? 0.03f : 0.08f);
                     spot.go.name = spot.Str("name");
                 }
                 if (spot.Role.Length > 0) spots.Add(spot);
             }
             return spots;
+        }
+
+        /// <summary>Where a placed model touches the ground: the lowest points of its base, in the world.</summary>
+        public static List<Vector3> Feet(GameObject go)
+        {
+            var pts = new List<Vector3>();
+            foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
+            {
+                var m = mf.sharedMesh;
+                if (!m || mf.name.StartsWith("Glow")) continue;
+                var vs = m.vertices;
+                int step = Mathf.Max(1, vs.Length / 4000);
+                for (int i = 0; i < vs.Length; i += step) pts.Add(mf.transform.TransformPoint(vs[i]));
+            }
+            if (pts.Count == 0) return pts;
+            // the base in the model's own upright frame (it only turns about the vertical), so a slope
+            // under it doesn't hide its downhill side; of the base, the lowest point of each half-metre cell
+            float y0 = go.transform.position.y;
+            float low = pts.Min(v => v.y - y0);
+            float band = Mathf.Max(0.25f, (pts.Max(v => v.y) - y0 - low) * 0.06f);
+            var cells = new Dictionary<(int, int), Vector3>();
+            foreach (var v in pts)
+            {
+                if (v.y - y0 > low + band) continue;
+                var k = (Mathf.FloorToInt(v.x * 2), Mathf.FloorToInt(v.z * 2));
+                if (!cells.TryGetValue(k, out var c) || v.y < c.y) cells[k] = v;
+            }
+            return cells.Values.ToList();
+        }
+
+        /// <summary>Down onto the land so that no foot hangs in the air (on a slope the uphill side goes
+        /// into the ground instead), then `sink` deeper.</summary>
+        static void Settle(GameObject go, float sink)
+        {
+            var feet = Feet(go);
+            if (feet.Count == 0) return;
+            float hang = feet.Max(v => v.y - H(v.x, v.z));
+            go.transform.position += Vector3.down * (hang + sink);
         }
 
         // ------------------------------------------------------------------ prologue

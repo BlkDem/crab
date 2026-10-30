@@ -299,8 +299,8 @@ namespace Crab.Game
             return true;
         }
 
-        /// <summary>The way toward a goal: along the navmesh's path (round what stands between),
-        /// steering past what moves; straight on where there is no navmesh.</summary>
+        /// <summary>The way toward a goal: along the navmesh's path (round what stands between; other
+        /// demons are kept apart by Update); felt for past obstacles where there is no navmesh.</summary>
         protected Vector3 Way(Vector3 goal)
         {
             var here = transform.position;
@@ -319,7 +319,9 @@ namespace Crab.Game
             while (corner < corners.Length - 1 && Flat(corners[corner] - here).magnitude < 0.9f) corner++;
             var aim = corners.Length > 0 ? corners[corner] : goal;
             var d = Flat(aim - here);
-            return d.sqrMagnitude < 1e-4f ? Vector3.zero : Steer(d.normalized);
+            if (d.sqrMagnitude < 1e-4f) return Vector3.zero;
+            // a path already goes round what stands; feeling the way is for where there is none
+            return corners.Length > 0 ? d.normalized : Steer(d.normalized);
         }
 
         protected virtual void BeginAttack() => windT = 0;

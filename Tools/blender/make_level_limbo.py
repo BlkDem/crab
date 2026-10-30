@@ -177,11 +177,19 @@ def along(ax, az, bx, bz):
     return math.degrees(math.atan2(-(bz - az), -(bx - ax)))
 
 
+def level_ground(x, z, r=1.5, rise=0.5):
+    """Flat enough to stand a thing on (no more than `rise` up or down within r)."""
+    hs = [height(x + r * math.cos(a), z + r * math.sin(a)) for a in (0, 1.57, 3.14, 4.71)] + [height(x, z)]
+    return max(hs) - min(hs) < rise
+
+
 def nudge(path, x, z, yaw=0.0, scale=1.0, sink=0.05, group="spot", margin=0.3, **props):
     """A game spot as close to (x, z) as there is room for it (spiral out up to 9 m)."""
     for r in [0] + [1.5 * k for k in range(1, 7)]:
         for a in range(0, 360, 30 if r else 360):
             px, pz = x + r * math.cos(math.radians(a)), z + r * math.sin(math.radians(a))
+            if not level_ground(px, pz):
+                continue
             ob = P.place(path, at(px, pz, sink), yaw, scale, group=group, margin=margin, **props)
             if ob:
                 return ob, px, pz
@@ -233,7 +241,7 @@ def structures(rng):
     yaw = along(0, 0, 19.5, 6.5)
     for k in range(4):
         x, z = -88 + k * 19.6, -26 + k * 6.55
-        P.place("World/aqueduct", at(x, z, 1.2), yaw, 1.0, group="aqueduct", force=True, collider="mesh", snap=0)
+        P.place("World/aqueduct", at(x, z, 1.2), yaw, 1.0, group="aqueduct", force=True, collider="mesh", snap=1)
     # the castle far off, in the fog
     P.place("World/castle_far", from_unity(30, -25, 430), 180, 1.0, group="far", force=True, collider="none", snap=0)
 
@@ -256,7 +264,7 @@ def game(rng):
         LV.marker("Shade", at(x, z, 0), 180, role="first_shade")
         P.keep_clear(at(x, z), 7)   # the first meeting in the open
     # matter: rubble teaches stones, planks are organic, scrap teaches the crowbar and the knife
-    sources = [("rubble", "mineral", (-4, -50), (-44, -4), (-56, 16), (12, 40), (-8, 60)),
+    sources = [("rubble", "mineral", (-4, -50), (-36, -12), (-56, 16), (12, 40), (-8, 60)),
                ("planks", "organic", (8, -46), (-20, -22), (24, 10), (-12, 46)),
                ("scrap", "metal", (-6, -36), (28, 24), (-30, 8), (48, 32), (2, 52), (8, 70))]
     for model, kind, *spots in sources:
@@ -287,12 +295,13 @@ def scenery(rng):
         return P.place(f"World/cypress/Cypress{rng.randrange(3)}", at(x, z, 0.2), -rng.uniform(0, 360), s, group="tree", margin=0.1, collider="box", snap=1)
 
     # the graveyard by the shore: steles in rows facing the sea, some fallen out of line or gone
-    for row in range(8):
-        z = -68 + row * 4.2
-        for col in range(-8, 9):
+    # (rows and lanes wide enough to walk between)
+    for row in range(7):
+        z = -68 + row * 4.8
+        for col in range(-6, 7):
             if rng.random() < 0.3:
                 continue
-            x = col * 3.4 + rng.uniform(-0.5, 0.5)
+            x = col * 4.4 + rng.uniform(-0.4, 0.4)
             P.place(f"World/stele/Stele{rng.choice((0, 0, 1, 1, 2))}", at(x, z + rng.uniform(-0.4, 0.4), 0.1), 180 + rng.uniform(-10, 10), rng.uniform(0.9, 1.1),
                     group="stele", margin=0.5, collider="mesh", snap=1)
     # the dead tree by the shore, a stone at its foot

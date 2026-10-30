@@ -44,7 +44,7 @@ namespace Crab.Tests
             foreach (var (prefix, sideways) in kinds)
             {
                 bool tried = false;
-                foreach (var t in all.Where(x => x && x.name.StartsWith(prefix) && x.GetComponentInChildren<Renderer>()).Take(6))
+                foreach (var t in all.Where(x => x && x.name.StartsWith(prefix) && x.GetComponentInChildren<Renderer>() && !(x.parent && x.parent.name.StartsWith(prefix))).Take(6))
                 {
                     var b = Extent(t.gameObject);
                     if (b.size.y < 0.8f) { tried = true; break; }   // low enough to step over (a heap of chains)
@@ -59,17 +59,25 @@ namespace Crab.Tests
                     if (!Nav.Clear(from, 0.4f, 0.7f)) continue;   // no room to start from here
                     tried = true;
                     float yaw = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+                    _ = c;
                     hero.Controller.Teleport(from + Vector3.up * 0.1f, yaw);
                     hero.Cam.Face(yaw);
                     yield return Wait(0.2f);
-                    float y0 = hero.transform.position.y;
+                    // walking into it: how deep the crab's body ever gets inside it (sliding round it is fine)
+                    var body = hero.GetComponent<CharacterController>();
+                    var cols = t.GetComponentsInChildren<Collider>();
+                    float deepest = 0;
                     hero.Controller.autopilot = new Vector2(0, 1);
-                    yield return Wait(Mathf.Max(3, reach / 2));
+                    float end = Time.realtimeSinceStartup + Mathf.Max(3, reach / 2);
+                    while (Time.realtimeSinceStartup < end)
+                    {
+                        yield return null;
+                        foreach (var col in cols)
+                            if (Physics.ComputePenetration(body, body.transform.position, body.transform.rotation, col, col.transform.position, col.transform.rotation, out _, out float depth))
+                                deepest = Mathf.Max(deepest, depth);
+                    }
                     hero.Controller.autopilot = null;
-                    var p = hero.transform.position;
-                    bool crossed = Vector3.Dot(p - c, dir) > 0.3f;
-                    bool climbed = p.y - y0 > 0.4f;
-                    if (crossed && !climbed) leaks.Add($"{t.name} at {t.position}");
+                    if (cols.Length == 0 || deepest > 0.2f) leaks.Add($"{t.name} at {t.position}" + (cols.Length == 0 ? " (no collider)" : $" ({deepest:0.00} m in)"));
                     break;
                 }
                 if (!tried) Debug.Log($"PROPS: no clear approach to any {prefix}");
