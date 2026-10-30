@@ -202,6 +202,9 @@ namespace Crab.Game
         /// <summary>The armour takes a share of every blow.</summary>
         public float Armor => State.Items.Has(ItemId.HeavyArmor) ? 0.45f : State.Items.Has(ItemId.ScrapArmor) ? 0.65f : 1f;
 
+        /// <summary>Armour makes the crab heavy: the storm moves it less.</summary>
+        public float Weight => State.Items.Has(ItemId.HeavyArmor) ? 0.5f : State.Items.Has(ItemId.ScrapArmor) ? 0.65f : 1f;
+
         public void ShowSpark(bool on)
         {
             if (sparkLight) sparkLight.enabled = on;
@@ -210,6 +213,7 @@ namespace Crab.Game
         void Update()
         {
             iframes -= Time.deltaTime;
+            Controller.windScale = Weight;
             // in the crab's own eyes the armour would sit over the camera
             if (armor && armor.activeSelf == Combat.firstPerson) armor.SetActive(!Combat.firstPerson);
             if (core && core.activeSelf == Combat.firstPerson) core.SetActive(!Combat.firstPerson);

@@ -348,7 +348,9 @@ namespace Crab.Game
             velocity.z = Mathf.MoveTowards(velocity.z, horiz.z, 20 * dt);
             velocity.y = cc.isGrounded ? -2 : velocity.y - 18 * dt;
             knock = Vector3.MoveTowards(knock, Vector3.zero, 10 * dt);
-            if (cc.enabled) cc.Move((velocity + knock) * dt);
+            var gale = Gale.Instance;   // the storm shoves demons too (a little less: they know it)
+            var wind = gale ? gale.Force(transform.position) * 0.4f : Vector3.zero;
+            if (cc.enabled) cc.Move((velocity + knock + wind) * dt);
         }
 
         /// <summary>Head toward dir, sliding around what blocks the way.</summary>

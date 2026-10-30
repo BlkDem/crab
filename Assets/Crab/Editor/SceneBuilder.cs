@@ -39,6 +39,7 @@ namespace Crab.EditorTools
             lib = BuildLibrary();
             BuildPrologue();
             BuildLimbo();
+            BuildLustTest();
             BuildWrath();
             BuildGreed();
             BuildEnvy();
@@ -49,7 +50,7 @@ namespace Crab.EditorTools
             BuildPower();
             BuildEpilogue();
             BuildMenu();
-            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "Wrath", "Greed", "Envy", "Gloom", "Betrayal", "Violence", "Lies", "Power", "Epilogue" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
+            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "LustTest", "Wrath", "Greed", "Envy", "Gloom", "Betrayal", "Violence", "Lies", "Power", "Epilogue" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log("Crab scenes built");
         }
@@ -70,6 +71,9 @@ namespace Crab.EditorTools
 
         [MenuItem("Crab/Build Scene/Limbo")]
         public static void BuildLimboOnly() => BuildOnly("Limbo", BuildLimbo);
+
+        [MenuItem("Crab/Build Scene/Lust (the storm's proving ground)")]
+        public static void BuildLustTestOnly() => BuildOnly("LustTest", BuildLustTest);
 
         // ------------------------------------------------------------------ project
         static void ConfigureProject()
@@ -1028,6 +1032,98 @@ namespace Crab.EditorTools
             r.maxAlive = 3;
             r.spawnEvery = 6;
             return r;
+        }
+
+        // ------------------------------------------------------------------ II circle: the storm's proving ground
+        /// <summary>Islands of the proving ground: centre (x, top height, z) and radius.</summary>
+        static readonly (Vector3 c, float r)[] LustIslands =
+        {
+            (new Vector3(0, 0, 0), 12),        // the start
+            (new Vector3(0, -0.8f, 26), 8),    // the next one, a little lower, over a gap only a gust carries over
+            (new Vector3(18, 10, 30), 6),      // high: up on the updraft
+            (new Vector3(-3, 1, 41), 3),       // a stepping stone
+            (new Vector3(0, 3, 58), 10),       // the far one
+        };
+
+        static float LustHeight(float x, float z)
+        {
+            float h = -40;
+            foreach (var (c, r) in LustIslands)
+            {
+                float d = new Vector2(x - c.x, z - c.z).magnitude;
+                float top = c.y + (Mathf.PerlinNoise(x * 0.3f + c.z, z * 0.3f) - 0.5f) * 0.3f;
+                h = Mathf.Max(h, d < r ? top : top - (d - r) * 14);   // sheer sides down into the abyss: no slope to cling to
+            }
+            return h;
+        }
+
+        /// <summary>A floating island: its top (from the height function) and its sides down to below the dark.</summary>
+        static GameObject Island(Transform parent, int i, Material mat)
+        {
+            var (c, r) = LustIslands[i];
+            var mesh = GroundMesh.Build($"LustIsland{i}", new Rect(c.x - r - 5, c.z - r - 5, 2 * r + 10, 2 * r + 10), 0.5f,
+                (x, z) => Mathf.Max(c.y - 22, new Vector2(x - c.x, z - c.z).magnitude < r ? LustHeight(x, z) : c.y - (new Vector2(x - c.x, z - c.z).magnitude - r) * 14), 0.25f);
+            var go = new GameObject($"Island{i}");
+            go.transform.SetParent(parent, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            go.AddComponent<MeshRenderer>().sharedMaterial = mat;
+            go.AddComponent<MeshCollider>().sharedMesh = mesh;
+            go.isStatic = true;
+            return go;
+        }
+
+        static void BuildLustTest()
+        {
+            var scene = NewScene("LustTest");
+            ground = LustHeight;
+            var (ac, an) = TextureGen.Ash();
+            var rock = Mat("LustRock", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", ac);
+                m.SetTexture("_BumpMap", an);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetColor("_BaseColor", new Color(0.55f, 0.5f, 0.62f));
+                m.SetFloat("_Smoothness", 0.1f);
+            });
+            var root = Group("LustTest");
+            for (int i = 0; i < LustIslands.Length; i++) Island(root, i, rock);
+            // the black-violet storm: dim, violet light, the dark below
+            Environment(new Color(0.22f, 0.12f, 0.3f), new Color(0.03f, 0.02f, 0.05f), 0.5f, new Color(0.3f, 0.22f, 0.4f), new Color(0.2f, 0.14f, 0.26f),
+                new Color(0.05f, 0.03f, 0.07f), new Color(0.14f, 0.09f, 0.2f), 0.02f, 0.0f);
+            var sun = Sun(new Color(0.75f, 0.6f, 1f), 0.8f, new Vector3(35, 200, 0));
+            sun.shadowStrength = 1;
+            Post("LustTest", 0.2f, -10, new Color(0.95f, 0.85f, 1f), 0.9f, 0.4f, 18);
+            // rocks to shelter behind (the wind blows north: the lee is on their north side)
+            var crag = Glb("World/crag");
+            foreach (var (x, z, s) in new[] { (-5f, -3f, 1.1f), (6f, 2f, 1.0f), (-2f, 22f, 1.0f), (3f, 52f, 1.1f), (-6f, 60f, 1.0f), (18f, 28f, 0.8f) })
+                Variant(crag, "Crag0", root, x, z, R(0, 360), s);
+            // the updraft between the next island and the high one
+            var up = new GameObject("Updraft").AddComponent<Updraft>();
+            up.transform.SetParent(root, false);
+            up.transform.position = new Vector3(10.6f, -4, 28);
+            up.radius = 2.4f;
+            up.height = 17;
+            // the storm, the abyss
+            var gale = new GameObject("Gale").AddComponent<Gale>();
+            gale.prevailing = 0;
+            new GameObject("Abyss").AddComponent<Abyss>().depth = -6;   // below the islands' rims: fallen
+            var start = Group("Start", root);
+            start.position = new Vector3(0, H(0, -6), -6);
+            BuildHero(start.position, 0, out _);
+            Setup("LustTest", start);
+            var dir = new GameObject("LustTestDirector").AddComponent<LustTestDirector>();
+            Transform Mark(string name, Vector3 p)
+            {
+                var t = Group(name, root);
+                t.position = new Vector3(p.x, H(p.x, p.z), p.z);
+                return t;
+            }
+            dir.next = Mark("Next", new Vector3(0, 0, 26));
+            dir.high = Mark("High", new Vector3(18, 0, 30));
+            dir.far = Mark("Far", new Vector3(0, 0, 58));
+            foreach (var (x, z, id) in new[] { (4f, -8f, "start"), (3f, 28f, "next"), (-3f, 62f, "far") }) BeaconAt(root, x, z, 0, "lust_" + id);
+            Ui<GameUI>();
+            SaveScene(scene, "LustTest");
         }
 
         // ------------------------------------------------------------------ Wrath

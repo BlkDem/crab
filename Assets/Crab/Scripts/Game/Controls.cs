@@ -4,7 +4,7 @@
 //   Tab / Y — create (matter into things), wheel, 1-9 / bumpers — weapon, Q / B — shield, F / R3 — portal,
 //   G / H / J (d-pad) — orders to the squad: attack there, to me, hold there,
 //   T — the truth lens, B / d-pad left — a bridge of matter, R / Select — the storm of matter,
-//   M — the map, Esc / Start — pause.
+//   M — the map, Ctrl / C / B — the anchor (hold), Esc / Start — pause.
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,7 +13,7 @@ namespace Crab.Game
     public static class Controls
     {
         static InputActionMap map;
-        public static InputAction Move, Look, Jump, Sprint, Attack, Aim, Interact, Create, Next, Prev, Scroll, Pause, Shield, Portal, OrderAttack, OrderFollow, OrderHold, Truth, Bridge, Storm, Map;
+        public static InputAction Move, Look, Jump, Sprint, Attack, Aim, Interact, Create, Next, Prev, Scroll, Pause, Shield, Portal, OrderAttack, OrderFollow, OrderHold, Truth, Bridge, Storm, Map, Anchor;
         public static readonly InputAction[] Slot = new InputAction[9];
         /// <summary>Mouse look speed (settings).</summary>
         public static float sensitivity = 1;
@@ -53,6 +53,8 @@ namespace Crab.Game
             Bridge = Button("Bridge", "<Keyboard>/b", "<Gamepad>/dpad/left");
             Storm = Button("Storm", "<Keyboard>/r", "<Gamepad>/select");
             Map = Button("Map", "<Keyboard>/m", null);
+            Anchor = Button("Anchor", "<Keyboard>/leftCtrl", "<Gamepad>/buttonEast");
+            Anchor.AddBinding("<Keyboard>/c");
             for (int i = 0; i < Slot.Length; i++) Slot[i] = Button($"Slot{i + 1}", $"<Keyboard>/{i + 1}", null);
             map.Enable();
         }

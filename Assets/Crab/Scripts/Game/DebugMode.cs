@@ -46,14 +46,17 @@ namespace Crab.Game
         }
 
         /// <summary>Start a chapter as if the crab had come to it.</summary>
-        public static void Start(string scene)
+        public static void Start(string scene) => Start(scene, System.Array.IndexOf(Chapters, scene));
+
+        /// <summary>Start a scene with the crab as it would come to chapter `asChapter` (a prototype scene).</summary>
+        public static void Start(string scene, int asChapter)
         {
             if (!On) realSave = GameSession.SavePathOverride;
             On = true;
             GameSession.SavePathOverride = SavePath;
             var session = GameSession.Ensure();
             session.ResetState();
-            Prepare(session.State, System.Array.IndexOf(Chapters, scene));
+            Prepare(session.State, asChapter);
             if (!session.GetComponent<DebugKeys>()) session.gameObject.AddComponent<DebugKeys>();
             session.Go(scene);
         }
