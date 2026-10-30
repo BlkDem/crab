@@ -139,7 +139,9 @@ def download(d, out):
     print(f"  saved {out} ({os.path.getsize(path) // 1024} KB)")
 
 
-def run(jobs, dry):
+def run(jobs, dry, ledger=None):
+    """Make what isn't there yet. `ledger`: a file of the tasks started (out → task id), so a batch
+    cut off half-way picks its started tasks up again instead of paying for them twice."""
     todo = [j for j in jobs if not os.path.exists(os.path.join(ROOT, j["out"]))]
     for j in jobs:
         if j not in todo:
@@ -156,10 +158,21 @@ def run(jobs, dry):
     b0, _ = balance()
     print("balance before:", b0)
     failed = []
+    started = json.load(open(ledger, encoding="utf-8")) if ledger and os.path.exists(ledger) else {}
     for j in todo:
-        tid = start(j)
-        print(" task", tid, "for", j["out"])
+        tid = started.get(j["out"])
+        if tid:
+            print(" picking up task", tid, "for", j["out"])
+        else:
+            tid = start(j)
+            print(" task", tid, "for", j["out"], flush=True)
+            if ledger:
+                started[j["out"]] = tid
+                json.dump(started, open(ledger, "w", encoding="utf-8"), indent=1)
         d = wait(tid, os.path.basename(j["out"]))
+        if ledger and not d:
+            started.pop(j["out"], None)   # failed: a retry starts it anew
+            json.dump(started, open(ledger, "w", encoding="utf-8"), indent=1)
         if d:
             download(d, j["out"])
         else:
@@ -211,7 +224,7 @@ def main():
         for j in jobs:
             if "image" in j and not os.path.isabs(j["image"]):
                 j["image"] = os.path.join(base, j["image"])
-        run(jobs, a.dry)
+        run(jobs, a.dry, None if a.dry else os.path.splitext(os.path.abspath(a.file))[0] + ".started.json")
     elif a.cmd == "fetch":
         d = wait(a.task_id, os.path.basename(a.out))
         if d:
