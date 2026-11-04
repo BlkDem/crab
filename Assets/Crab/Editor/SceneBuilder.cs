@@ -40,6 +40,7 @@ namespace Crab.EditorTools
             BuildPrologue();
             BuildLimbo();
             BuildLustTest();
+            BuildLust();
             BuildWrath();
             BuildGreed();
             BuildEnvy();
@@ -50,7 +51,7 @@ namespace Crab.EditorTools
             BuildPower();
             BuildEpilogue();
             BuildMenu();
-            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "LustTest", "Wrath", "Greed", "Envy", "Gloom", "Betrayal", "Violence", "Lies", "Power", "Epilogue" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
+            EditorBuildSettings.scenes = new[] { "Menu", "Prologue", "Limbo", "LustTest", "Lust", "Wrath", "Greed", "Envy", "Gloom", "Betrayal", "Violence", "Lies", "Power", "Epilogue" }.Select(n => new EditorBuildSettingsScene($"{SceneDir}/{n}.unity", true)).ToArray();
             AssetDatabase.SaveAssets();
             Debug.Log("Crab scenes built");
         }
@@ -74,6 +75,9 @@ namespace Crab.EditorTools
 
         [MenuItem("Crab/Build Scene/Lust (the storm's proving ground)")]
         public static void BuildLustTestOnly() => BuildOnly("LustTest", BuildLustTest);
+
+        [MenuItem("Crab/Build Scene/Lust")]
+        public static void BuildLustOnly() => BuildOnly("Lust", BuildLust);
 
         // ------------------------------------------------------------------ project
         static void ConfigureProject()
@@ -647,7 +651,9 @@ namespace Crab.EditorTools
             }
             var props = Group("Scenery", root);
             var spots = new List<Spot>();
-            foreach (Newtonsoft.Json.Linq.JObject o in json["objects"])
+            // land (islands, ledges: `land` = 1) first — it is ground too, for whatever stands on it
+            var objects = json["objects"].Cast<Newtonsoft.Json.Linq.JObject>().OrderByDescending(o => o["land"] != null && (float)o["land"] > 0.5f).ToList();
+            foreach (var o in objects)
             {
                 var spot = new Spot { data = o };
                 var asset = spot.Str("asset");
@@ -661,9 +667,16 @@ namespace Crab.EditorTools
                     spot.go = parts.Length > 2
                         ? Variant(model, parts[2], parent, p.x, p.z, spot.Yaw, spot.Num("scale", 1), col)
                         : Place(model, parent, p.x, p.z, spot.Yaw, spot.Num("scale", 1), col, sink: spot.Role.Length > 0 ? 0 : 0.05f);
-                    if (spot.Num("snap", 1) < 0.5f) spot.go.transform.position = p;
+                    if (spot.Num("snap", 1) < 0.5f || spot.Num("land") > 0.5f) spot.go.transform.position = p;
                     else Settle(spot.go, spot.Role.Length > 0 ? 0.03f : 0.08f);
                     spot.go.name = spot.Str("name");
+                    if (spot.Num("land") > 0.5f)
+                    {
+                        spot.go.AddComponent<Land>();
+                        landCols.AddRange(spot.go.GetComponentsInChildren<MeshCollider>());
+                        foreach (var r in spot.go.GetComponentsInChildren<Renderer>()) r.gameObject.isStatic = true;
+                        Physics.SyncTransforms();
+                    }
                 }
                 if (spot.Role.Length > 0) spots.Add(spot);
             }
@@ -704,7 +717,10 @@ namespace Crab.EditorTools
         {
             var feet = Feet(go);
             if (feet.Count == 0) return;
-            float hang = feet.Max(v => v.y - H(v.x, v.z));
+            // a foot over a hole in the land (a generated model's pinhole: the ray finds its underside) isn't hanging
+            var under = feet.Select(v => H(v.x, v.z)).ToList();
+            float mid = under.OrderBy(h => h).ElementAt(under.Count / 2);
+            float hang = feet.Where((v, i) => under[i] > mid - 1.5f).Max(v => v.y - H(v.x, v.z));
             go.transform.position += Vector3.down * (hang + sink);
         }
 
@@ -939,9 +955,16 @@ namespace Crab.EditorTools
             exit.membrane.sharedMaterial = Mat("RiftFire", "Crab/Rift", m => { m.SetColor("_Color", new Color(1f, 0.45f, 0.15f)); m.SetColor("_Core", new Color(0.08f, 0.01f, 0)); });
             exit.glow.color = new Color(1f, 0.5f, 0.2f);
             dir.exit = exit;
-            // the processions: pale souls walking the paths, not seeing the crab — until it comes close
+            Processions(All("procession"), root);
+            Ui<GameUI>();
+            SaveScene(scene, "Limbo");
+        }
+
+        /// <summary>The processions: pale souls walking the paths, not seeing the crab — until it comes close.</summary>
+        static void Processions(IEnumerable<Spot> marks, Transform root)
+        {
             var ghost = GhostMat();
-            foreach (var path in All("procession").GroupBy(p => p.Str("path")))
+            foreach (var path in marks.GroupBy(p => p.Str("path")))
             {
                 var pts = path.OrderBy(p => p.Num("order")).Select(p => new Vector3(p.Pos.x, H(p.Pos.x, p.Pos.z), p.Pos.z)).ToArray();
                 int n = (int)path.First().Num("count", 6);
@@ -962,8 +985,6 @@ namespace Crab.EditorTools
                     pg.speed = R(0.45f, 0.6f);
                 }
             }
-            Ui<GameUI>();
-            SaveScene(scene, "Limbo");
         }
 
         /// <summary>A pale, see-through stuff for the souls of Limbo.</summary>
@@ -1155,6 +1176,81 @@ namespace Crab.EditorTools
             AddLight(page.transform, "PageGlow", page.transform.position, new Color(1f, 0.35f, 0.3f), 2, 6);
             Ui<GameUI>();
             SaveScene(scene, "LustTest");
+        }
+
+        // ------------------------------------------------------------------ II circle: Lust
+        /// <summary>The second circle, made in Blender (Levels/lust.blend): the ledge past Minos, the ruina, the
+        /// islands adrift in the storm (land themselves), the city of ruins, the throne. Violet murk, the dark below.</summary>
+        static void BuildLust()
+        {
+            var scene = NewScene("Lust");
+            var root = Group("Lust");
+            var spots = FromBlender("Lust", root, out var sun);
+            if (sun) sun.shadowStrength = 0.9f;
+            Environment(new Color(0.3f, 0.18f, 0.42f), new Color(0.05f, 0.03f, 0.08f), 0.7f, new Color(0.5f, 0.38f, 0.66f), new Color(0.34f, 0.25f, 0.44f),
+                new Color(0.08f, 0.05f, 0.1f), new Color(0.2f, 0.13f, 0.28f), 0.012f, 0.0f);
+            Post("Lust", 0.55f, -5, new Color(0.95f, 0.85f, 1f), 0.9f, 0.35f, 18);
+            Spot One(string role) => spots.First(x => x.Role == role);
+            IEnumerable<Spot> All(string role) => spots.Where(x => x.Role == role);
+
+            var g = One("gale");
+            new GameObject("Gale").AddComponent<Gale>().prevailing = g.Num("prevailing");
+            new GameObject("Abyss").AddComponent<Abyss>().depth = One("abyss").Num("depth", -16);
+            foreach (var u in All("updraft"))
+            {
+                var up = new GameObject(u.Str("name")).AddComponent<Updraft>();
+                up.transform.SetParent(root, false);
+                up.transform.position = u.Pos;
+                up.radius = u.Num("radius", 2.4f);
+                up.height = u.Num("height", 20);
+            }
+            var s0 = One("start");
+            var start = Group("Start", root);
+            start.position = new Vector3(s0.Pos.x, H(s0.Pos.x, s0.Pos.z), s0.Pos.z);
+            start.rotation = Quaternion.Euler(0, s0.Yaw, 0);
+            BuildHero(start.position, s0.Yaw, out _);
+            Setup("Lust", start);
+            var dir = new GameObject("LustDirector").AddComponent<LustDirector>();
+            foreach (var b in All("beacon")) dir.beacons.Add(MakeBeacon(b.go, b.Str("id")));
+            // Minos the judge on his rock, his eyes burning over the souls' ledge
+            var judge = One("judge").go;
+            dir.judge = judge.transform;
+            AddLight(judge.transform, "JudgeEyes", judge.transform.position + Vector3.up * 11 + judge.transform.forward * 2, new Color(1f, 0.3f, 0.2f), 3, 14);
+            // the pages of his book, adrift over their islands
+            foreach (var pg in All("page"))
+            {
+                var page = (GameObject)PrefabUtility.InstantiatePrefab(Glb("World/lust_page"), root);
+                page.name = "Page_" + pg.Str("id");
+                page.transform.position = pg.Pos;
+                var spin = page.AddComponent<Spinner>();
+                spin.axis = Vector3.up;
+                spin.speed = 40;
+                AddLight(page.transform, "PageGlow", pg.Pos, new Color(1f, 0.35f, 0.3f), 2.5f, 7);
+                var pick = page.AddComponent<PagePickup>();
+                pick.id = pg.Str("id");
+                dir.pages.Add(pick);
+            }
+            foreach (var m in All("matter"))
+            {
+                var ms = m.go.AddComponent<MatterSource>();
+                var kind = m.Str("kind");
+                ms.kind = kind == "metal" ? Matter.Metal : kind == "mineral" ? Matter.Mineral : Matter.Organic;
+                ms.amount = (int)m.Num("amount", 6);
+                ms.reach = 2.6f;
+            }
+            var ex = One("exit");
+            var exit = MakeRift(ex.go, ex.Str("id"));
+            exit.leadsTo = ex.Str("leads_to");
+            exit.delay = ex.Num("delay", 6);
+            exit.membrane.sharedMaterial = Mat("RiftFire", "Crab/Rift", m => { m.SetColor("_Color", new Color(1f, 0.45f, 0.15f)); m.SetColor("_Core", new Color(0.08f, 0.01f, 0)); });
+            exit.glow.color = new Color(1f, 0.5f, 0.2f);
+            dir.exit = exit;
+            Processions(All("procession"), root);
+            // the souls' own cold glow along the ledge under the wall
+            foreach (var p in All("procession").Where((_, i) => i % 2 == 0))
+                AddLight(root, "SoulGlow", new Vector3(p.Pos.x, H(p.Pos.x, p.Pos.z) + 2.5f, p.Pos.z), new Color(0.7f, 0.65f, 1f), 1.6f, 14);
+            Ui<GameUI>();
+            SaveScene(scene, "Lust");
         }
 
         // ------------------------------------------------------------------ Wrath

@@ -11,11 +11,16 @@ namespace Crab.EditorTools
     {
         const string Out = "Docs/shots";
 
-        /// <summary>Only the II circle's proving ground.</summary>
+        /// <summary>Only the II circle: the level and the storm's proving ground.</summary>
         public static void Lust()
         {
             EditorSettings.asyncShaderCompilation = false;
             Directory.CreateDirectory(Out);
+            Scene("Lust", new[] { ("start", (Vector3?)null, Vector3.zero), ("judge", new Vector3(3, 3, -94), new Vector3(-24, 8, -78)),
+                ("ruina", new Vector3(0, 6, -40), new Vector3(0, -2, 15)), ("valley", new Vector3(-16, 10, -2), new Vector3(10, 0, 40)),
+                ("tower", new Vector3(6, 6, 14), new Vector3(26, 11, 23)), ("abyss", new Vector3(-10, 4, 50), new Vector3(0, -5, 73)),
+                ("city", new Vector3(-14, 6, 76), new Vector3(2, 0, 112)), ("throne", new Vector3(8, 6, 150), new Vector3(17, 8, 195)),
+                ("map", new Vector3(-90, 110, -100), new Vector3(5, -5, 60)) });
             Scene("LustTest", new[] { ("start", (Vector3?)null, Vector3.zero), ("wide", new Vector3(-14, 16, -24), new Vector3(0, 6, 60)),
                 ("judge", new Vector3(0, 8, 60), new Vector3(0, 20, 124)), ("ruins", new Vector3(-20, 8, 50), new Vector3(-70, 6, 96)),
                 ("high", new Vector3(10, 13, 24), new Vector3(18, 10, 31)) });
@@ -31,6 +36,11 @@ namespace Crab.EditorTools
                 ("lake", new Vector3(26, 4, -14), new Vector3(58, 1, 12)), ("poet", new Vector3(62, 16, 28), new Vector3(85, 14, 55)), ("temple", new Vector3(-50, 10, -8), new Vector3(-66, 8, 8)),
                 ("bridge", new Vector3(14, 4, 82), new Vector3(20, 1, 110)), ("gate", new Vector3(20, 4, 118), new Vector3(20, 10, 158)),
                 ("map", new Vector3(-90, 90, -110), new Vector3(10, 0, 50)) });
+            Scene("Lust", new[] { ("start", (Vector3?)null, Vector3.zero), ("judge", new Vector3(3, 3, -94), new Vector3(-24, 8, -78)),
+                ("ruina", new Vector3(0, 6, -40), new Vector3(0, -2, 15)), ("valley", new Vector3(-16, 10, -2), new Vector3(10, 0, 40)),
+                ("tower", new Vector3(6, 6, 14), new Vector3(26, 11, 23)), ("abyss", new Vector3(-10, 4, 50), new Vector3(0, -5, 73)),
+                ("city", new Vector3(-14, 6, 76), new Vector3(2, 0, 112)), ("throne", new Vector3(8, 6, 150), new Vector3(17, 8, 195)),
+                ("map", new Vector3(-90, 110, -100), new Vector3(5, -5, 60)) });
             Scene("LustTest", new[] { ("start", (Vector3?)null, Vector3.zero), ("wide", new Vector3(-14, 16, -24), new Vector3(0, 6, 60)),
                 ("judge", new Vector3(0, 8, 60), new Vector3(0, 20, 124)), ("ruins", new Vector3(-20, 8, 50), new Vector3(-70, 6, 96)),
                 ("high", new Vector3(10, 13, 24), new Vector3(18, 10, 31)) });

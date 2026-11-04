@@ -18,6 +18,7 @@ namespace Crab.Game
             "Prologue" => "Пролог",
             "Limbo" => "I. Лимб",
             "LustTest" => "II. Похоть (прототип)",
+            "Lust" => "II. Похоть (блокаут)",
             "Wrath" => "II. Гнев",
             "Greed" => "III. Жадность",
             "Envy" => "IV. Зависть",
@@ -121,9 +122,12 @@ namespace Crab.Game
                 b.style.width = 240;
                 b.style.marginLeft = b.style.marginRight = 6;
             }
-            var proto = Btn(grid, "II. Похоть — прототип бури", () => DebugMode.Start("LustTest", 2));
-            proto.style.width = 492;
-            proto.style.marginLeft = proto.style.marginRight = 6;
+            foreach (var (label, scene) in new[] { ("II. Похоть — блокаут уровня", "Lust"), ("II. Похоть — прототип бури", "LustTest") })
+            {
+                var proto = Btn(grid, label, () => DebugMode.Start(scene, 2));
+                proto.style.width = 240;
+                proto.style.marginLeft = proto.style.marginRight = 6;
+            }
             var note = new Label("Своё сохранение, настоящее не трогается. В игре: F7 / F8 — уровень краба ниже / выше, F6 — следующая глава.");
             note.AddToClassList("menu-note");
             note.style.width = 500;

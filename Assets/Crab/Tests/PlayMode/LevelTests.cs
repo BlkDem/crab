@@ -13,9 +13,11 @@ namespace Crab.Tests
     {
         static float LandUnder(Vector3 p)
         {
-            var land = GameObject.Find("Ground");
+            // the level's Ground and the placed models that are land too (islands)
+            var cols = GameObject.Find("Ground").GetComponentsInChildren<MeshCollider>()
+                .Concat(Object.FindObjectsByType<Land>(FindObjectsSortMode.None).SelectMany(l => l.GetComponentsInChildren<MeshCollider>()));
             float y = float.NaN, best = float.MaxValue;
-            foreach (var c in land.GetComponentsInChildren<MeshCollider>())
+            foreach (var c in cols)
                 if (c.Raycast(new Ray(new Vector3(p.x, 500, p.z), Vector3.down), out var hit, 1000) && hit.distance < best) { best = hit.distance; y = hit.point.y; }
             return y;
         }
@@ -49,7 +51,7 @@ namespace Crab.Tests
         }
 
         [UnityTest]
-        public IEnumerator BlenderLevelsStandOnTheLand([Values("Prologue", "Limbo")] string scene)
+        public IEnumerator BlenderLevelsStandOnTheLand([Values("Prologue", "Limbo", "Lust")] string scene)
         {
             GameSession.Ensure().State.SetFlag("spark");
             yield return Load(scene);
@@ -66,10 +68,14 @@ namespace Crab.Tests
             var floating = new System.Collections.Generic.List<string>();
             foreach (var t in GameObject.Find("Scenery").transform.Cast<Transform>())
             {
-                if (t.name.StartsWith("bridge") || t.name.StartsWith("castle_far")) continue;   // set by its deck / far off
+                if (t.name.StartsWith("bridge") || t.name.StartsWith("Bridge") || t.name.StartsWith("castle_far") || t.name.StartsWith("far_") || t.name.StartsWith("paolo")) continue;   // set by its deck / far off, adrift / ghosts afloat
+                if (t.GetComponent<Land>()) continue;   // land itself
                 var feet = Feet(t.gameObject);
                 if (feet.Count == 0) continue;
-                float hang = feet.Max(v => v.y - LandUnder(v));
+                var under = feet.Select(LandUnder).Where(h => !float.IsNaN(h)).OrderBy(h => h).ToList();
+                if (under.Count == 0) continue;
+                float mid = under[under.Count / 2];
+                float hang = feet.Select(v => (v, h: LandUnder(v))).Where(f => f.h > mid - 1.5f).Max(f => f.v.y - f.h);   // not over a pinhole
                 if (hang > 0.12f) floating.Add($"{t.name} {hang:0.00} m");
             }
             Assert.That(floating, Is.Empty, $"{scene}: hanging in the air: " + string.Join("; ", floating));

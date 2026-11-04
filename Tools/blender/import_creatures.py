@@ -18,6 +18,7 @@ Forward is -Y, L is +X; ground at z = 0.
 import math
 import os
 import sys
+import bmesh
 import bpy
 from mathutils import Matrix, Vector
 
@@ -362,11 +363,24 @@ LUST = {
 }
 
 
+def close_holes(ob, sides=24):
+    """Land is walked on and things are set down on it: the generated mesh's pinholes and unwelded
+    seams (a ray, a foot, slips through them) welded and filled."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.004)
+    filled = bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=sides)["faces"]
+    bm.to_mesh(ob.data)
+    bm.free()
+    print("HOLES", ob.name, len(filled))
+
+
 def build_lust(asset):
     file, size, axis, faces, top, folder = LUST[asset]
     L.reset()
     ob = piece(file, asset, size, axis=axis, faces=faces, src=SRC2)
     if top:
+        close_holes(ob)
         on_top(ob)
     stand(asset, [ob], tex=2048 if size > 5 else 1024, folder=folder)
 

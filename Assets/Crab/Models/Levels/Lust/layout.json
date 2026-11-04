@@ -1,0 +1,2175 @@
+{
+ "ground": "Levels/Lust/ground",
+ "sun": {
+  "dir": [
+   0.296,
+   -0.4999,
+   -0.8139
+  ],
+  "color": [
+   0.8,
+   0.65,
+   1.0
+  ],
+  "intensity": 1.3
+ },
+ "objects": [
+  {
+   "name": "IsletA",
+   "pos": [
+    -0.0,
+    -1.0,
+    3.6
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/lust_islet",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "ValleyIsland",
+   "pos": [
+    2.0,
+    -2.0,
+    18.0
+   ],
+   "yaw": -30.0,
+   "scale": 1.0,
+   "asset": "World/lust_island_large",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "TowerIsland",
+   "pos": [
+    26.0,
+    9.0,
+    23.0
+   ],
+   "yaw": -140.0,
+   "scale": 0.7,
+   "asset": "World/lust_island_large",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "FallenTerrace",
+   "pos": [
+    14.0,
+    3.0,
+    36.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/lust_ledge",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "LongIsland",
+   "pos": [
+    -0.0,
+    -3.0,
+    40.0
+   ],
+   "yaw": -90.0,
+   "scale": 1.0,
+   "asset": "World/lust_island_medium",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "IsletB",
+   "pos": [
+    -0.0,
+    -4.0,
+    54.0
+   ],
+   "yaw": -15.0,
+   "scale": 1.0,
+   "asset": "World/lust_islet",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "AbyssIsland",
+   "pos": [
+    -0.0,
+    -5.5,
+    73.0
+   ],
+   "yaw": 160.0,
+   "scale": 1.0,
+   "asset": "World/lust_island_large",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "IsletC",
+   "pos": [
+    19.5,
+    4.0,
+    80.0
+   ],
+   "yaw": -40.0,
+   "scale": 1.0,
+   "asset": "World/lust_islet",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "DidoIsland",
+   "pos": [
+    21.0,
+    2.0,
+    94.5
+   ],
+   "yaw": -90.0,
+   "scale": 1.0,
+   "asset": "World/lust_island_medium",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "IsletD",
+   "pos": [
+    12.5,
+    -1.5,
+    106.5
+   ],
+   "yaw": -70.0,
+   "scale": 1.0,
+   "asset": "World/lust_islet",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "CityIsland",
+   "pos": [
+    -0.0,
+    -5.5,
+    119.0
+   ],
+   "yaw": -75.0,
+   "scale": 1.0,
+   "asset": "World/lust_island_large",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "LoversIsland",
+   "pos": [
+    17.2319,
+    -5.5,
+    161.6505
+   ],
+   "yaw": -160.0,
+   "scale": 1.0,
+   "asset": "World/lust_island_large",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "ThroneIsland",
+   "pos": [
+    17.2319,
+    4.0,
+    192.0505
+   ],
+   "yaw": -10.0,
+   "scale": 1.4,
+   "asset": "World/lust_island_large",
+   "land": 1,
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "Bridge1",
+   "pos": [
+    -2.2,
+    -8.6,
+    96.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/lust_bridge",
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "Bridge2",
+   "pos": [
+    6.5761,
+    -8.6,
+    141.1494
+   ],
+   "yaw": 22.0,
+   "scale": 1.0,
+   "asset": "World/lust_bridge",
+   "snap": 0,
+   "collider": "mesh",
+   "group": "Props"
+  },
+  {
+   "name": "lust_ziggurat.002",
+   "pos": [
+    28.5,
+    9.0,
+    25.0
+   ],
+   "yaw": -160.0,
+   "scale": 0.45,
+   "asset": "World/lust_ziggurat",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_palace_hall.002",
+   "pos": [
+    21.0,
+    2.0,
+    100.0
+   ],
+   "yaw": -0.0,
+   "scale": 0.9,
+   "asset": "World/lust_palace_hall",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_spire.002",
+   "pos": [
+    -6.0,
+    -5.5,
+    122.0
+   ],
+   "yaw": -25.0,
+   "scale": 0.8,
+   "asset": "World/lust_spire",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_spire.003",
+   "pos": [
+    23.2319,
+    -5.5,
+    165.6505
+   ],
+   "yaw": 40.0,
+   "scale": 0.65,
+   "asset": "World/lust_spire",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_lovers_statue.002",
+   "pos": [
+    13.7319,
+    -5.5,
+    164.1505
+   ],
+   "yaw": -35.0,
+   "scale": 1.0,
+   "asset": "World/lust_lovers_statue",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "paolo_francesca.002",
+   "pos": [
+    16.2319,
+    -4.9,
+    160.6505
+   ],
+   "yaw": 160.0,
+   "scale": 1.0,
+   "asset": "World/paolo_francesca",
+   "collider": "none",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "lust_throne.002",
+   "pos": [
+    17.2319,
+    4.0,
+    202.0505
+   ],
+   "yaw": 180.0,
+   "scale": 1.0,
+   "asset": "World/lust_throne",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.002",
+   "pos": [
+    0.1234,
+    -0.0184,
+    -36.2621
+   ],
+   "yaw": 47.96,
+   "scale": 1.2438,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.003",
+   "pos": [
+    -3.4714,
+    -0.1719,
+    -49.2012
+   ],
+   "yaw": 66.93,
+   "scale": 1.186,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.004",
+   "pos": [
+    -10.9014,
+    -0.0515,
+    -17.3681
+   ],
+   "yaw": 137.07,
+   "scale": 1.0357,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.005",
+   "pos": [
+    0.1954,
+    -0.1376,
+    -40.0859
+   ],
+   "yaw": -98.38,
+   "scale": 1.3364,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.006",
+   "pos": [
+    -11.447,
+    -0.1422,
+    -45.3163
+   ],
+   "yaw": -80.85,
+   "scale": 1.2446,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.007",
+   "pos": [
+    20.3794,
+    -0.0911,
+    -40.5053
+   ],
+   "yaw": -133.87,
+   "scale": 1.3833,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.008",
+   "pos": [
+    7.8298,
+    -0.194,
+    -43.1984
+   ],
+   "yaw": -39.45,
+   "scale": 1.3196,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.009",
+   "pos": [
+    7.3647,
+    -0.0326,
+    -36.9479
+   ],
+   "yaw": 30.39,
+   "scale": 1.3806,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.010",
+   "pos": [
+    -17.1042,
+    0.0024,
+    -13.1678
+   ],
+   "yaw": 12.3,
+   "scale": 0.9995,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.011",
+   "pos": [
+    15.8497,
+    -0.0777,
+    -17.9814
+   ],
+   "yaw": 146.28,
+   "scale": 1.1611,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.012",
+   "pos": [
+    -22.9591,
+    0.0237,
+    -30.9376
+   ],
+   "yaw": -7.55,
+   "scale": 1.2035,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.013",
+   "pos": [
+    -18.948,
+    -0.0713,
+    -40.0513
+   ],
+   "yaw": 83.11,
+   "scale": 1.0247,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.014",
+   "pos": [
+    -12.1643,
+    -0.1953,
+    -36.0628
+   ],
+   "yaw": -24.54,
+   "scale": 1.2438,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.015",
+   "pos": [
+    10.2764,
+    -0.1084,
+    -30.8437
+   ],
+   "yaw": 87.14,
+   "scale": 0.9977,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.016",
+   "pos": [
+    -6.7348,
+    -0.0622,
+    -35.3352
+   ],
+   "yaw": 21.96,
+   "scale": 0.9975,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.017",
+   "pos": [
+    20.8951,
+    -0.1645,
+    -12.5222
+   ],
+   "yaw": -177.71,
+   "scale": 0.9452,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.018",
+   "pos": [
+    -19.2597,
+    -0.1554,
+    -48.826
+   ],
+   "yaw": 50.77,
+   "scale": 1.0884,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.019",
+   "pos": [
+    -5.5795,
+    -0.0849,
+    -29.983
+   ],
+   "yaw": -11.12,
+   "scale": 1.3647,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.020",
+   "pos": [
+    -5.5076,
+    -0.0238,
+    -45.7467
+   ],
+   "yaw": 21.07,
+   "scale": 1.3567,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.021",
+   "pos": [
+    2.9028,
+    -0.0192,
+    -42.5781
+   ],
+   "yaw": 76.79,
+   "scale": 1.0529,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.022",
+   "pos": [
+    22.1809,
+    -0.1386,
+    -25.2626
+   ],
+   "yaw": -97.53,
+   "scale": 1.2378,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.023",
+   "pos": [
+    -19.6618,
+    -0.0907,
+    -23.3165
+   ],
+   "yaw": 75.2,
+   "scale": 1.2663,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.024",
+   "pos": [
+    -4.8948,
+    -0.1796,
+    -19.3113
+   ],
+   "yaw": 68.69,
+   "scale": 1.2584,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.025",
+   "pos": [
+    14.9983,
+    -0.0971,
+    -32.51
+   ],
+   "yaw": 95.47,
+   "scale": 1.374,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.026",
+   "pos": [
+    -19.5631,
+    -0.0822,
+    -18.546
+   ],
+   "yaw": -71.79,
+   "scale": 1.2304,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.027",
+   "pos": [
+    -0.0781,
+    0.0651,
+    -21.8204
+   ],
+   "yaw": 83.13,
+   "scale": 1.214,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag0.001",
+   "pos": [
+    2.0134,
+    -0.257,
+    -31.0804
+   ],
+   "yaw": -64.8,
+   "scale": 0.7975,
+   "asset": "World/crag/Crag0",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.028",
+   "pos": [
+    -5.1893,
+    -2.1,
+    18.3551
+   ],
+   "yaw": -61.05,
+   "scale": 0.9899,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.029",
+   "pos": [
+    4.3185,
+    -2.1,
+    23.8725
+   ],
+   "yaw": 120.43,
+   "scale": 1.0594,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.030",
+   "pos": [
+    9.2063,
+    -2.1,
+    16.361
+   ],
+   "yaw": 131.45,
+   "scale": 1.182,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.031",
+   "pos": [
+    0.2212,
+    -2.1,
+    22.9984
+   ],
+   "yaw": 88.71,
+   "scale": 1.0104,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.032",
+   "pos": [
+    3.1604,
+    -5.6,
+    74.0469
+   ],
+   "yaw": 82.52,
+   "scale": 0.9186,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.033",
+   "pos": [
+    -4.462,
+    -5.6,
+    77.5177
+   ],
+   "yaw": -109.6,
+   "scale": 1.0738,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.034",
+   "pos": [
+    4.3698,
+    -5.6,
+    69.3752
+   ],
+   "yaw": 106.04,
+   "scale": 1.3992,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.035",
+   "pos": [
+    7.2735,
+    -5.6,
+    72.4328
+   ],
+   "yaw": 52.47,
+   "scale": 1.2321,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.036",
+   "pos": [
+    6.2255,
+    -5.6,
+    120.2144
+   ],
+   "yaw": -76.84,
+   "scale": 0.9415,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.037",
+   "pos": [
+    -2.9177,
+    -5.6,
+    126.6366
+   ],
+   "yaw": -120.84,
+   "scale": 1.0873,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.038",
+   "pos": [
+    0.2717,
+    -5.6,
+    122.2448
+   ],
+   "yaw": -54.01,
+   "scale": 0.9506,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.039",
+   "pos": [
+    19.2364,
+    -5.6,
+    168.8383
+   ],
+   "yaw": -91.7,
+   "scale": 0.9426,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.040",
+   "pos": [
+    28.0839,
+    3.9,
+    190.3503
+   ],
+   "yaw": 10.16,
+   "scale": 1.2631,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.041",
+   "pos": [
+    8.8943,
+    3.9,
+    197.9875
+   ],
+   "yaw": 107.13,
+   "scale": 1.3422,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.042",
+   "pos": [
+    25.6353,
+    3.9,
+    198.4456
+   ],
+   "yaw": -172.62,
+   "scale": 1.3062,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.043",
+   "pos": [
+    5.0778,
+    3.9,
+    193.3182
+   ],
+   "yaw": 85.74,
+   "scale": 0.9706,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "lust_wind_rock.044",
+   "pos": [
+    0.1248,
+    -3.1,
+    41.9259
+   ],
+   "yaw": 159.87,
+   "scale": 1.0408,
+   "asset": "World/lust_wind_rock",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.001",
+   "pos": [
+    17.2354,
+    12.9323,
+    -110.5548
+   ],
+   "yaw": 175.89,
+   "scale": 1.0457,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.001",
+   "pos": [
+    33.6396,
+    11.5159,
+    -85.2296
+   ],
+   "yaw": -24.8,
+   "scale": 1.1692,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.002",
+   "pos": [
+    15.4236,
+    12.1755,
+    -72.9228
+   ],
+   "yaw": 10.9,
+   "scale": 0.8479,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.003",
+   "pos": [
+    18.1748,
+    13.0474,
+    -76.5711
+   ],
+   "yaw": -124.94,
+   "scale": 1.0134,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.001",
+   "pos": [
+    15.161,
+    10.9428,
+    -61.7187
+   ],
+   "yaw": 9.01,
+   "scale": 0.8942,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.004",
+   "pos": [
+    19.8329,
+    10.516,
+    -64.3569
+   ],
+   "yaw": -160.57,
+   "scale": 1.1841,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.005",
+   "pos": [
+    16.7989,
+    12.0825,
+    -82.4157
+   ],
+   "yaw": -68.48,
+   "scale": 1.0157,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.006",
+   "pos": [
+    17.537,
+    10.1012,
+    -63.3219
+   ],
+   "yaw": -24.41,
+   "scale": 1.0239,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.002",
+   "pos": [
+    19.8392,
+    11.4959,
+    -107.3778
+   ],
+   "yaw": -83.98,
+   "scale": 0.9337,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.003",
+   "pos": [
+    27.2801,
+    2.1317,
+    -71.4955
+   ],
+   "yaw": 143.67,
+   "scale": 0.8626,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.007",
+   "pos": [
+    17.0269,
+    11.6059,
+    -80.6307
+   ],
+   "yaw": -29.22,
+   "scale": 0.9473,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.004",
+   "pos": [
+    21.8061,
+    10.0546,
+    -73.0189
+   ],
+   "yaw": 77.62,
+   "scale": 0.9092,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.008",
+   "pos": [
+    17.187,
+    12.5001,
+    -101.452
+   ],
+   "yaw": 108.5,
+   "scale": 1.0385,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag3.005",
+   "pos": [
+    26.6775,
+    11.2631,
+    -109.8462
+   ],
+   "yaw": -126.79,
+   "scale": 0.9253,
+   "asset": "World/crag/Crag3",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag1.002",
+   "pos": [
+    16.6851,
+    12.2999,
+    -110.3622
+   ],
+   "yaw": 59.09,
+   "scale": 1.1351,
+   "asset": "World/crag/Crag1",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.009",
+   "pos": [
+    14.0209,
+    11.0717,
+    -65.4369
+   ],
+   "yaw": -84.73,
+   "scale": 0.8427,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.010",
+   "pos": [
+    17.8988,
+    11.3621,
+    -80.4735
+   ],
+   "yaw": -71.74,
+   "scale": 1.1821,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "Crag2.011",
+   "pos": [
+    15.268,
+    13.6201,
+    -99.175
+   ],
+   "yaw": -88.18,
+   "scale": 0.8771,
+   "asset": "World/crag/Crag2",
+   "collider": "mesh",
+   "snap": 0,
+   "group": "Props"
+  },
+  {
+   "name": "far_island0",
+   "pos": [
+    -60.0,
+    -8.0,
+    -30.0
+   ],
+   "yaw": -58.9,
+   "scale": 1.3,
+   "asset": "World/lust_island_medium",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_spire0",
+   "pos": [
+    -59.0,
+    -8.2,
+    -30.0
+   ],
+   "yaw": 167.2,
+   "scale": 1.3,
+   "asset": "World/lust_spire",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island1",
+   "pos": [
+    70.0,
+    6.0,
+    -10.0
+   ],
+   "yaw": -155.74,
+   "scale": 1.1,
+   "asset": "World/lust_island_large",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_palace1",
+   "pos": [
+    71.0,
+    5.8,
+    -10.0
+   ],
+   "yaw": -127.64,
+   "scale": 1.1,
+   "asset": "World/lust_palace_hall",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island2",
+   "pos": [
+    -75.0,
+    14.0,
+    40.0
+   ],
+   "yaw": -117.0,
+   "scale": 1.2,
+   "asset": "World/lust_island_large",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island3",
+   "pos": [
+    65.0,
+    -12.0,
+    50.0
+   ],
+   "yaw": 133.31,
+   "scale": 1.0,
+   "asset": "World/lust_island_medium",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_ziggurat3",
+   "pos": [
+    66.0,
+    -12.2,
+    50.0
+   ],
+   "yaw": -85.12,
+   "scale": 0.6,
+   "asset": "World/lust_ziggurat",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island4",
+   "pos": [
+    -55.0,
+    2.0,
+    95.0
+   ],
+   "yaw": 94.77,
+   "scale": 1.4,
+   "asset": "World/lust_island_large",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_spire4",
+   "pos": [
+    -54.0,
+    1.8,
+    95.0
+   ],
+   "yaw": -104.65,
+   "scale": 1.4,
+   "asset": "World/lust_spire",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island5",
+   "pos": [
+    80.0,
+    10.0,
+    120.0
+   ],
+   "yaw": 158.69,
+   "scale": 1.2,
+   "asset": "World/lust_island_large",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island6",
+   "pos": [
+    -70.0,
+    -6.0,
+    160.0
+   ],
+   "yaw": 31.43,
+   "scale": 1.1,
+   "asset": "World/lust_island_medium",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_palace6",
+   "pos": [
+    -69.0,
+    -6.2,
+    160.0
+   ],
+   "yaw": 55.68,
+   "scale": 1.1,
+   "asset": "World/lust_palace_hall",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island7",
+   "pos": [
+    55.0,
+    18.0,
+    190.0
+   ],
+   "yaw": -43.65,
+   "scale": 1.3,
+   "asset": "World/lust_island_large",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_spire7",
+   "pos": [
+    56.0,
+    17.8,
+    190.0
+   ],
+   "yaw": 46.99,
+   "scale": 1.3,
+   "asset": "World/lust_spire",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island8",
+   "pos": [
+    -30.0,
+    24.0,
+    230.0
+   ],
+   "yaw": 112.21,
+   "scale": 1.6,
+   "asset": "World/lust_island_large",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island9",
+   "pos": [
+    30.0,
+    -20.0,
+    -80.0
+   ],
+   "yaw": -51.66,
+   "scale": 0.9,
+   "asset": "World/lust_island_medium",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island10",
+   "pos": [
+    -45.0,
+    10.0,
+    -95.0
+   ],
+   "yaw": 135.89,
+   "scale": 0.8,
+   "asset": "World/lust_island_large",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_island11",
+   "pos": [
+    -0.0,
+    30.0,
+    270.0
+   ],
+   "yaw": -94.24,
+   "scale": 1.8,
+   "asset": "World/lust_island_large",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_spire11",
+   "pos": [
+    1.0,
+    29.8,
+    270.0
+   ],
+   "yaw": 65.64,
+   "scale": 1.8,
+   "asset": "World/lust_spire",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet0",
+   "pos": [
+    83.717,
+    -13.6488,
+    135.9181
+   ],
+   "yaw": 28.84,
+   "scale": 1.7236,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet1",
+   "pos": [
+    7.0406,
+    -7.5777,
+    -24.1228
+   ],
+   "yaw": -122.44,
+   "scale": 1.7566,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet2",
+   "pos": [
+    -99.3108,
+    8.4951,
+    106.8347
+   ],
+   "yaw": -87.33,
+   "scale": 1.607,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet3",
+   "pos": [
+    10.3204,
+    -13.6464,
+    142.431
+   ],
+   "yaw": -164.1,
+   "scale": 1.0185,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet4",
+   "pos": [
+    28.3753,
+    6.5914,
+    -44.8867
+   ],
+   "yaw": -169.35,
+   "scale": 1.7312,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet5",
+   "pos": [
+    -41.537,
+    9.0836,
+    85.0622
+   ],
+   "yaw": -106.57,
+   "scale": 1.6905,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet6",
+   "pos": [
+    38.8885,
+    18.1994,
+    -12.0875
+   ],
+   "yaw": 59.97,
+   "scale": 1.3007,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet7",
+   "pos": [
+    18.2673,
+    11.0581,
+    -45.6611
+   ],
+   "yaw": 167.57,
+   "scale": 1.9843,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet8",
+   "pos": [
+    3.6318,
+    7.2381,
+    196.921
+   ],
+   "yaw": -86.44,
+   "scale": 2.1015,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet9",
+   "pos": [
+    23.0871,
+    -7.8615,
+    -3.8489
+   ],
+   "yaw": 14.12,
+   "scale": 1.4936,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet10",
+   "pos": [
+    37.5465,
+    10.9972,
+    118.3897
+   ],
+   "yaw": -45.26,
+   "scale": 0.9698,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet11",
+   "pos": [
+    -2.9863,
+    20.8526,
+    -59.5164
+   ],
+   "yaw": -15.17,
+   "scale": 0.9794,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet12",
+   "pos": [
+    -1.3633,
+    -3.8911,
+    138.4345
+   ],
+   "yaw": 153.0,
+   "scale": 1.5094,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet13",
+   "pos": [
+    4.1405,
+    8.794,
+    -28.1391
+   ],
+   "yaw": -29.04,
+   "scale": 1.6507,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet14",
+   "pos": [
+    12.0563,
+    8.6819,
+    -15.1662
+   ],
+   "yaw": -65.95,
+   "scale": 1.4181,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet15",
+   "pos": [
+    21.2366,
+    15.7268,
+    149.3147
+   ],
+   "yaw": 133.64,
+   "scale": 0.8036,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet16",
+   "pos": [
+    -104.962,
+    -10.6636,
+    67.1614
+   ],
+   "yaw": -131.85,
+   "scale": 1.1978,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "far_islet17",
+   "pos": [
+    61.0599,
+    4.9483,
+    -25.1321
+   ],
+   "yaw": 10.97,
+   "scale": 1.5102,
+   "asset": "World/lust_islet",
+   "snap": 0,
+   "collider": "none",
+   "group": "Props"
+  },
+  {
+   "name": "MinosJudge",
+   "pos": [
+    -25.0,
+    1.6192,
+    -78.0
+   ],
+   "yaw": 90.0,
+   "scale": 1.0,
+   "asset": "Enemies/minos_judge",
+   "role": "judge",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Start",
+   "pos": [
+    -0.0,
+    -0.0433,
+    -104.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "start",
+   "group": "Game"
+  },
+  {
+   "name": "Gale",
+   "pos": [
+    -0.0,
+    10.0,
+    -0.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "gale",
+   "prevailing": 0.0,
+   "group": "Game"
+  },
+  {
+   "name": "Abyss",
+   "pos": [
+    -0.0,
+    -16.0,
+    -0.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "abyss",
+   "depth": -16.0,
+   "group": "Game"
+  },
+  {
+   "name": "UpdraftTower",
+   "pos": [
+    15.2,
+    -15.0,
+    22.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "updraft",
+   "radius": 2.4,
+   "height": 28.0,
+   "group": "Game"
+  },
+  {
+   "name": "UpdraftDido",
+   "pos": [
+    13.2,
+    -15.0,
+    77.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "updraft",
+   "radius": 2.4,
+   "height": 23.0,
+   "group": "Game"
+  },
+  {
+   "name": "UpdraftThrone",
+   "pos": [
+    17.2319,
+    -15.0,
+    174.7505
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "updraft",
+   "radius": 2.4,
+   "height": 23.5,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_gate",
+   "pos": [
+    -3.4,
+    0.0124,
+    -107.0
+   ],
+   "yaw": 30.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "lust_gate",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_ruina",
+   "pos": [
+    8.0,
+    0.0538,
+    -22.0
+   ],
+   "yaw": 20.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "lust_ruina",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_valley",
+   "pos": [
+    6.0,
+    -2.0,
+    13.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "lust_valley",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_abyss",
+   "pos": [
+    -4.0,
+    -5.5,
+    70.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "lust_abyss",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_city",
+   "pos": [
+    4.0,
+    -5.5,
+    115.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "lust_city",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Beacon_throne",
+   "pos": [
+    10.2319,
+    -5.5,
+    158.6505
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "asset": "World/beacon",
+   "role": "beacon",
+   "id": "lust_throne",
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Page_semiramis",
+   "pos": [
+    22.5,
+    10.2,
+    20.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "page",
+   "id": "semiramis",
+   "group": "Game"
+  },
+  {
+   "name": "Page_dido",
+   "pos": [
+    21.0,
+    3.2,
+    92.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "page",
+   "id": "dido",
+   "group": "Game"
+  },
+  {
+   "name": "Page_francesca",
+   "pos": [
+    19.4247,
+    -4.3,
+    159.0505
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "page",
+   "id": "francesca",
+   "group": "Game"
+  },
+  {
+   "name": "Exit",
+   "pos": [
+    18.2319,
+    4.0,
+    193.3184
+   ],
+   "yaw": 180.0,
+   "scale": 1.2,
+   "asset": "World/rift",
+   "role": "exit",
+   "id": "exit",
+   "leads_to": "Wrath",
+   "delay": 6.0,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Arena",
+   "pos": [
+    17.2319,
+    4.0,
+    192.0505
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "arena",
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.001",
+   "pos": [
+    -12.0,
+    0.0527,
+    -32.0
+   ],
+   "yaw": 74.9,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 6,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.002",
+   "pos": [
+    15.0,
+    -0.0438,
+    -42.0
+   ],
+   "yaw": 178.99,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 6,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.001",
+   "pos": [
+    -3.0,
+    -2.0,
+    21.0
+   ],
+   "yaw": 10.67,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 6,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Rubble.003",
+   "pos": [
+    -5.5,
+    -5.5,
+    115.866
+   ],
+   "yaw": -135.23,
+   "scale": 1.0,
+   "asset": "World/rubble",
+   "role": "matter",
+   "kind": "mineral",
+   "amount": 6,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Scrap.002",
+   "pos": [
+    21.2319,
+    -5.5,
+    154.6505
+   ],
+   "yaw": -56.94,
+   "scale": 1.0,
+   "asset": "World/scrap",
+   "role": "matter",
+   "kind": "metal",
+   "amount": 6,
+   "collider": "mesh",
+   "snap": 1,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A0",
+   "pos": [
+    -1.6249,
+    -0.0798,
+    -101.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 0,
+   "count": 8,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A1",
+   "pos": [
+    -1.4152,
+    0.044,
+    -95.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 1,
+   "count": 8,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A2",
+   "pos": [
+    -1.1681,
+    0.0009,
+    -89.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 2,
+   "count": 8,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A3",
+   "pos": [
+    -0.9266,
+    0.0088,
+    -83.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 3,
+   "count": 8,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A4",
+   "pos": [
+    -0.7326,
+    0.0492,
+    -77.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 4,
+   "count": 8,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A5",
+   "pos": [
+    -0.6198,
+    0.006,
+    -71.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 5,
+   "count": 8,
+   "group": "Game"
+  },
+  {
+   "name": "Procession_A6",
+   "pos": [
+    -0.6079,
+    -0.0488,
+    -65.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "procession",
+   "path": "A",
+   "order": 6,
+   "count": 8,
+   "group": "Game"
+  }
+ ]
+}
