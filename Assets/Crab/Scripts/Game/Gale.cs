@@ -32,6 +32,9 @@ namespace Crab.Game
         /// <summary>0..1 through the warning (0 otherwise).</summary>
         public float Warning01 => Now == Phase.Warning ? Mathf.Clamp01(t / len) : 0;
         public bool Gusting => Now == Phase.Gust;
+        /// <summary>0..1 through the phase now, and the seconds left of it.</summary>
+        public float Phase01 => Mathf.Clamp01(t / len);
+        public float Left => Mathf.Max(0, len - t);
 
         /// <summary>Where the wind blows now (on the ground plane).</summary>
         public Vector3 Dir => Quaternion.Euler(0, prevailing + Mathf.Sin(Time.time * 0.07f) * sway + (Now == Phase.Gust ? gustOff : 0), 0) * Vector3.forward;
@@ -96,6 +99,7 @@ namespace Crab.Game
         {
             Sfx.Loop("wind", 0.5f);
             streaks = Streaks();
+            new GameObject("LandingMark").AddComponent<LandingMark>().transform.SetParent(transform, false);
         }
 
         void Update()

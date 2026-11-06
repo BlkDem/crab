@@ -2170,6 +2170,272 @@
    "order": 6,
    "count": 8,
    "group": "Game"
+  },
+  {
+   "name": "Way00",
+   "pos": [
+    -0.0,
+    0.9593,
+    -5.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 0,
+   "kind": "walk",
+   "group": "Game"
+  },
+  {
+   "name": "Way01",
+   "pos": [
+    -0.0,
+    0.0,
+    3.6
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 1,
+   "kind": "gust",
+   "group": "Game"
+  },
+  {
+   "name": "Way02",
+   "pos": [
+    1.0,
+    -1.0,
+    10.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 2,
+   "kind": "calm",
+   "group": "Game"
+  },
+  {
+   "name": "Way03",
+   "pos": [
+    15.2,
+    -1.0,
+    22.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 3,
+   "kind": "updraft",
+   "group": "Game"
+  },
+  {
+   "name": "Way04",
+   "pos": [
+    22.0,
+    10.0,
+    27.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 4,
+   "kind": "ride",
+   "group": "Game"
+  },
+  {
+   "name": "Way05",
+   "pos": [
+    14.0,
+    4.0,
+    34.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 5,
+   "kind": "down",
+   "group": "Game"
+  },
+  {
+   "name": "Way06",
+   "pos": [
+    1.0,
+    -2.0,
+    38.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 6,
+   "kind": "down",
+   "group": "Game"
+  },
+  {
+   "name": "Way07",
+   "pos": [
+    -0.0,
+    -2.0,
+    47.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 7,
+   "kind": "walk",
+   "group": "Game"
+  },
+  {
+   "name": "Way08",
+   "pos": [
+    -0.0,
+    -3.0,
+    54.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 8,
+   "kind": "calm",
+   "group": "Game"
+  },
+  {
+   "name": "Way09",
+   "pos": [
+    -0.0,
+    -4.5,
+    65.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 9,
+   "kind": "gust",
+   "group": "Game"
+  },
+  {
+   "name": "Way10",
+   "pos": [
+    13.2,
+    -4.5,
+    77.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 10,
+   "kind": "updraft",
+   "group": "Game"
+  },
+  {
+   "name": "Way11",
+   "pos": [
+    19.5,
+    5.0,
+    81.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 11,
+   "kind": "ride",
+   "group": "Game"
+  },
+  {
+   "name": "Way12",
+   "pos": [
+    20.5,
+    3.0,
+    88.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 12,
+   "kind": "calm",
+   "group": "Game"
+  },
+  {
+   "name": "Way13",
+   "pos": [
+    20.0,
+    3.0,
+    102.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 13,
+   "kind": "walk",
+   "group": "Game"
+  },
+  {
+   "name": "Way14",
+   "pos": [
+    12.5,
+    -0.5,
+    106.5
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 14,
+   "kind": "down",
+   "group": "Game"
+  },
+  {
+   "name": "Way15",
+   "pos": [
+    3.0,
+    -4.5,
+    114.0
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 15,
+   "kind": "down",
+   "group": "Game"
+  },
+  {
+   "name": "Way16",
+   "pos": [
+    17.2319,
+    -4.5,
+    161.6505
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 16,
+   "kind": "walk",
+   "group": "Game"
+  },
+  {
+   "name": "Way17",
+   "pos": [
+    17.2319,
+    -4.5,
+    174.7505
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 17,
+   "kind": "updraft",
+   "group": "Game"
+  },
+  {
+   "name": "Way18",
+   "pos": [
+    17.2319,
+    5.0,
+    192.0505
+   ],
+   "yaw": -0.0,
+   "scale": 1.0,
+   "role": "route",
+   "seq": 18,
+   "kind": "ride",
+   "group": "Game"
   }
  ]
 }

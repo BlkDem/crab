@@ -66,6 +66,12 @@ namespace Crab.Game
 
         /// <summary>In the air, struck against an edge a little above it: up onto the ledge (a jump that
         /// all but made it, made — a gap is meant to be crossed, not missed by a hand's breadth).</summary>
+        /// <summary>How much of the wind moves it on the ground; at the very edge, less: time to react.</summary>
+        const float GroundGrip = 0.38f, EdgeGrip = 0.15f;
+
+        /// <summary>The land ends just ahead, where the wind blows.</summary>
+        bool EdgeDownwind(Gale gale) => !Physics.Raycast(transform.position + gale.Dir * 1.2f + Vector3.up * 0.5f, Vector3.down, 3, ~0, QueryTriggerInteraction.Ignore);
+
         void Mantle(CollisionFlags flags, Vector3 moving)
         {
             mantleCd -= Time.deltaTime;
@@ -106,7 +112,8 @@ namespace Crab.Game
             // the storm: on the ground it shoves, in the air it carries (in a gust, far)
             var gale = Gale.Instance;
             var push = gale && !Anchored ? gale.Force(transform.position) * windScale : Vector3.zero;
-            wind = Vector3.MoveTowards(wind, push * (cc.isGrounded ? 0.55f : 1f), (cc.isGrounded ? 14 : 8) * dt);
+            float grip = !cc.isGrounded ? 1f : gale && EdgeDownwind(gale) ? EdgeGrip : GroundGrip;
+            wind = Vector3.MoveTowards(wind, push * grip, (cc.isGrounded ? 14 : 8) * dt);
             float rise = stormCraft ? Updraft.At(transform.position) : 0;
             if (cc.isGrounded && rise <= 0)
             {

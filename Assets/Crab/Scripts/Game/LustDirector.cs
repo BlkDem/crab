@@ -16,6 +16,9 @@ namespace Crab.Game
     {
         public List<Beacon> beacons = new List<Beacon>();
         public List<PagePickup> pages = new List<PagePickup>();
+        [Tooltip("The way, in order, and how each point is reached from the one before")]
+        public List<Transform> route = new List<Transform>();
+        public List<string> routeKinds = new List<string>();
         public Rift exit;
         public Transform judge;
         [Tooltip("Where the ruina begins (z): the storm's lesson")]
@@ -23,6 +26,9 @@ namespace Crab.Game
 
         Hero hero;
         GameState st;
+        int step = -1;
+        bool routeOn;
+        readonly HashSet<string> told = new HashSet<string>();
 
         IEnumerator Start()
         {
@@ -63,16 +69,73 @@ namespace Crab.Game
                 Story.Think("Ветер. Он не стихает ни на миг — и несёт в себе голоса. Стоны. Имена.", 4.5f);
                 yield return Wait(5);
                 Story.Task("Пройти мимо судьи", judge);
+                StartCoroutine(TeachStorm());
                 while (judge && hero.transform.position.z < judge.position.z - 14) yield return null;
                 Story.Think("Минос. Он судит каждого и обвивает себя хвостом столько раз, на сколько кругов вниз отправить. Дважды. Второй круг.", 6);
                 while (hero.transform.position.z < ruinaZ) yield return null;
-                Story.Hint("При вое ветра — за скалу или держись якорем (Ctrl). Прыгни в порыв — и он унесёт далеко; держи прыжок — планируй.");
+                Story.Hint("За скалой ветра нет: встань так, чтобы она заслоняла от него. Вверху появится «в укрытии».");
                 yield return Wait(6);
                 Story.Think("Здесь, на краю, ветер вырвал из его книги страницы. Три. Без них суд не полон — и путь дальше закрыт.", 5);
                 yield return Wait(5);
             }
-            if (Taken < pages.Count) Story.Task(PageTask, null, NearestPage);
+            routeOn = true;
+            if (Taken < pages.Count) Story.Task(PageTask, null, NextStep);
             else OpenExit(false);
+        }
+
+        /// <summary>The storm's rules one at a time, as the ledge first shows each.</summary>
+        IEnumerator TeachStorm()
+        {
+            var gale = Gale.Instance;
+            bool OnLedge() => hero.transform.position.z < ruinaZ;
+            while (OnLedge() && gale.Now != Gale.Phase.Warning) yield return null;
+            if (!OnLedge()) yield break;
+            Story.Hint("Вой нарастает: скоро порыв. Вверху экрана видно, откуда ветер и сколько осталось.");
+            while (OnLedge() && gale.Now != Gale.Phase.Gust) yield return null;
+            if (!OnLedge()) yield break;
+            Story.Hint("Порыв толкает к обрыву. Зажми Ctrl или C: якорь держит на месте.");
+        }
+
+        void Update()
+        {
+            if (!routeOn || !hero || !hero.Controller.Grounded) return;
+            // the point of the way the crab stands by (back too, when the abyss returned it)
+            var at = hero.transform.position;
+            int by = -1;
+            float best = 6;
+            for (int i = 0; i < route.Count; i++)
+            {
+                var d = route[i].position - at;
+                float flat = new Vector2(d.x, d.z).magnitude;
+                if (flat < best && Mathf.Abs(d.y) < 5) { best = flat; by = i; }
+            }
+            if (by < 0 || by == step) return;
+            step = by;
+            if (step + 1 < route.Count) Tell(routeKinds[step + 1]);
+        }
+
+        /// <summary>The first time the way asks for a move: what to do.</summary>
+        void Tell(string kind)
+        {
+            string text = kind switch
+            {
+                "gust" => "Отсюда не допрыгнуть. Дождись воя, разбегись и прыгни, когда придёт порыв: он унесёт далеко.",
+                "calm" => "Прыгай с разбега. Зажми прыжок в воздухе, чтобы планировать.",
+                "down" => "Спуск: прыгни и держи прыжок. Кружок внизу покажет, куда сядешь; нет кружка — под тобой бездна.",
+                "updraft" => "Светлый столб — восходящий поток. Шагни в него, и он поднимет.",
+                "ride" => "Наверху веди краба к острову и держи прыжок.",
+                _ => null,
+            };
+            if (text != null && told.Add(kind)) Story.Hint(text);
+        }
+
+        /// <summary>Where the task's mark leads: a page close by, else the next point of the way.</summary>
+        Transform NextStep()
+        {
+            var page = NearestPage();
+            if (page && Vector3.Distance(page.position, hero.transform.position) < 12) return page;
+            if (step + 1 < route.Count) return route[step + 1];
+            return page ? page : exit.transform;
         }
 
         int Taken => pages.Count(p => st.Flag("page_" + p.id));
@@ -91,7 +154,7 @@ namespace Crab.Game
             st.SetFlag("page_" + p.id);
             Story.Think(Thought(p.id), 5);
             GameSession.Instance.Save();
-            if (Taken < pages.Count) Story.Task(PageTask, null, NearestPage);
+            if (Taken < pages.Count) Story.Task(PageTask, null, NextStep);
             else OpenExit(true);
         }
 
@@ -103,7 +166,7 @@ namespace Crab.Game
                 Fx.Flash(exit.Point, new Color(1f, 0.5f, 0.2f), 10, 20, 0.8f);
                 Sfx.Loop("rift", 0.6f);
             }
-            Story.Task("Все страницы собраны. К трону Миноса: войти в разлом", exit.transform);
+            Story.Task("Все страницы собраны. К трону Миноса: войти в разлом", null, NextStep);
         }
 
         Transform NearestPage()

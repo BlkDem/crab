@@ -365,6 +365,18 @@ def game(rng, up):
     # the way's ends kept clear: the jumps' run-ups and landings, the bridges' ends
     for x, z in ((0, -7.5), (0, 7), (0, 30), (0, 34), (0, 46), (0, 52), (0, 57), (0, 65), (19.5, 82), (21, 88), (20, 101), (12.5, 106.5)):
         P.keep_clear(from_unity(x, 0, z), 2.0)
+    # the way through the circle, point by point, past all three pages (the task's mark follows it);
+    # kind: how a point is reached from the one before
+    way = [("walk", 0, -5.5, None), ("gust", 0, 3.6, None), ("calm", 1, 10, None),
+           ("updraft", valley.x + valley.hx + 2.7, 22, valley.top), ("ride", 22, 27, None), ("down", 14, 34, None), ("down", 1, 38, None),
+           ("walk", 0, 47, None), ("calm", 0, 54, None), ("gust", 0, 65, None),
+           ("updraft", abyss_i.x + abyss_i.hx + 2.7, 77, abyss_i.top), ("ride", 19.5, 81.5, None), ("calm", 20.5, 88, None), ("walk", 20, 102, None),
+           ("down", 12.5, 106.5, None), ("down", 3, 114, None), ("walk", c2.x, c2.z, c2.top),
+           ("updraft", up[0], up[1], c2.top), ("ride", arena.x, arena.z, arena.top)]
+    for k, (kind, x, z, top) in enumerate(way):
+        y = land_at(x, z) if top is None else top
+        assert y is not None, f"the way's point {k} over the abyss: {x}, {z}"
+        LV.marker(f"Way{k:02d}", from_unity(x, y + 1, z), 0, role="route", seq=k, kind=kind)
 
 
 def scenery(rng):

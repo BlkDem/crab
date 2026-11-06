@@ -19,11 +19,11 @@ namespace Crab.Game
             main.loop = true;
             main.startLifetime = height / lift;
             main.startSpeed = lift;
-            main.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.25f);
-            main.startColor = new Color(0.75f, 0.6f, 1f, 0.5f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.32f);
+            main.startColor = new Color(0.8f, 0.65f, 1f, 0.8f);
             main.simulationSpace = ParticleSystemSimulationSpace.World;
             var em = ps.emission;
-            em.rateOverTime = 60;
+            em.rateOverTime = 150;
             var sh = ps.shape;
             sh.shapeType = ParticleSystemShapeType.Circle;
             sh.radius = radius;
@@ -36,10 +36,10 @@ namespace Crab.Game
             ps.Play();
             var l = new GameObject("Glow").AddComponent<Light>();
             l.transform.SetParent(transform, false);
-            l.transform.localPosition = Vector3.up * 2;
+            l.transform.localPosition = Vector3.up * Mathf.Max(2, height - 5);   // up by the land it serves: its foot is far down in the abyss
             l.color = new Color(0.7f, 0.5f, 1f);
-            l.range = 8;
-            l.intensity = 1.5f;
+            l.range = 18;
+            l.intensity = 4;
         }
 
         /// <summary>The lift at a place (0 outside the column; less toward its top).</summary>

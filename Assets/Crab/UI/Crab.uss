@@ -62,6 +62,18 @@
 .prompt Label { padding: 6px 14px; border-radius: 8px; background-color: rgba(0, 0, 0, 0.55); font-size: 15px; -unity-font-definition: url("Fonts/Nunito-ExtraBold.ttf"); color: var(--green); }
 .crosshair { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; translate: -50% -50%; }
 
+/* the storm (top middle) */
+.wind { position: absolute; left: 0; right: 0; top: 18px; align-items: center; }
+.wind-row { flex-direction: row; align-items: center; padding: 4px 12px; border-radius: 10px; background-color: var(--panel); }
+.wind-arrow { width: 18px; height: 20px; margin-right: 8px; }
+.wind-phase { font-size: 15px; color: var(--muted); }
+.wind-state { font-size: 15px; margin-left: 10px; color: var(--green); }
+.wind-bar { width: 220px; height: 6px; margin-top: 4px; border-radius: 3px; background-color: rgba(0, 0, 0, 0.45); }
+.wind-fill { height: 100%; border-radius: 3px; background-color: var(--gold); }
+.wind.warning .wind-phase { color: var(--gold); -unity-font-style: bold; }
+.wind.gust .wind-phase { color: rgb(255, 95, 80); -unity-font-style: bold; }
+.wind.gust .wind-fill { background-color: rgb(255, 95, 80); }
+
 /* boss bar */
 .boss { position: absolute; left: 0; right: 0; top: 18px; align-items: center; display: none; }
 .boss .name { font-size: 20px; -unity-font-definition: url("Fonts/RussoOne-Regular.ttf"); color: #c8ffe0; letter-spacing: 2px; }

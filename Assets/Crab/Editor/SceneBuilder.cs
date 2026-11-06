@@ -1212,6 +1212,15 @@ namespace Crab.EditorTools
             Setup("Lust", start);
             var dir = new GameObject("LustDirector").AddComponent<LustDirector>();
             foreach (var b in All("beacon")) dir.beacons.Add(MakeBeacon(b.go, b.Str("id")));
+            // the way, point by point: where the task's mark leads next
+            foreach (var w in All("route").OrderBy(x => x.Num("seq")))
+            {
+                var point = new GameObject("Way" + (int)w.Num("seq")).transform;
+                point.SetParent(root, false);
+                point.position = w.Pos;
+                dir.route.Add(point);
+                dir.routeKinds.Add(w.Str("kind"));
+            }
             // Minos the judge on his rock, his eyes burning over the souls' ledge
             var judge = One("judge").go;
             dir.judge = judge.transform;

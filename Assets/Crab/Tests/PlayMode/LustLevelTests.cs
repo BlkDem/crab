@@ -82,6 +82,86 @@ namespace Crab.Tests
             Assert.That(wrong, Is.Empty, string.Join("\n", wrong));
         }
 
+        /// <summary>At the very edge the wind eases: time to react. But it does blow the crab off in the end.</summary>
+        [UnityTest]
+        public IEnumerator TheEdgeGivesTimeToReact()
+        {
+            yield return LustLevel();
+            var hero = Hero.Instance;
+            hero.Invulnerable = true;
+            var gale = Gale.Instance;
+            gale.sway = 0;
+            gale.gustSpread = 0;
+            gale.Hold(Gale.Phase.Calm);
+            hero.Controller.Teleport(new Vector3(0, 0.3f, -5.8f), 0);   // the ruina's north edge is at about -4.5
+            yield return Wait(0.4f);
+            gale.Hold(Gale.Phase.Gust);
+            yield return Wait(1f);
+            Assert.That(hero.Controller.Grounded && hero.transform.position.z < -4.2f, $"a second at the edge in a gust: still there (at {hero.transform.position})");
+            yield return Until(() => !hero.Controller.Grounded || hero.transform.position.z > -3.5f, 8, "staying in the gust, the crab goes over");
+        }
+
+        /// <summary>The task's mark goes along the way, step by step, not straight at a page over the abyss;
+        /// the ring under the crab in the air shows the land it will come down on, no ring: the abyss.</summary>
+        [UnityTest]
+        public IEnumerator TheMarkLeadsAlongTheWay()
+        {
+            yield return LustLevel();
+            var hero = Hero.Instance;
+            hero.Invulnerable = true;
+            Gale.Instance.Hold(Gale.Phase.Calm);
+            var dir = Object.FindAnyObjectByType<LustDirector>();
+            Assert.That(dir.route.Count, Is.EqualTo(19), "the way's points");
+            Assert.That(dir.routeKinds.Count, Is.EqualTo(dir.route.Count));
+            hero.Controller.Teleport(new Vector3(0, 0.3f, -6.5f), 0);
+            yield return Wait(0.5f);
+            Assert.That(Story.Goal, Is.EqualTo(dir.route[1]), "from the ruina's edge: to the islet");
+            hero.Controller.Teleport(dir.route[2].position, 0);
+            yield return Wait(0.8f);
+            Assert.That(Story.Goal, Is.EqualTo(dir.route[3]), "from the valley: to the updraft");
+            hero.Controller.Teleport(new Vector3(0, 0.3f, -6.5f), 0);
+            yield return Wait(0.5f);
+            Assert.That(Story.Goal, Is.EqualTo(dir.route[1]), "returned by the abyss: the way picks up from there");
+
+            hero.Controller.Teleport(new Vector3(0, 8, -20), 0);
+            yield return null;
+            yield return null;
+            Assert.That(LandingMark.Instance.Shown, "over the ruina: the ring");
+            Assert.That(LandingMark.Instance.transform.position.y, Is.LessThan(2), "on the land");
+            hero.Controller.Teleport(new Vector3(0, 2, -1), 0);   // the gap past the torn edge
+            yield return null;
+            yield return null;
+            Assert.That(LandingMark.Instance.Shown, Is.False, "over the abyss: no ring");
+        }
+
+        /// <summary>The storm reads on the screen: its phase and time, the anchor. Pictures: play-lust-hud-*.jpg.</summary>
+        [UnityTest]
+        public IEnumerator TheStormReadsOnTheScreen()
+        {
+            yield return LustLevel();
+            UiToTexture();
+            var hero = Hero.Instance;
+            hero.Invulnerable = true;
+            var gale = Gale.Instance;
+            var ui = Object.FindAnyObjectByType<GameUI>().GetComponent<UnityEngine.UIElements.UIDocument>().rootVisualElement;
+            string Text(string cls) => UnityEngine.UIElements.UQueryExtensions.Q<UnityEngine.UIElements.Label>(ui, className: cls).text;
+            hero.Controller.Teleport(new Vector3(0, 0.3f, -14), 0);
+            gale.Hold(Gale.Phase.Calm);
+            yield return Wait(0.6f);
+            Assert.That(Text("wind-phase"), Is.EqualTo("затишье"));
+            gale.Set(Gale.Phase.Warning, 2);
+            yield return Wait(0.6f);
+            Assert.That(Text("wind-phase"), Does.StartWith("ВОЙ"));
+            yield return Shot("lust-hud-warning");
+            hero.Controller.autopilotAnchor = true;
+            gale.Hold(Gale.Phase.Gust);
+            yield return Wait(0.5f);
+            Assert.That(Text("wind-phase"), Is.EqualTo("ПОРЫВ"));
+            Assert.That(Text("wind-state"), Is.EqualTo("якорь держит"));
+            yield return Shot("lust-hud-gust");
+            hero.Controller.autopilotAnchor = null;
+        }
+
         [UnityTest]
         public IEnumerator TheFirstGustCarriesOffTheRuina()
         {

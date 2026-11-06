@@ -27,6 +27,8 @@ namespace Crab.Game
         Hero hero;
         IBoss guardian;
         Label levelText;
+        VisualElement windHud, windFill, windArrow;
+        Label windPhase, windState;
         float lastHp = -1;
         /// <summary>A film moment: only the words stay on screen (the end).</summary>
         public static bool Cinema;
@@ -64,6 +66,15 @@ namespace Crab.Game
 
             vignette = E("overlay vignette", root);
             // status
+            windHud = E("wind", root);
+            windHud.pickingMode = PickingMode.Ignore;
+            var windRow = E("wind-row", windHud);
+            windArrow = E("wind-arrow", windRow);
+            windArrow.generateVisualContent += DrawWindArrow;
+            windPhase = L("", "wind-phase", windRow);
+            windState = L("", "wind-state", windRow);
+            windFill = E("wind-fill", E("wind-bar", windHud));
+            windHud.style.display = DisplayStyle.None;
             var status = E("status", root);
             var hpRow = E("hp-row", status);
             var heart = E("hp-icon", hpRow);
@@ -241,6 +252,7 @@ namespace Crab.Game
             fadeEl.style.opacity = s ? s.fade : 0;
             root.EnableInClassList("cinema", Cinema);
             if (hero) UpdateGoal();
+            UpdateWind();
             fpsTime += dt;
             fpsFrames++;
             if (fpsTime > 0.5f)
@@ -581,6 +593,41 @@ namespace Crab.Game
         }
 
         // ------------------------------------------------------------------ icons
+        /// <summary>The storm at a glance: where it blows, its phase and time, the crab's shelter.</summary>
+        void UpdateWind()
+        {
+            var gale = Gale.Instance;
+            bool show = gale && hero && !Cinema;
+            windHud.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!show) return;
+            var now = gale.Now;
+            windPhase.text = now == Gale.Phase.Gust ? "ПОРЫВ" : now == Gale.Phase.Warning ? $"ВОЙ · порыв через {Mathf.CeilToInt(gale.Left)}" : "затишье";
+            windHud.EnableInClassList("warning", now == Gale.Phase.Warning);
+            windHud.EnableInClassList("gust", now == Gale.Phase.Gust);
+            windFill.style.width = Length.Percent(100 * (now == Gale.Phase.Warning ? gale.Phase01 : now == Gale.Phase.Gust ? 1 - gale.Phase01 : 0));
+            windState.text = hero.Controller.Anchored ? "якорь держит" : gale.Sheltered(hero.transform.position) ? "в укрытии" : "";
+            var cam = Camera.main;
+            if (cam)
+            {
+                var d = gale.Dir;
+                windArrow.style.rotate = new Rotate(new Angle(Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg - cam.transform.eulerAngles.y, AngleUnit.Degree));
+            }
+        }
+
+        static void DrawWindArrow(MeshGenerationContext ctx)
+        {
+            var p = ctx.painter2D;
+            var r = ctx.visualElement.contentRect;
+            p.fillColor = Color.white;
+            p.BeginPath();
+            p.MoveTo(new Vector2(r.width / 2, 0));
+            p.LineTo(new Vector2(r.width, r.height));
+            p.LineTo(new Vector2(r.width / 2, r.height * 0.72f));
+            p.LineTo(new Vector2(0, r.height));
+            p.ClosePath();
+            p.Fill();
+        }
+
         static void DrawHeart(MeshGenerationContext ctx)
         {
             var p = ctx.painter2D;
