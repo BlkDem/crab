@@ -64,14 +64,14 @@ namespace Crab.Game
 
         public void Knock(Vector3 push) => knock += push;
 
-        /// <summary>In the air, struck against an edge a little above it: up onto the ledge (a jump that
-        /// all but made it, made — a gap is meant to be crossed, not missed by a hand's breadth).</summary>
         /// <summary>How much of the wind moves it on the ground; at the very edge, less: time to react.</summary>
         const float GroundGrip = 0.38f, EdgeGrip = 0.15f;
 
         /// <summary>The land ends just ahead, where the wind blows.</summary>
         bool EdgeDownwind(Gale gale) => !Physics.Raycast(transform.position + gale.Dir * 1.2f + Vector3.up * 0.5f, Vector3.down, 3, ~0, QueryTriggerInteraction.Ignore);
 
+        /// <summary>In the air, struck against an edge a little above it: up onto the ledge (a jump that
+        /// all but made it, made — a gap is meant to be crossed, not missed by a hand's breadth).</summary>
         void Mantle(CollisionFlags flags, Vector3 moving)
         {
             mantleCd -= Time.deltaTime;

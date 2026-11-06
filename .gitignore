@@ -119,3 +119,9 @@ InitTestScene*.unity*
 # derived from Assets/Crab/Models by ModelUnpack (SceneBuilder.BuildAll remakes them)
 /Assets/Crab/Art/Unpacked/
 /Assets/Crab/Art/Unpacked.meta
+
+# Raw downloads (Tripo and others) the Blender tools import from: over 1 GB, kept out of the repo
+/Models/
+
+# Python's bytecode
+__pycache__/
