@@ -15,6 +15,8 @@ namespace Crab.Game
         float s, total, seed;
         float[] at;
         Transform body;
+        Animator anim;
+        static readonly int SpeedId = Animator.StringToHash("Speed");
 
         void Start()
         {
@@ -23,7 +25,11 @@ namespace Crab.Game
             total = Mathf.Max(0.01f, at[path.Length - 1]);
             s = start % (2 * total);
             seed = Random.value * 10;
-            body = CrabRig.BodyOf(transform);
+            // a model with a "Body" leans with it; one with its own clips walks them instead
+            body = CrabRig.Find(transform, "Body");
+            anim = GetComponentInChildren<Animator>();
+            if (anim && !anim.runtimeAnimatorController) anim = null;
+            if (anim) anim.Play("Move", 0, Random.value);
             transform.position = Point(s, out _);
         }
 
@@ -55,6 +61,7 @@ namespace Crab.Game
             float bob = Mathf.Sin(Time.time * 1.4f + seed) * 0.05f;
             transform.position = Vector3.Lerp(transform.position, p + Vector3.up * (0.1f + bob), dt * 4);
             if (body) body.localRotation = Quaternion.Euler(seen ? -4 : 6 + Mathf.Sin(Time.time * 0.9f + seed) * 2, 0, 0);
+            if (anim) anim.SetFloat(SpeedId, seen ? 0 : speed, 0.3f, dt);
         }
     }
 }

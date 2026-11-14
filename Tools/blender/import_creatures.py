@@ -1,7 +1,8 @@
 """
 Sculpted models of the first circle (Models/lvl1, from Tripo) brought into the game:
   creatures, rigged here to what their code moves —
-    shade    (the Shade of Limbo, 2.5 m): Body > ArmL, ArmR; GlowEyes in the hood;
+    shade    (the Shade of Limbo, 2.5 m): the hooded ghost on its own Mixamo skeleton with its clips (Призрак Лимба.glb);
+             GlowEyes on the head bone, in the hood;
     crawler  (the Scavenger, 1.5 m long): Body > Jaw, Tail, Leg{L,R}{0,1}_0 > _1 (0 front, 1 back); GlowEyes;
     guardian (the Guardian of Limbo, 5.6 m): Body > Head, Arm{L,R}_0 > _1; Heart, Lantern, GlowLantern;
   and things that only stand: poet (the colossus on the cliff), gate_statue, castle_far (in the fog),
@@ -146,28 +147,83 @@ def export(name, folder, obs):
 
 
 # ----------------------------------------------------------------------------- creatures
-def build_shade():
-    ob = load("Тень Лимба.glb", height=2.5)
-    co = [v.co for v in ob.data.vertices]
-    H = 2.5
-    # the arms hang at the shroud's sides: out past the robe between hip and shoulder
-    sides = {}
-    for s, sx in (("L", 1), ("R", -1)):
-        arm_pts = [c for c in co if c.x * sx > 0.22 * H and 0.3 * H < c.z < 0.74 * H]
-        hand = min(arm_pts, key=lambda c: c.z)
-        sides[s] = (Vector((sx * 0.13 * H, 0.0, 0.73 * H)), Vector((hand.x, hand.y, hand.z)))
-    face = [c for c in co if c.z > 0.84 * H and abs(c.x) < 0.05 * H]
-    fy = min(c.y for c in face)
-    arm = armature([("Body", (0, 0, 0.05 * H), (0, 0, 0.8 * H), None)] +
-                   [(f"Arm{s}", sh, hd, "Body") for s, (sh, hd) in sides.items()])
-    # only what reaches out past the shroud is arm (the edge closes in toward the shoulder);
-    # the shroud and its rags stay with the body
-    def arm_part(c):
-        edge = 0.2 * H - 0.07 * H * smooth(0.58 * H, 0.74 * H, c.z)
-        return smooth(edge - 0.01 * H, edge + 0.015 * H, abs(c.x)) * smooth(0.3 * H, 0.35 * H, c.z)
+# The Shade's clips: Tripo's names, and the names the game plays them by (Shade, Pilgrim, SceneBuilder.ShadeAnimator).
+SHADE_CLIPS = {"idle": "Idle", "look_around": "LookAround", "walk": "Walk", "run": "Run", "angry_01": "Reach",
+               "hit_to_head": "HitHead", "hit_to_body_02": "HitBody", "hit_to_stomach": "HitStomach", "fall": "Fall"}
 
-    auto_skin(ob, arm, lambda c: 1 - arm_part(c))
-    ey = eyes(arm, "Body", [(0.022 * H, fy + 0.14, 0.87 * H), (-0.022 * H, fy + 0.14, 0.87 * H)], 0.006 * H)
+
+def use_action(arm, action):
+    data = arm.animation_data
+    data.action = action
+    if getattr(data, "action_slot", None) is None and len(getattr(action, "slots", [])) > 0:
+        data.action_slot = action.slots[0]
+
+
+def in_place(arm, bone, action):
+    """Takes a clip's travel out: the hips keep their sway and bob, not the distance (the game moves the creature)."""
+    scene = bpy.context.scene
+    first, last = (int(round(f)) for f in action.frame_range)
+    use_action(arm, action)
+    scene.frame_set(first)
+    start = bone.head.copy()
+    scene.frame_set(last)
+    step = (bone.head - start) / (last - first)
+    step.z = 0.0
+    to_bone = bone.bone.matrix_local.to_3x3().inverted()
+    keys = []
+    for f in range(first, last + 1):
+        scene.frame_set(f)
+        keys.append((f, bone.location + to_bone @ (-step * (f - first))))
+    for f, location in keys:
+        bone.location = location
+        bone.keyframe_insert("location", frame=f)
+
+
+def build_shade():
+    """The Shade of Limbo: Tripo's hooded ghost (Призрак Лимба.glb) on its own Mixamo skeleton, with its clips —
+    it drifts on its walk, reaches up and swoops at the crab, flinches when hit and falls. 2.5 m tall; the walk and
+    the run keep their stride but not their travel; GlowEyes ride the head bone, inside the hood."""
+    H = 2.5
+    L.reset()
+    bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, "Призрак Лимба.glb"))
+    arm = next(o for o in bpy.data.objects if o.type == "ARMATURE")
+    ob = next(o for o in bpy.data.objects if o.type == "MESH" and o.parent == arm)
+    for o in list(bpy.data.objects):
+        if o not in (arm, ob):
+            bpy.data.objects.remove(o)
+    for a in list(bpy.data.actions):
+        if a.name not in SHADE_CLIPS:
+            bpy.data.actions.remove(a)
+
+    # sized in the rest pose, by the armature, so every clip's bone moves scale with it
+    arm.animation_data.action = None
+    for pb in arm.pose.bones:
+        pb.matrix_basis = Matrix.Identity(4)
+    bpy.context.view_layer.update()
+    zs = [(ob.matrix_world @ v.co).z for v in ob.data.vertices]
+    k = H / (max(zs) - min(zs))
+    arm.scale = arm.scale * k
+    bpy.context.view_layer.update()
+
+    hips = arm.pose.bones["mixamorig:Hips"]
+    for a in list(bpy.data.actions):
+        a.use_fake_user = True
+        if a.name in ("walk", "run"):
+            in_place(arm, hips, a)
+        a.name = SHADE_CLIPS[a.name]
+    use_action(arm, bpy.data.actions["Idle"])
+    arm.animation_data.action = None
+    for pb in arm.pose.bones:
+        pb.matrix_basis = Matrix.Identity(4)
+    bpy.context.view_layer.update()
+
+    # the eyes inside the hood, a little behind its rim, a touch above the head joint
+    head = arm.matrix_world @ arm.pose.bones["mixamorig:Head"].head
+    world = [ob.matrix_world @ v.co for v in ob.data.vertices]
+    rim = min(c.y for c in world if abs(c.x) < 0.04 * H and abs(c.z - head.z) < 0.04 * H)
+    ez, ey_ = head.z + 0.012 * H, rim + 0.035 * H
+    ey = eyes(arm, "mixamorig:Head", [(0.018 * H, ey_, ez), (-0.018 * H, ey_, ez)], 0.006 * H)
+    arm.name = "Shade"
     ob.name = ob.data.name = "Shroud"
     export("shade", "Enemies", [arm, ob, ey])
 

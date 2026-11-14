@@ -9,6 +9,7 @@ using System.Linq;
 using Crab.Core;
 using Crab.Game;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -198,7 +199,8 @@ namespace Crab.EditorTools
                 m.SetFloat("_Cull", 0);
             });
             l.fire = Mat("Fire", "Crab/Glow", m => { m.SetFloat("_Round", 0); m.SetFloat("_Rim", 1); m.SetColor("_Tint", new Color(1f, 0.55f, 0.15f, 1f)); });
-            l.shade = EnemyPrefab<Shade>("Shade", Glb("Enemies/shade"), 0.4f, 2.4f, e => { e.maxHealth = 40; e.speed = 1.8f; e.attackRange = 1.7f; e.damage = 9; e.windup = 0.7f; e.attackCooldown = 1.5f; });
+            var shadeMotion = ShadeMotion();
+            l.shade = EnemyPrefab<Shade>("Shade", Glb("Enemies/shade"), 0.4f, 2.4f, e => { e.maxHealth = 40; e.speed = 1.8f; e.attackRange = 1.7f; e.damage = 9; e.windup = 0.7f; e.attackCooldown = 1.5f; Animated(e.model, shadeMotion); });
             l.crawler = EnemyPrefab<Crawler>("Crawler", Glb("Enemies/crawler"), 0.45f, 0.8f, e => { e.maxHealth = 28; e.speed = 3.6f; e.attackRange = 1.1f; e.damage = 8; e.windup = 0.35f; e.attackCooldown = 1.2f; });
             l.imp = EnemyPrefab<Imp>("Imp", Glb("Enemies/imp"), 0.35f, 1.3f, e => { e.maxHealth = 45; e.speed = 3.4f; e.attackRange = 1.4f; e.damage = 11; e.windup = 0.4f; e.attackCooldown = 1.1f; e.aggro = 16; });
             l.brute = EnemyPrefab<Brute>("Brute", Glb("Enemies/brute"), 0.8f, 3.0f, e => { e.maxHealth = 220; e.speed = 1.7f; e.attackRange = 2.6f; e.damage = 26; e.windup = 1.0f; e.attackCooldown = 2.4f; e.aggro = 14; });
@@ -234,6 +236,47 @@ namespace Crab.EditorTools
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, $"Assets/Crab/Prefabs/{name}.prefab");
             UnityEngine.Object.DestroyImmediate(go);
             return prefab;
+        }
+
+        /// <summary>The Shade walks at this speed in its Walk clip, and runs at this in its Run clip, m/s (the clips' own
+        /// stride at the model's 2.5 m, from Tools/blender/import_creatures.py).</summary>
+        const float ShadeWalk = 1.44f, ShadeRun = 5.25f;
+
+        /// <summary>
+        /// The Shade's motion-captured clips (inside its model) as an Animator: "Move" blends standing, walking and
+        /// running by the "Speed" the code gives it; Shade and Pilgrim play the rest themselves (the reach, the flinches,
+        /// the fall), so those have no transitions.
+        /// </summary>
+        static RuntimeAnimatorController ShadeMotion()
+        {
+            string path = $"{Gen}/ShadeMotion.controller";
+            var clips = AssetDatabase.LoadAllAssetsAtPath(ModelUnpack.PathOf("Enemies/shade")).OfType<AnimationClip>()
+                .Where(c => !c.name.StartsWith("__preview__")).ToDictionary(c => c.name);
+            AssetDatabase.DeleteAsset(path);
+            var controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+            controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
+            var machine = controller.layers[0].stateMachine;
+            var move = controller.CreateBlendTreeInController("Move", out BlendTree tree, 0);
+            tree.blendType = BlendTreeType.Simple1D;
+            tree.blendParameter = "Speed";
+            tree.useAutomaticThresholds = false;
+            tree.AddChild(clips["Idle"], 0f);
+            tree.AddChild(clips["Walk"], ShadeWalk);
+            tree.AddChild(clips["Run"], ShadeRun);
+            machine.defaultState = move;
+            foreach (var name in new[] { "Reach", "HitHead", "HitBody", "HitStomach", "Fall" })
+                machine.AddState(name).motion = clips[name];
+            return controller;
+        }
+
+        /// <summary>A model plays its clips through this controller (glTFast gives it an Animator with none).</summary>
+        static void Animated(Transform model, RuntimeAnimatorController controller)
+        {
+            var animator = model.GetComponent<Animator>();
+            if (!animator) animator = model.gameObject.AddComponent<Animator>();
+            animator.runtimeAnimatorController = controller;
+            animator.applyRootMotion = false;
+            animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
         }
 
         static GameObject CompanionPrefab<T>(string name, GameObject model, float radius, float height) where T : MonoBehaviour
@@ -973,6 +1016,7 @@ namespace Crab.EditorTools
                 {
                     var soul = (GameObject)PrefabUtility.InstantiatePrefab(Glb("Enemies/shade"), line);
                     soul.name = "Soul";
+                    Animated(soul.transform, AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>($"{Gen}/ShadeMotion.controller"));
                     foreach (var rr in soul.GetComponentsInChildren<Renderer>())
                     {
                         rr.sharedMaterial = ghost;
